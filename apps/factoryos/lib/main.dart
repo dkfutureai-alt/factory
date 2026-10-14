@@ -6,6 +6,12 @@ import 'features/auth/login_page.dart';
 import 'features/dashboard/admin_dashboard_page.dart';
 import 'features/dispatch/data/dispatch_repository.dart';
 import 'features/dispatch/presentation/dispatch_dashboard_page.dart';
+import 'features/fleet/data/fleet_repository.dart';
+import 'features/fleet/presentation/driver_detail_page.dart';
+import 'features/fleet/presentation/fleet_dashboard_page.dart';
+import 'features/fleet/presentation/fuel_management_page.dart';
+import 'features/fleet/presentation/trip_management_page.dart';
+import 'features/fleet/presentation/vehicle_detail_page.dart';
 import 'features/home/driver_home_page.dart';
 import 'features/home/employee_home_page.dart';
 import 'features/hr/data/hr_repository.dart';
@@ -64,6 +70,11 @@ class FactoryOsApp extends StatelessWidget {
           '/sales/customer': (_) => const CustomerDetailPage(repository: PreviewSalesRepository(), customerCode: 'CUST-0042'),
           '/sales/order': (_) => const SalesOrderDetailPage(repository: PreviewSalesRepository(), orderNumber: 'SO-2026-01842'),
           '/sales/tracking': (_) => const PaymentDeliveryTrackingPage(repository: PreviewSalesRepository(), orderNumber: 'SO-2026-01842'),
+          '/fleet': (_) => const FleetDashboardPage(repository: PreviewFleetRepository()),
+          '/fleet/vehicle': (_) => const VehicleDetailPage(repository: PreviewFleetRepository(), registration: 'MH 13 DK 4521'),
+          '/fleet/driver': (_) => const DriverDetailPage(repository: PreviewFleetRepository(), employeeCode: 'DRV-0001'),
+          '/fleet/trips': (_) => const TripManagementPage(repository: PreviewFleetRepository()),
+          '/fleet/fuel': (_) => const FuelManagementPage(repository: PreviewFleetRepository()),
           '/scanner': (_) => const ScannerPage(scanner: PreviewScannerPort()),
           '/employee': (_) => const EmployeeHomePage(),
           '/driver': (_) => const DriverHomePage(),
