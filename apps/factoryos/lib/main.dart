@@ -4,6 +4,10 @@ import 'core/data/dashboard_repository.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/login_page.dart';
 import 'features/dashboard/admin_dashboard_page.dart';
+import 'features/delivery/data/delivery_repository.dart';
+import 'features/delivery/presentation/delivery_dashboard_page.dart';
+import 'features/delivery/presentation/delivery_detail_page.dart';
+import 'features/delivery/presentation/delivery_exception_page.dart';
 import 'features/dispatch/data/dispatch_repository.dart';
 import 'features/dispatch/presentation/dispatch_dashboard_page.dart';
 import 'features/fleet/data/fleet_repository.dart';
@@ -62,6 +66,10 @@ class FactoryOsApp extends StatelessWidget {
           '/purchase/order': (_) => const PurchaseOrderDetailPage(repository: PreviewPurchaseRepository(), orderNumber: 'PO-2026-00481'),
           '/warehouse': (_) => const WarehouseDashboardPage(repository: PreviewWarehouseRepository()),
           '/dispatch': (_) => const DispatchDashboardPage(repository: PreviewDispatchRepository()),
+          '/delivery': (_) => const DeliveryDashboardPage(repository: PreviewDeliveryRepository()),
+          '/delivery/detail': (_) => const DeliveryDetailPage(repository: PreviewDeliveryRepository(), deliveryNumber: 'DEL-2026-00681'),
+          '/delivery/driver': (_) => const DeliveryDetailPage(repository: PreviewDeliveryRepository(), deliveryNumber: 'DEL-2026-00681', driverMode: true),
+          '/delivery/exception': (_) => const DeliveryExceptionPage(repository: PreviewDeliveryRepository(), deliveryNumber: 'DEL-2026-00678'),
           '/hr': (_) => const HrDashboardPage(repository: PreviewHrRepository()),
           '/hr/employee': (_) => const EmployeeDetailPage(repository: PreviewHrRepository(), employeeCode: 'EMP-0018'),
           '/hr/attendance-leave': (_) => const AttendanceLeavePage(repository: PreviewHrRepository()),
