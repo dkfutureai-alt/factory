@@ -24,6 +24,11 @@ import 'features/production/presentation/production_order_detail_page.dart';
 import 'features/purchase/data/purchase_repository.dart';
 import 'features/purchase/presentation/purchase_dashboard_page.dart';
 import 'features/purchase/presentation/purchase_order_detail_page.dart';
+import 'features/sales/data/sales_repository.dart';
+import 'features/sales/presentation/customer_detail_page.dart';
+import 'features/sales/presentation/payment_delivery_tracking_page.dart';
+import 'features/sales/presentation/sales_dashboard_page.dart';
+import 'features/sales/presentation/sales_order_detail_page.dart';
 import 'features/scanner/domain/scanner_port.dart';
 import 'features/scanner/presentation/scanner_page.dart';
 import 'features/warehouse/data/warehouse_repository.dart';
@@ -55,6 +60,10 @@ class FactoryOsApp extends StatelessWidget {
           '/hr/employee': (_) => const EmployeeDetailPage(repository: PreviewHrRepository(), employeeCode: 'EMP-0018'),
           '/hr/attendance-leave': (_) => const AttendanceLeavePage(repository: PreviewHrRepository()),
           '/hr/holidays': (_) => const HolidayCalendarPage(repository: PreviewHrRepository()),
+          '/sales': (_) => const SalesDashboardPage(repository: PreviewSalesRepository()),
+          '/sales/customer': (_) => const CustomerDetailPage(repository: PreviewSalesRepository(), customerCode: 'CUST-0042'),
+          '/sales/order': (_) => const SalesOrderDetailPage(repository: PreviewSalesRepository(), orderNumber: 'SO-2026-01842'),
+          '/sales/tracking': (_) => const PaymentDeliveryTrackingPage(repository: PreviewSalesRepository(), orderNumber: 'SO-2026-01842'),
           '/scanner': (_) => const ScannerPage(scanner: PreviewScannerPort()),
           '/employee': (_) => const EmployeeHomePage(),
           '/driver': (_) => const DriverHomePage(),
