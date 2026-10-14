@@ -8,6 +8,11 @@ import 'features/dispatch/data/dispatch_repository.dart';
 import 'features/dispatch/presentation/dispatch_dashboard_page.dart';
 import 'features/home/driver_home_page.dart';
 import 'features/home/employee_home_page.dart';
+import 'features/hr/data/hr_repository.dart';
+import 'features/hr/presentation/attendance_leave_page.dart';
+import 'features/hr/presentation/employee_detail_page.dart';
+import 'features/hr/presentation/holiday_calendar_page.dart';
+import 'features/hr/presentation/hr_dashboard_page.dart';
 import 'features/inventory/data/inventory_item_detail_repository.dart';
 import 'features/inventory/data/inventory_repository.dart';
 import 'features/inventory/presentation/inventory_dashboard_page.dart';
@@ -46,6 +51,10 @@ class FactoryOsApp extends StatelessWidget {
           '/purchase/order': (_) => const PurchaseOrderDetailPage(repository: PreviewPurchaseRepository(), orderNumber: 'PO-2026-00481'),
           '/warehouse': (_) => const WarehouseDashboardPage(repository: PreviewWarehouseRepository()),
           '/dispatch': (_) => const DispatchDashboardPage(repository: PreviewDispatchRepository()),
+          '/hr': (_) => const HrDashboardPage(repository: PreviewHrRepository()),
+          '/hr/employee': (_) => const EmployeeDetailPage(repository: PreviewHrRepository(), employeeCode: 'EMP-0018'),
+          '/hr/attendance-leave': (_) => const AttendanceLeavePage(repository: PreviewHrRepository()),
+          '/hr/holidays': (_) => const HolidayCalendarPage(repository: PreviewHrRepository()),
           '/scanner': (_) => const ScannerPage(scanner: PreviewScannerPort()),
           '/employee': (_) => const EmployeeHomePage(),
           '/driver': (_) => const DriverHomePage(),
