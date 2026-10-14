@@ -9,7 +9,10 @@ class DispatchDashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Dispatch', style: TextStyle(fontWeight: FontWeight.w800)), Text('Finished Goods • Outbound operations', style: TextStyle(fontSize: 12, color: AppTheme.muted))])),
+      appBar: AppBar(
+        title: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Dispatch', style: TextStyle(fontWeight: FontWeight.w800)), Text('Finished Goods • Outbound operations', style: TextStyle(fontSize: 12, color: AppTheme.muted))]),
+        actions: [Padding(padding: const EdgeInsets.only(right: 16), child: OutlinedButton.icon(onPressed: () => Navigator.of(context).pushNamed('/delivery'), icon: const Icon(Icons.local_shipping_outlined), label: const Text('Delivery queue')))],
+      ),
       body: FutureBuilder<DispatchOverview>(
         future: repository.loadOverview(),
         builder: (context, snapshot) {
