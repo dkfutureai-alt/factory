@@ -8,6 +8,9 @@ create unique index if not exists driver_profiles_org_driver_code_unique
 on public.driver_profiles(organization_id, driver_code)
 where driver_code is not null;
 
+alter table public.vehicle_inspections
+alter column driver_employee_id set not null;
+
 create or replace function private.validate_fuel_reversal()
 returns trigger
 language plpgsql
@@ -69,7 +72,48 @@ begin
 end;
 $$;
 
--- Direct driver inserts may only create a fresh submitted record; review state stays manager controlled.
+-- Drivers may read only their currently assigned vehicle and its compliance documents.
+drop policy if exists vehicles_select on public.vehicles;
+create policy vehicles_select on public.vehicles for select to authenticated
+using (
+  (select private.has_permission(organization_id,'vehicle.read',factory_id))
+  or exists (
+    select 1 from public.vehicle_driver_assignments a
+    where a.vehicle_id=vehicles.id
+      and a.organization_id=vehicles.organization_id
+      and a.driver_employee_id=(select private.current_employee_id(vehicles.organization_id))
+      and a.assigned_until is null
+  )
+);
+
+drop policy if exists vehicle_documents_select on public.vehicle_documents;
+create policy vehicle_documents_select on public.vehicle_documents for select to authenticated
+using (
+  (select private.has_permission(organization_id,'vehicle.read',null))
+  or exists (
+    select 1 from public.vehicle_driver_assignments a
+    where a.vehicle_id=vehicle_documents.vehicle_id
+      and a.organization_id=vehicle_documents.organization_id
+      and a.driver_employee_id=(select private.current_employee_id(vehicle_documents.organization_id))
+      and a.assigned_until is null
+  )
+);
+
+-- Drivers can submit inspections for their own assigned vehicle using their assigned-trip permission.
+create policy inspections_driver_insert on public.vehicle_inspections for insert to authenticated
+with check (
+  driver_employee_id=(select private.current_employee_id(organization_id))
+  and (select private.has_permission(organization_id,'trip.assigned_update',factory_id))
+  and exists (
+    select 1 from public.vehicle_driver_assignments a
+    where a.organization_id=vehicle_inspections.organization_id
+      and a.vehicle_id=vehicle_inspections.vehicle_id
+      and a.driver_employee_id=vehicle_inspections.driver_employee_id
+      and a.assigned_until is null
+  )
+);
+
+-- Direct driver fuel inserts may only create a fresh submitted record; review state stays manager controlled.
 drop policy if exists fuel_driver_insert on public.fuel_entries;
 create policy fuel_driver_insert on public.fuel_entries for insert to authenticated
 with check (
