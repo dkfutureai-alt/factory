@@ -86,7 +86,7 @@ class _Metric extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox(
         width: 245,
-        height: 126,
+        height: 148,
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
