@@ -110,7 +110,8 @@ select d.organization_id,d.factory_id,d.dispatch_number||'-STK','sales_dispatch'
 from public.dispatch_orders d
 join public.organizations o on o.id=d.organization_id and o.code='DKIM'
 where d.dispatch_number='DSP-2026-00417'
-on conflict (organization_id,idempotency_key) do update set status='posted'::public.stock_transaction_status,posted_at=excluded.posted_at;
+on conflict (organization_id,idempotency_key) where idempotency_key is not null
+do update set status='posted'::public.stock_transaction_status,posted_at=excluded.posted_at;
 
 insert into public.stock_transaction_lines(
   organization_id,stock_transaction_id,item_id,batch_id,warehouse_id,location_id,quantity_delta,unit_cost,note
