@@ -16,6 +16,9 @@ import 'features/production/data/production_order_detail_repository.dart';
 import 'features/production/data/production_repository.dart';
 import 'features/production/presentation/production_dashboard_page.dart';
 import 'features/production/presentation/production_order_detail_page.dart';
+import 'features/purchase/data/purchase_repository.dart';
+import 'features/purchase/presentation/purchase_dashboard_page.dart';
+import 'features/purchase/presentation/purchase_order_detail_page.dart';
 import 'features/scanner/domain/scanner_port.dart';
 import 'features/scanner/presentation/scanner_page.dart';
 import 'features/warehouse/data/warehouse_repository.dart';
@@ -25,21 +28,27 @@ void main() => runApp(const FactoryOsApp());
 
 class FactoryOsApp extends StatelessWidget {
   const FactoryOsApp({super.key});
+
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title:'FactoryOS',debugShowCheckedModeBanner:false,theme:AppTheme.light(),initialRoute:'/',
-    routes:{
-      '/':(_)=>const LoginPage(),
-      '/admin':(_)=>const AdminDashboardPage(repository:PreviewDashboardRepository()),
-      '/inventory':(_)=>const InventoryDashboardPage(repository:PreviewInventoryRepository()),
-      '/inventory/item':(_)=>const InventoryItemDetailPage(repository:PreviewInventoryItemDetailRepository(),sku:'RM-STL-304-02'),
-      '/production':(_)=>const ProductionDashboardPage(repository:PreviewProductionRepository()),
-      '/production/order':(_)=>const ProductionOrderDetailPage(repository:PreviewProductionOrderDetailRepository(),orderNumber:'PRD-2026-01038'),
-      '/warehouse':(_)=>const WarehouseDashboardPage(repository:PreviewWarehouseRepository()),
-      '/dispatch':(_)=>const DispatchDashboardPage(repository:PreviewDispatchRepository()),
-      '/scanner':(_)=>const ScannerPage(scanner:PreviewScannerPort()),
-      '/employee':(_)=>const EmployeeHomePage(),
-      '/driver':(_)=>const DriverHomePage(),
-    },
-  );
+        title: 'FactoryOS',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(),
+        initialRoute: '/',
+        routes: {
+          '/': (_) => const LoginPage(),
+          '/admin': (_) => const AdminDashboardPage(repository: PreviewDashboardRepository()),
+          '/inventory': (_) => const InventoryDashboardPage(repository: PreviewInventoryRepository()),
+          '/inventory/item': (_) => const InventoryItemDetailPage(repository: PreviewInventoryItemDetailRepository(), sku: 'RM-STL-304-02'),
+          '/production': (_) => const ProductionDashboardPage(repository: PreviewProductionRepository()),
+          '/production/order': (_) => const ProductionOrderDetailPage(repository: PreviewProductionOrderDetailRepository(), orderNumber: 'PRD-2026-01038'),
+          '/purchase': (_) => const PurchaseDashboardPage(repository: PreviewPurchaseRepository()),
+          '/purchase/order': (_) => const PurchaseOrderDetailPage(repository: PreviewPurchaseRepository(), orderNumber: 'PO-2026-00481'),
+          '/warehouse': (_) => const WarehouseDashboardPage(repository: PreviewWarehouseRepository()),
+          '/dispatch': (_) => const DispatchDashboardPage(repository: PreviewDispatchRepository()),
+          '/scanner': (_) => const ScannerPage(scanner: PreviewScannerPort()),
+          '/employee': (_) => const EmployeeHomePage(),
+          '/driver': (_) => const DriverHomePage(),
+        },
+      );
 }
