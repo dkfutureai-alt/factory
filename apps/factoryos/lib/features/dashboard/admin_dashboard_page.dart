@@ -17,8 +17,12 @@ class AdminDashboardPage extends StatelessWidget {
               child: FutureBuilder<DashboardSnapshot>(
                 future: repository.loadOverview(),
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
-                  if (snapshot.hasError || !snapshot.hasData) return const _DashboardError();
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const _DashboardError();
+                  }
                   return _DashboardBody(data: snapshot.requireData);
                 },
               ),
@@ -58,7 +62,7 @@ class _Sidebar extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         width: 236,
         color: AppTheme.navInk,
-        padding: const EdgeInsets.fromLTRB(16, 28, 16, 20),
+        padding: const EdgeInsets.fromLTRB(16, 28, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -67,41 +71,49 @@ class _Sidebar extends StatelessWidget {
               child: Text('FACTORYOS', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
             ),
             const Padding(
-              padding: EdgeInsets.fromLTRB(12, 8, 12, 28),
+              padding: EdgeInsets.fromLTRB(12, 8, 12, 20),
               child: Text('DK Industrial Manufacturing', style: TextStyle(color: Color(0xFF98A2B3), fontSize: 12)),
             ),
-            for (final section in sections)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: _routeFor(section) == null ? null : () => Navigator.of(context).pushNamed(_routeFor(section)!),
-                  child: Container(
-                    height: 42,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    alignment: Alignment.centerLeft,
-                    decoration: BoxDecoration(
-                      color: section == 'Dashboard' ? const Color(0xFF23477E) : Colors.transparent,
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: sections.length,
+                itemBuilder: (context, index) {
+                  final section = sections[index];
+                  final route = _routeFor(section);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: InkWell(
                       borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            section,
-                            style: TextStyle(
-                              color: section == 'Dashboard' ? Colors.white : const Color(0xFFD0D5DD),
-                              fontWeight: section == 'Dashboard' ? FontWeight.w700 : FontWeight.w500,
-                            ),
-                          ),
+                      onTap: route == null ? null : () => Navigator.of(context).pushNamed(route),
+                      child: Container(
+                        height: 42,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        alignment: Alignment.centerLeft,
+                        decoration: BoxDecoration(
+                          color: section == 'Dashboard' ? const Color(0xFF23477E) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        if (_routeFor(section) != null) const Icon(Icons.chevron_right, size: 16, color: Color(0xFF98A2B3)),
-                      ],
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                section,
+                                style: TextStyle(
+                                  color: section == 'Dashboard' ? Colors.white : const Color(0xFFD0D5DD),
+                                  fontWeight: section == 'Dashboard' ? FontWeight.w700 : FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            if (route != null) const Icon(Icons.chevron_right, size: 16, color: Color(0xFF98A2B3)),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
-            const Spacer(),
+            ),
             const Divider(color: Color(0xFF344054)),
             const ListTile(
               dense: true,
@@ -227,11 +239,14 @@ class _Panel extends StatelessWidget {
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.text)),
-              const SizedBox(height: 12),
-              ...children,
-            ]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.text)),
+                const SizedBox(height: 12),
+                ...children,
+              ],
+            ),
           ),
         ),
       );
@@ -249,11 +264,14 @@ class _StatusRow extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.text)),
-                const SizedBox(height: 3),
-                Text(subtitle, style: const TextStyle(color: AppTheme.muted, fontSize: 12)),
-              ]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.text)),
+                  const SizedBox(height: 3),
+                  Text(subtitle, style: const TextStyle(color: AppTheme.muted, fontSize: 12)),
+                ],
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -267,14 +285,18 @@ class _StatusRow extends StatelessWidget {
 
 class _DashboardError extends StatelessWidget {
   const _DashboardError();
+
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.error_outline, size: 40, color: AppTheme.danger),
-          const SizedBox(height: 12),
-          const Text('Unable to load dashboard data.'),
-          const SizedBox(height: 12),
-          OutlinedButton(onPressed: () {}, child: const Text('Retry')),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 40, color: AppTheme.danger),
+            const SizedBox(height: 12),
+            const Text('Unable to load dashboard data.'),
+            const SizedBox(height: 12),
+            OutlinedButton(onPressed: () {}, child: const Text('Retry')),
+          ],
+        ),
       );
 }
