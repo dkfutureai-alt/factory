@@ -46,3 +46,5 @@ export 'features/maintenance/presentation/maintenance_dashboard_page.dart';
 export 'features/maintenance/presentation/maintenance_asset_page.dart';
 export 'features/maintenance/presentation/maintenance_work_order_page.dart';
 export 'features/maintenance/presentation/maintenance_plan_page.dart';
+export 'features/maintenance/presentation/maintenance_breakdown_spares_page.dart';
+export 'features/maintenance/presentation/maintenance_reports_page.dart';
