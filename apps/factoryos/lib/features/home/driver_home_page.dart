@@ -64,7 +64,7 @@ class DriverHomePage extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
-            childAspectRatio: 1.45,
+            childAspectRatio: 1.15,
             children: [
               const _DriverAction(icon: Icons.fact_check_outlined, title: 'Inspection', subtitle: 'Vehicle checklist'),
               _DriverAction(icon: Icons.local_gas_station_outlined, title: 'Fuel entry', subtitle: 'Odometer + receipt', onTap: () => Navigator.of(context).pushNamed('/fleet/fuel')),
