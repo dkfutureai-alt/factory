@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('warehouse transfer and dispatch handoff render without exceptions', (tester) async {
+  testWidgets('warehouse transfer detail renders without exceptions', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1024));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -19,6 +19,11 @@ void main() {
     expect(find.text('Completion gate'), findsOneWidget);
     expect(find.textContaining('transfer_out ledger posted'), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'Warehouse transfer detail must render without overflow.');
+  });
+
+  testWidgets('dispatch load reaches delivery handoff without exceptions', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1024));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(MaterialApp(initialRoute: '/dispatch', routes: FactoryOsRoutes.routes));
     await tester.pumpAndSettle();
