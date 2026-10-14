@@ -45,8 +45,8 @@ class TripManagementPage extends StatelessWidget {
               LayoutBuilder(builder: (context, constraints) {
                 final dispatch = const _InfoCard(title: 'Dispatch readiness', icon: Icons.inventory_2_outlined, detail: '9 trips linked to dispatches • 1 awaiting loading clearance');
                 final confirmations = const _InfoCard(title: 'Driver confirmations', icon: Icons.fact_check_outlined, detail: '12 accepted • 2 pending acknowledgement');
-                if (constraints.maxWidth > 900) return const Row(children: [Expanded(child: dispatch), SizedBox(width: 16), Expanded(child: confirmations)]);
-                return const Column(children: [dispatch, SizedBox(height: 16), confirmations]);
+                if (constraints.maxWidth > 900) return Row(children: [Expanded(child: dispatch), const SizedBox(width: 16), Expanded(child: confirmations)]);
+                return Column(children: [dispatch, const SizedBox(height: 16), confirmations]);
               }),
             ]);
           },
