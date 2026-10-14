@@ -100,3 +100,57 @@ class MaintenancePlan {
   final int completedThisMonth;
   int dueBy(DateTime date) => entries.where((e) => e.status != 'Completed' && !e.dueAt.isAfter(date)).length;
 }
+
+class MaintenanceSpareRequirementSummary {
+  const MaintenanceSpareRequirementSummary({required this.workOrderNumber, required this.sku, required this.name, required this.requestedQuantity, required this.postedIssueQuantity, required this.stockAlert});
+  final String workOrderNumber;
+  final String sku;
+  final String name;
+  final double requestedQuantity;
+  final double postedIssueQuantity;
+  final bool stockAlert;
+  double get pendingQuantity => (requestedQuantity - postedIssueQuantity).clamp(0, double.infinity).toDouble();
+  bool get fullyIssued => pendingQuantity == 0;
+}
+
+class MaintenanceBreakdownOverview {
+  const MaintenanceBreakdownOverview({required this.openBreakdowns, required this.waitingForParts, required this.partsIssuedToday, required this.criticalStockAlerts, required this.orders, required this.spares});
+  final int openBreakdowns;
+  final int waitingForParts;
+  final int partsIssuedToday;
+  final int criticalStockAlerts;
+  final List<MaintenanceWorkOrderSummary> orders;
+  final List<MaintenanceSpareRequirementSummary> spares;
+  bool get allSparesReady => spares.every((part) => part.fullyIssued);
+}
+
+class MaintenanceReliabilityPoint {
+  const MaintenanceReliabilityPoint({required this.label, required this.availabilityRate, required this.mttrHours});
+  final String label;
+  final double availabilityRate;
+  final double mttrHours;
+}
+
+class MaintenanceDowntimeAsset {
+  const MaintenanceDowntimeAsset({required this.assetCode, required this.assetName, required this.hours});
+  final String assetCode;
+  final String assetName;
+  final double hours;
+}
+
+class MaintenanceReportSnapshot {
+  const MaintenanceReportSnapshot({required this.assetAvailabilityRate, required this.pmCompleted, required this.pmScheduled, required this.breakdownHoursMonth, required this.spareCostMonth, required this.laborCostMonth, required this.externalServiceCostMonth, required this.reliability, required this.topDowntimeAssets});
+  final double assetAvailabilityRate;
+  final int pmCompleted;
+  final int pmScheduled;
+  final double breakdownHoursMonth;
+  final double spareCostMonth;
+  final double laborCostMonth;
+  final double externalServiceCostMonth;
+  final List<MaintenanceReliabilityPoint> reliability;
+  final List<MaintenanceDowntimeAsset> topDowntimeAssets;
+
+  double get pmComplianceRate => pmScheduled <= 0 ? 0 : (pmCompleted / pmScheduled).clamp(0, 1).toDouble();
+  double get maintenanceCostMonth => spareCostMonth + laborCostMonth + externalServiceCostMonth;
+  double get currentMttrHours => reliability.isEmpty ? 0 : reliability.last.mttrHours;
+}
