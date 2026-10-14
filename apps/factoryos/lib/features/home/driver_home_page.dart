@@ -68,7 +68,7 @@ class DriverHomePage extends StatelessWidget {
             children: [
               const _DriverAction(icon: Icons.fact_check_outlined, title: 'Inspection', subtitle: 'Vehicle checklist'),
               _DriverAction(icon: Icons.local_gas_station_outlined, title: 'Fuel entry', subtitle: 'Odometer + receipt', onTap: () => Navigator.of(context).pushNamed('/fleet/fuel')),
-              const _DriverAction(icon: Icons.inventory_2_outlined, title: 'Deliveries', subtitle: '2 assigned'),
+              _DriverAction(icon: Icons.inventory_2_outlined, title: 'Deliveries', subtitle: '2 assigned', onTap: () => Navigator.of(context).pushNamed('/delivery/driver')),
               const _DriverAction(icon: Icons.warning_amber_outlined, title: 'Breakdown', subtitle: 'Report issue'),
             ],
           ),
