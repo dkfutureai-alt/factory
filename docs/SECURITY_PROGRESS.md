@@ -47,7 +47,7 @@ The new gate exposed and fixed three pre-existing database defects that Flutter/
 
 ## Verified repository result
 
-The accepted security code milestone has passed both verification lanes:
+The accepted security milestone has passed both verification lanes:
 
 - FactoryOS Database CI successfully applies the complete current schema/review/command chain;
 - every current fictional demo seed applies successfully;
