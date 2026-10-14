@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1024" viewBox="0 0 1440 1024">
+<rect width="1440" height="1024" fill="#F6F8FB"/>
+<rect width="236" height="1024" fill="#162033"/>
+<text x="28" y="55" fill="#FFFFFF" font-size="24" font-family="Arial">FACTORYOS</text>
+<text x="268" y="60" font-size="28" font-family="Arial" fill="#101828">Preventive Maintenance Planner</text>
+<text x="268" y="87" font-size="14" font-family="Arial" fill="#667085">Upcoming service windows and planned checks</text>
+<rect x="268" y="120" width="250" height="126" rx="12" fill="#FFFFFF" stroke="#E4E9F1"/>
+<text x="292" y="158" font-size="14" font-family="Arial">Due this week</text>
+<text x="292" y="208" font-size="28" font-family="Arial" fill="#B7791F">4</text>
+<rect x="538" y="120" width="250" height="126" rx="12" fill="#FFFFFF" stroke="#E4E9F1"/>
+<text x="562" y="158" font-size="14" font-family="Arial">Completed this month</text>
+<text x="562" y="208" font-size="28" font-family="Arial" fill="#168A50">12</text>
+<rect x="268" y="275" width="1048" height="580" rx="12" fill="#FFFFFF" stroke="#E4E9F1"/>
+<text x="292" y="320" font-size="20" font-family="Arial">Service schedule</text>
+<text x="292" y="392" font-size="16" font-family="Arial">15 Oct   CL-01   CNC Lathe                 Belt inspection</text>
+<text x="292" y="472" font-size="16" font-family="Arial">18 Oct   AC-02   Air Compressor           Oil check</text>
+<text x="292" y="552" font-size="16" font-family="Arial">19 Oct   CV-03   Packing Conveyor         Alignment</text>
+<text x="292" y="632" font-size="16" font-family="Arial">21 Oct   DG-01   Diesel Generator         Filter service</text>
+<text x="292" y="792" font-size="14" font-family="Arial" fill="#667085">One scheduled occurrence creates at most one work order.</text>
+</svg>
