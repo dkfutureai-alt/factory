@@ -79,7 +79,7 @@ class _ReportTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox(
         width: 230,
-        height: 132,
+        height: 152,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () => Navigator.of(context).pushNamed(route),
