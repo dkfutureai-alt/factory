@@ -54,7 +54,7 @@ On security code head `ea32690c431df3e07984484925c6d9a7b4e06c9d`:
 - all RBAC/RLS scope assertions passed;
 - the parallel Flutter CI passed analyzer and the complete existing **53-test** suite.
 
-The security workflow watches this checkpoint, `RBAC_AND_TENANCY.md`, and `WORK_LOG.md`, so the final documentation-recorded head is rechecked by the same PostgreSQL security gate.
+The security workflow watches this checkpoint, `RBAC_AND_TENANCY.md`, and `WORK_LOG.md`, so the final documentation-recorded head is rechecked by the same PostgreSQL security gate before the milestone is reported accepted.
 
 ## Still not production-complete
 
