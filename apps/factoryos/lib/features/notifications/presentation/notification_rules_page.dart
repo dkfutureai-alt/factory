@@ -47,6 +47,7 @@ class NotificationRulesPage extends StatelessWidget {
                     ])).toList(),
                   ),
                 ),
+                ),
                 const SizedBox(height: 18),
                 const Card(
                   child: Padding(
