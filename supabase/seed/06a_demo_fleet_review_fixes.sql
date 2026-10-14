@@ -14,6 +14,10 @@ from (values
   ('DEMO-008','DRV-0008'),
   ('DEMO-009','DRV-0009'),
   ('DEMO-010','DRV-0010')
-) x(employee_code,driver_code)
-join public.employees e on e.employee_code=x.employee_code and e.id=dp.employee_id
-join public.organizations o on o.id=e.organization_id and o.code='DKIM';
+) x(employee_code,driver_code),
+public.employees e,
+public.organizations o
+where e.employee_code = x.employee_code
+  and e.id = dp.employee_id
+  and o.id = e.organization_id
+  and o.code = 'DKIM';
