@@ -13,7 +13,7 @@ class DriverHomePage extends StatelessWidget {
           Text('Driver home', style: TextStyle(fontWeight: FontWeight.w800)),
           Text('Rahul Jadhav • MH 13 DK 4521', style: TextStyle(fontSize: 12, color: AppTheme.muted)),
         ]),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none))],
+        actions: [IconButton(tooltip: 'Notifications', onPressed: () => Navigator.of(context).pushNamed('/notifications/driver'), icon: const Icon(Icons.notifications_none))],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
