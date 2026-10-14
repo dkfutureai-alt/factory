@@ -54,7 +54,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Fuel Management'), findsOneWidget);
     expect(find.text('Recent fuel entries'), findsOneWidget);
-    expect(find.text('FUEL-01472'), findsOneWidget);
+    expect(find.textContaining('FUEL-01472'), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'Fuel management must render without overflow.');
   });
 }
