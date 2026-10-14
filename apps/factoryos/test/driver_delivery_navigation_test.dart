@@ -22,6 +22,7 @@ void main() {
     ));
 
     await tester.ensureVisible(find.text('Deliveries'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Deliveries'));
     await tester.pumpAndSettle();
 
