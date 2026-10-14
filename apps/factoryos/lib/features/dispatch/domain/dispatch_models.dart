@@ -71,5 +71,6 @@ class DispatchLoadDetail {
   bool get ledgerReconciled => lines.isNotEmpty && lines.every((line) => line.ledgerPosted);
   bool get requiredChecksComplete => checks.where((check) => check.required).every((check) => check.complete);
   bool get tripAssigned => tripNumber.trim().isNotEmpty;
-  bool get canFinalize => linesFullyLoaded && ledgerReconciled && requiredChecksComplete && tripAssigned;
+  bool get canFinalize =>
+      status == 'Loaded' && linesFullyLoaded && ledgerReconciled && requiredChecksComplete && tripAssigned;
 }
