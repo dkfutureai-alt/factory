@@ -129,14 +129,19 @@ class PreviewReportingRepository implements ReportingRepository {
       switch (metric) {
         case 'Production':
           metrics.add(const ReportMetric(label: 'Production achievement', value: '92.4%', supporting: '18,480 pcs output'));
+          break;
         case 'Inventory':
           metrics.add(const ReportMetric(label: 'Inventory value', value: '₹48.6L', supporting: '12 low-stock items'));
+          break;
         case 'Sales & collections':
           metrics.add(const ReportMetric(label: 'Sales / collected', value: '₹72.3L / ₹54.8L', supporting: '₹17.5L receivable'));
+          break;
         case 'Attendance':
           metrics.add(const ReportMetric(label: 'Attendance rate', value: '94.1%', supporting: '3 employees on leave'));
+          break;
         case 'Fleet & maintenance':
           metrics.add(const ReportMetric(label: 'Fleet / asset availability', value: '80.0% / 85.7%', supporting: '2 fleet + 2 maintenance alerts'));
+          break;
       }
     }
     return ReportPreview(title: request.reportType, filter: request.filter, metrics: metrics, format: request.format);
