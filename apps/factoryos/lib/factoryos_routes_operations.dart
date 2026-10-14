@@ -22,5 +22,11 @@ class FactoryOsOperationsRoutes {
     '/maintenance/plan': (_) => const MaintenancePlanPage(repository: PreviewMaintenanceRepository()),
     '/maintenance/breakdowns': (_) => const MaintenanceBreakdownSparesPage(repository: PreviewMaintenanceRepository()),
     '/maintenance/reports': (_) => const MaintenanceReportsPage(repository: PreviewMaintenanceRepository()),
+    '/reports': (_) => const ReportsDashboardPage(repository: PreviewReportingRepository()),
+    '/reports/executive': (_) => const ExecutiveAnalyticsPage(repository: PreviewReportingRepository()),
+    '/reports/operations': (_) => const OperationsReportPage(repository: PreviewReportingRepository()),
+    '/reports/commercial': (_) => const CommercialReportPage(repository: PreviewReportingRepository()),
+    '/reports/workforce-fleet': (_) => const WorkforceFleetReportPage(repository: PreviewReportingRepository()),
+    '/reports/builder': (_) => const ReportBuilderPage(repository: PreviewReportingRepository()),
   };
 }
