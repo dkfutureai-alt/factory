@@ -105,7 +105,7 @@ class _Metric extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 245,
-      height: 104,
+      height: 124,
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
