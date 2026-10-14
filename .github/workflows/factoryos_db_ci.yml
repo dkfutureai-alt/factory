@@ -1,0 +1,107 @@
+name: FactoryOS Database CI
+
+on:
+  push:
+    branches: [main, factoryos-foundation]
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/factoryos_db_ci.yml'
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/factoryos_db_ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  schema-seed-security:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: factoryos_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d factoryos_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: factoryos_ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Ensure PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+
+      - name: Bootstrap Supabase auth compatibility
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/00_bootstrap_supabase_compat.sql
+
+      - name: Apply FactoryOS schemas in dependency order
+        run: |
+          set -euo pipefail
+          schemas=(
+            supabase/schemas/01_core.sql
+            supabase/schemas/01a_rbac_scope_hardening.sql
+            supabase/schemas/02_inventory.sql
+            supabase/schemas/02a_inventory_review_fixes.sql
+            supabase/schemas/03_production_quality.sql
+            supabase/schemas/03a_production_review_fixes.sql
+            supabase/schemas/04_purchase.sql
+            supabase/schemas/05_hr.sql
+            supabase/schemas/05a_hr_review_fixes.sql
+            supabase/schemas/06_sales.sql
+            supabase/schemas/07_fleet.sql
+            supabase/schemas/07a_fleet_review_fixes.sql
+            supabase/schemas/07b_fleet_commands.sql
+            supabase/schemas/08_delivery.sql
+            supabase/schemas/08a_delivery_review_fixes.sql
+            supabase/schemas/09_maintenance.sql
+            supabase/schemas/09a_maintenance_security.sql
+            supabase/schemas/09b_maintenance_commands.sql
+            supabase/schemas/10_notifications.sql
+            supabase/schemas/10a_module_scope_hardening.sql
+          )
+          for schema in "${schemas[@]}"; do
+            echo "Applying ${schema}"
+            psql -v ON_ERROR_STOP=1 -f "$schema"
+          done
+
+      - name: Apply fictional demo seeds in dependency order
+        run: |
+          set -euo pipefail
+          seeds=(
+            supabase/seed/01_demo_foundation.sql
+            supabase/seed/02_demo_inventory_production.sql
+            supabase/seed/03_demo_purchase.sql
+            supabase/seed/04_demo_hr.sql
+            supabase/seed/05_demo_sales.sql
+            supabase/seed/06_demo_fleet.sql
+            supabase/seed/06a_demo_fleet_review_fixes.sql
+            supabase/seed/07_demo_delivery.sql
+            supabase/seed/08_demo_maintenance_assets.sql
+            supabase/seed/08a_demo_maintenance_orders.sql
+            supabase/seed/08b_demo_maintenance_spares.sql
+            supabase/seed/09_demo_notifications.sql
+          )
+          for seed in "${seeds[@]}"; do
+            echo "Applying ${seed}"
+            psql -v ON_ERROR_STOP=1 -f "$seed"
+          done
+
+      - name: Run RBAC and RLS security assertions
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/01_rbac_scope_security.sql
