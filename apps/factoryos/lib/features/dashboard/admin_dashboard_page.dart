@@ -43,6 +43,12 @@ class _Sidebar extends StatelessWidget {
     'Dispatch', 'Transport', 'HR', 'Maintenance', 'Reports',
   ];
 
+  String? _routeFor(String section) => switch (section) {
+        'Inventory' => '/inventory',
+        'Production' => '/production',
+        _ => null,
+      };
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -61,16 +67,25 @@ class _Sidebar extends StatelessWidget {
             child: Text('DK Industrial Manufacturing', style: TextStyle(color: Color(0xFF98A2B3), fontSize: 12)),
           ),
           for (final section in sections)
-            Container(
-              height: 42,
-              margin: const EdgeInsets.only(bottom: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              alignment: Alignment.centerLeft,
-              decoration: BoxDecoration(
-                color: section == 'Dashboard' ? const Color(0xFF23477E) : Colors.transparent,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: InkWell(
                 borderRadius: BorderRadius.circular(8),
+                onTap: _routeFor(section) == null ? null : () => Navigator.of(context).pushNamed(_routeFor(section)!),
+                child: Container(
+                  height: 42,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  alignment: Alignment.centerLeft,
+                  decoration: BoxDecoration(
+                    color: section == 'Dashboard' ? const Color(0xFF23477E) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(children: [
+                    Expanded(child: Text(section, style: TextStyle(color: section == 'Dashboard' ? Colors.white : const Color(0xFFD0D5DD), fontWeight: section == 'Dashboard' ? FontWeight.w700 : FontWeight.w500))),
+                    if (_routeFor(section) != null) const Icon(Icons.chevron_right, size: 16, color: Color(0xFF98A2B3)),
+                  ]),
+                ),
               ),
-              child: Text(section, style: TextStyle(color: section == 'Dashboard' ? Colors.white : const Color(0xFFD0D5DD), fontWeight: section == 'Dashboard' ? FontWeight.w700 : FontWeight.w500)),
             ),
           const Spacer(),
           const Divider(color: Color(0xFF344054)),
