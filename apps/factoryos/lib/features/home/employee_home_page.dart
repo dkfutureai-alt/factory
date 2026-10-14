@@ -44,7 +44,7 @@ class EmployeeHomePage extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
-            childAspectRatio: 1.45,
+            childAspectRatio: 1.15,
             children: [
               _QuickAction(icon: Icons.qr_code_scanner, label: 'Scan', subtitle: 'Material / item', onTap: () => Navigator.of(context).pushNamed('/scanner')),
               const _QuickAction(icon: Icons.assignment_outlined, label: 'My tasks', subtitle: '3 assigned'),
