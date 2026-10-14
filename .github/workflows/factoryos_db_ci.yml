@@ -82,6 +82,7 @@ jobs:
             supabase/schemas/09a_maintenance_security.sql
             supabase/schemas/09b_maintenance_commands.sql
             supabase/schemas/10_notifications.sql
+            supabase/schemas/10a_notification_read_membership_guard.sql
             supabase/schemas/10a_module_scope_hardening.sql
             supabase/schemas/11_warehouse_dispatch.sql
             supabase/schemas/11a_warehouse_dispatch_commands.sql
@@ -118,6 +119,9 @@ jobs:
 
       - name: Run RBAC and RLS security assertions
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/01_rbac_scope_security.sql
+
+      - name: Run Notifications security assertions
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/03_notifications_security.sql
 
       - name: Run Warehouse and Dispatch command assertions
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/02_warehouse_dispatch_commands.sql
