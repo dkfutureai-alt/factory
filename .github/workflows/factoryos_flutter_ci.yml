@@ -1,0 +1,38 @@
+name: FactoryOS Flutter CI
+
+on:
+  push:
+    branches: [main, factoryos-foundation]
+    paths:
+      - 'apps/factoryos/**'
+      - '.github/workflows/factoryos_flutter_ci.yml'
+  pull_request:
+    paths:
+      - 'apps/factoryos/**'
+      - '.github/workflows/factoryos_flutter_ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/factoryos
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Flutter stable
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Flutter version
+        run: flutter --version
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+      - name: Test
+        run: flutter test
