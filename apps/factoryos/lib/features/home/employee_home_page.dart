@@ -45,11 +45,11 @@ class EmployeeHomePage extends StatelessWidget {
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
             childAspectRatio: 1.45,
-            children: const [
-              _QuickAction(icon: Icons.qr_code_scanner, label: 'Scan', subtitle: 'Material / item'),
-              _QuickAction(icon: Icons.assignment_outlined, label: 'My tasks', subtitle: '3 assigned'),
-              _QuickAction(icon: Icons.precision_manufacturing_outlined, label: 'Production', subtitle: 'LINE-02'),
-              _QuickAction(icon: Icons.beach_access_outlined, label: 'Leave', subtitle: 'Apply / status'),
+            children: [
+              _QuickAction(icon: Icons.qr_code_scanner, label: 'Scan', subtitle: 'Material / item', onTap: () => Navigator.of(context).pushNamed('/scanner')),
+              const _QuickAction(icon: Icons.assignment_outlined, label: 'My tasks', subtitle: '3 assigned'),
+              _QuickAction(icon: Icons.precision_manufacturing_outlined, label: 'Production', subtitle: 'LINE-02', onTap: () => Navigator.of(context).pushNamed('/production')),
+              const _QuickAction(icon: Icons.beach_access_outlined, label: 'Leave', subtitle: 'Apply / status'),
             ],
           ),
           const SizedBox(height: 20),
@@ -72,22 +72,27 @@ class EmployeeHomePage extends StatelessWidget {
 }
 
 class _QuickAction extends StatelessWidget {
-  const _QuickAction({required this.icon, required this.label, required this.subtitle});
+  const _QuickAction({required this.icon, required this.label, required this.subtitle, this.onTap});
   final IconData icon;
   final String label;
   final String subtitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, color: AppTheme.brand),
-            const SizedBox(height: 10),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
-            const SizedBox(height: 3),
-            Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.muted)),
-          ]),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(icon, color: AppTheme.brand),
+              const SizedBox(height: 10),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 3),
+              Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.muted)),
+            ]),
+          ),
         ),
       );
 }
