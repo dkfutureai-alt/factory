@@ -14,5 +14,8 @@ class FactoryOsPeopleRoutes {
     '/scanner': (_) => const ScannerPage(scanner: PreviewScannerPort()),
     '/employee': (_) => const EmployeeHomePage(),
     '/driver': (_) => const DriverHomePage(),
+    '/notifications/employee': (_) => const NotificationInboxPage(repository: PreviewNotificationRepository(), audience: 'employee'),
+    '/notifications/driver': (_) => const NotificationInboxPage(repository: PreviewNotificationRepository(), audience: 'driver'),
+    '/notifications/preferences': (_) => const NotificationPreferencesPage(repository: PreviewNotificationRepository()),
   };
 }
