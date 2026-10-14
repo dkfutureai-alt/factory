@@ -107,8 +107,8 @@ class PurchaseOrderDetail {
   final List<PurchaseOrderLine> lines;
   final List<PurchaseCheck> checks;
 
-  double get orderValue => lines.fold(0, (sum, line) => sum + line.lineValue);
-  double get receivedValue => lines.fold(0, (sum, line) => sum + line.receivedValue);
+  double get orderValue => lines.fold<double>(0, (sum, line) => sum + line.lineValue);
+  double get receivedValue => lines.fold<double>(0, (sum, line) => sum + line.receivedValue);
   double get pendingValue => (orderValue - receivedValue).clamp(0, double.infinity).toDouble();
   bool get fullyReceived => lines.isNotEmpty && lines.every((line) => line.fullyReceived);
 }
