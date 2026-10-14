@@ -5,10 +5,16 @@ on:
     branches: [main, factoryos-foundation]
     paths:
       - 'supabase/**'
+      - 'docs/RBAC_AND_TENANCY.md'
+      - 'docs/SECURITY_PROGRESS.md'
+      - 'docs/WORK_LOG.md'
       - '.github/workflows/factoryos_db_ci.yml'
   pull_request:
     paths:
       - 'supabase/**'
+      - 'docs/RBAC_AND_TENANCY.md'
+      - 'docs/SECURITY_PROGRESS.md'
+      - 'docs/WORK_LOG.md'
       - '.github/workflows/factoryos_db_ci.yml'
 
 permissions:
@@ -68,6 +74,7 @@ jobs:
             supabase/schemas/07_fleet.sql
             supabase/schemas/07a_fleet_review_fixes.sql
             supabase/schemas/07b_fleet_commands.sql
+            supabase/schemas/07c_fleet_trigger_hardening.sql
             supabase/schemas/08_delivery.sql
             supabase/schemas/08a_delivery_review_fixes.sql
             supabase/schemas/09_maintenance.sql
