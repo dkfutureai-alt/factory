@@ -11,7 +11,7 @@ from public.warehouse_transfers where transfer_number='TRF-2026-00218' \gset war
 \if :warehouse_transfer_ok
 \else
   \echo 'WAREHOUSE TEST FAILED: transfer did not complete with ledger links'
-  \quit 1
+  select 1/0;
 \endif
 
 select (count(*)=2 and bool_and(status='posted')) as ok
@@ -21,7 +21,7 @@ where reference_type='warehouse_transfer'
 \if :warehouse_ledger_pair_ok
 \else
   \echo 'WAREHOUSE TEST FAILED: transfer ledger pair missing or unposted'
-  \quit 1
+  select 1/0;
 \endif
 
 select (
@@ -30,7 +30,7 @@ select (
 \if :warehouse_net_zero_ok
 \else
   \echo 'WAREHOUSE TEST FAILED: transfer pair is not quantity-neutral'
-  \quit 1
+  select 1/0;
 \endif
 
 -- Idempotent replay must not create extra stock transactions.
@@ -42,20 +42,21 @@ select (count(*)=2) as ok from public.stock_transactions where reference_type='w
 \if :warehouse_idempotent_ok
 \else
   \echo 'WAREHOUSE TEST FAILED: idempotent replay duplicated ledger transactions'
-  \quit 1
+  select 1/0;
 \endif
 
 -- 2) Build a deterministic dispatch fixture that is not present in the product demo.
+-- Sales lines must be created before confirmation because confirmed orders are immutable.
 insert into public.sales_orders(
   organization_id,factory_id,customer_id,order_number,order_date,requested_delivery_date,status,currency_code,delivery_method,ship_to_address_id,confirmed_at,notes
 )
-select o.id,f.id,c.id,'SO-CI-DSP-001',date '2026-10-14',date '2026-10-18','ready','INR','Company vehicle',a.id,now(),'CI dispatch command fixture'
+select o.id,f.id,c.id,'SO-CI-DSP-001',date '2026-10-14',date '2026-10-18','draft','INR','Company vehicle',a.id,null,'CI dispatch command fixture'
 from public.organizations o
 join public.factories f on f.organization_id=o.id and f.code='PLANT-01'
 join public.customers c on c.organization_id=o.id and c.code='CUST-0042'
 left join public.customer_delivery_addresses a on a.customer_id=c.id and a.is_default
 where o.code='DKIM'
-on conflict (organization_id,order_number) do update set status='ready',confirmed_at=excluded.confirmed_at;
+on conflict (organization_id,order_number) do update set status='draft',confirmed_at=null;
 
 insert into public.sales_order_lines(organization_id,sales_order_id,item_id,ordered_quantity,unit_price,tax_rate)
 select so.organization_id,so.id,i.id,10,455,0
@@ -63,6 +64,10 @@ from public.sales_orders so
 join public.items i on i.organization_id=so.organization_id and i.sku='FG-COMP-X'
 where so.order_number='SO-CI-DSP-001'
 on conflict (sales_order_id,item_id) do update set ordered_quantity=10,unit_price=455;
+
+update public.sales_orders
+set status='ready',confirmed_at=now()
+where order_number='SO-CI-DSP-001';
 
 update public.trips t
 set sales_order_id=so.id,status='assigned',actual_start_at=null,completed_at=null,block_reason=null
@@ -117,7 +122,7 @@ where d.dispatch_number='DSP-CI-001' \gset dispatch_stock_
 \if :dispatch_stock_ok
 \else
   \echo 'DISPATCH TEST FAILED: stock posting/reconciliation is incorrect'
-  \quit 1
+  select 1/0;
 \endif
 
 -- Required check blocks finalization.
@@ -145,7 +150,7 @@ select (status='dispatched' and dispatched_at is not null) as ok from public.dis
 \if :dispatch_final_ok
 \else
   \echo 'DISPATCH TEST FAILED: dispatch did not finalize'
-  \quit 1
+  select 1/0;
 \endif
 
 select (d.status='loaded' and dl.planned_quantity=10 and t.status='ready' and so.status='dispatched') as ok
@@ -157,7 +162,7 @@ where so.order_number='SO-CI-DSP-001' \gset dispatch_handoff_
 \if :dispatch_handoff_ok
 \else
   \echo 'DISPATCH TEST FAILED: Delivery/Trip/Sales handoff is inconsistent'
-  \quit 1
+  select 1/0;
 \endif
 
 -- Replaying both commands must not duplicate ledger or delivery rows.
@@ -174,7 +179,7 @@ select (
 \if :dispatch_idempotent_ok
 \else
   \echo 'DISPATCH TEST FAILED: replay duplicated ledger or delivery records'
-  \quit 1
+  select 1/0;
 \endif
 
 select set_config('request.jwt.claim.sub','',false);
