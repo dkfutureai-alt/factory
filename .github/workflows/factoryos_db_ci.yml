@@ -85,6 +85,7 @@ jobs:
             supabase/schemas/10a_module_scope_hardening.sql
             supabase/schemas/11_warehouse_dispatch.sql
             supabase/schemas/11a_warehouse_dispatch_commands.sql
+            supabase/schemas/11b_warehouse_dispatch_idempotency_fix.sql
           )
           for schema in "${schemas[@]}"; do
             echo "Applying ${schema}"
