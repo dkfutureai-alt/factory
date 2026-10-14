@@ -31,19 +31,21 @@ class ReportMetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox(
         width: 245,
-        height: 126,
-        child: Card(child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.muted)),
-            const SizedBox(height: 8),
-            Text(value, style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: accent)),
-            if (supporting.isNotEmpty) ...[
-              const SizedBox(height: 5),
-              Text(supporting, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: AppTheme.muted)),
-            ],
-          ]),
-        )),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 126),
+          child: Card(child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
+              Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.muted)),
+              const SizedBox(height: 8),
+              Text(value, style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: accent)),
+              if (supporting.isNotEmpty) ...[
+                const SizedBox(height: 5),
+                Text(supporting, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: AppTheme.muted)),
+              ],
+            ]),
+          )),
+        ),
       );
 }
 
