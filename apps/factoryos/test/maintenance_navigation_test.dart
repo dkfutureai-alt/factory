@@ -1,5 +1,3 @@
-import 'package:factoryos/core/data/dashboard_repository.dart';
-import 'package:factoryos/features/dashboard/admin_dashboard_page.dart';
 import 'package:factoryos/factoryos_routes.dart';
 import 'package:factoryos/features/maintenance/data/maintenance_repository.dart';
 import 'package:factoryos/features/maintenance/presentation/maintenance_dashboard_page.dart';
@@ -33,7 +31,7 @@ void main() {
   testWidgets('admin sidebar reaches maintenance route', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1024));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    await tester.pumpWidget(MaterialApp(home: const AdminDashboardPage(repository: PreviewDashboardRepository()), routes: FactoryOsRoutes.routes));
+    await tester.pumpWidget(MaterialApp(initialRoute: '/admin', routes: FactoryOsRoutes.routes));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Maintenance').first);
     await tester.pumpAndSettle();
