@@ -13,7 +13,7 @@ class EmployeeHomePage extends StatelessWidget {
           Text('Good morning, Ravi', style: TextStyle(fontWeight: FontWeight.w800)),
           Text('Production • Morning Shift', style: TextStyle(fontSize: 12, color: AppTheme.muted)),
         ]),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none))],
+        actions: [IconButton(tooltip: 'Notifications', onPressed: () => Navigator.of(context).pushNamed('/notifications/employee'), icon: const Icon(Icons.notifications_none))],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
