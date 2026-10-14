@@ -32,29 +32,37 @@ class ReportsDashboardPage extends StatelessWidget {
               ]),
               const SizedBox(height: 18),
               ReportSection(title: 'Report library', child: Wrap(spacing: 12, runSpacing: 12, children: [
-                _ReportTile(title: 'Executive Analytics', subtitle: 'Cross-module KPI scorecard', icon: Icons.monitoring_outlined, route: '/reports/executive'),
+                _ReportTile(title: 'Executive Analytics', subtitle: 'Cross-module KPI scorecard', icon: Icons.analytics_outlined, route: '/reports/executive'),
                 _ReportTile(title: 'Operations', subtitle: 'Production, quality, inventory, maintenance', icon: Icons.precision_manufacturing_outlined, route: '/reports/operations'),
                 _ReportTile(title: 'Commercial', subtitle: 'Sales, collections and purchase', icon: Icons.currency_rupee_outlined, route: '/reports/commercial'),
                 _ReportTile(title: 'Workforce & Fleet', subtitle: 'Attendance, vehicles, trips and fuel', icon: Icons.groups_2_outlined, route: '/reports/workforce-fleet'),
                 _ReportTile(title: 'Report Builder', subtitle: 'Scope, metrics and export format', icon: Icons.tune_outlined, route: '/reports/builder'),
               ])),
               const SizedBox(height: 18),
-              ReportSection(title: 'Performance trend', child: SizedBox(
-                height: 170,
-                child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: data.trend.map((point) {
-                  final height = (point.value.clamp(0, 100) / 100) * 120;
-                  return Expanded(child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-                      Text(point.value.toStringAsFixed(0), style: const TextStyle(fontSize: 11, color: AppTheme.muted)),
-                      const SizedBox(height: 4),
-                      Container(height: height, decoration: BoxDecoration(color: AppTheme.brand.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(6))),
-                      const SizedBox(height: 6),
-                      Text(point.label, style: const TextStyle(fontSize: 11, color: AppTheme.muted)),
-                    ]),
-                  ));
-                }).toList(),
-              )),
+              ReportSection(
+                title: 'Performance trend',
+                child: SizedBox(
+                  height: 170,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: data.trend.map((point) {
+                      final height = (point.value.clamp(0, 100) / 100) * 120;
+                      return Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+                            Text(point.value.toStringAsFixed(0), style: const TextStyle(fontSize: 11, color: AppTheme.muted)),
+                            const SizedBox(height: 4),
+                            Container(height: height, decoration: BoxDecoration(color: AppTheme.brand.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(6))),
+                            const SizedBox(height: 6),
+                            Text(point.label, style: const TextStyle(fontSize: 11, color: AppTheme.muted)),
+                          ]),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
             ]);
           },
         ),
