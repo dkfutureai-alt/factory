@@ -4,7 +4,6 @@ import '../data/maintenance_repository.dart';
 import '../domain/maintenance_models.dart';
 import 'maintenance_asset_page.dart';
 import 'maintenance_work_order_page.dart';
-import 'maintenance_plan_page.dart';
 
 class MaintenanceDashboardPage extends StatelessWidget {
   const MaintenanceDashboardPage({super.key, required this.repository});
@@ -30,10 +29,23 @@ class MaintenanceDashboardPage extends StatelessWidget {
             _Metric('Work orders active', '${data.orders.length}', AppTheme.brand),
           ]),
           const SizedBox(height: 16),
-          Align(alignment: Alignment.centerLeft, child: OutlinedButton.icon(
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => MaintenancePlanPage(repository: repository))),
-            icon: const Icon(Icons.calendar_month_outlined), label: const Text('Preventive planner'),
-          )),
+          Wrap(spacing: 10, runSpacing: 10, children: [
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).pushNamed('/maintenance/plan'),
+              icon: const Icon(Icons.calendar_month_outlined),
+              label: const Text('Preventive planner'),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).pushNamed('/maintenance/breakdowns'),
+              icon: const Icon(Icons.warning_amber_outlined),
+              label: const Text('Breakdowns & spares'),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).pushNamed('/maintenance/reports'),
+              icon: const Icon(Icons.analytics_outlined),
+              label: const Text('Maintenance reports'),
+            ),
+          ]),
           const SizedBox(height: 16),
           LayoutBuilder(builder: (context, box) {
             final queue = Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
