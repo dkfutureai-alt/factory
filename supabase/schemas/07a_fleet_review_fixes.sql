@@ -33,6 +33,42 @@ create trigger fuel_entries_validate_reversal
 before insert or update on public.fuel_entries
 for each row execute function private.validate_fuel_reversal();
 
+-- Approved/reversed entries remain immutable, but a truly no-op idempotent upsert is permitted.
+create or replace function private.guard_fuel_finalized()
+returns trigger
+language plpgsql
+set search_path = pg_catalog, public
+as $$
+begin
+  if old.status in ('approved','reversed') then
+    if tg_op='UPDATE'
+       and new.organization_id is not distinct from old.organization_id
+       and new.factory_id is not distinct from old.factory_id
+       and new.entry_number is not distinct from old.entry_number
+       and new.vehicle_id is not distinct from old.vehicle_id
+       and new.driver_employee_id is not distinct from old.driver_employee_id
+       and new.trip_id is not distinct from old.trip_id
+       and new.fueled_at is not distinct from old.fueled_at
+       and new.odometer_km is not distinct from old.odometer_km
+       and new.litres is not distinct from old.litres
+       and new.amount is not distinct from old.amount
+       and new.vendor_name is not distinct from old.vendor_name
+       and new.receipt_reference is not distinct from old.receipt_reference
+       and new.status is not distinct from old.status
+       and new.reviewed_by is not distinct from old.reviewed_by
+       and new.reviewed_at is not distinct from old.reviewed_at
+       and new.rejection_reason is not distinct from old.rejection_reason
+       and new.reversal_of_fuel_entry_id is not distinct from old.reversal_of_fuel_entry_id
+    then
+      return new;
+    end if;
+    raise exception 'approved/reversed fuel entry is immutable';
+  end if;
+  if tg_op='DELETE' then return old; end if;
+  return new;
+end;
+$$;
+
 -- Direct driver inserts may only create a fresh submitted record; review state stays manager controlled.
 drop policy if exists fuel_driver_insert on public.fuel_entries;
 create policy fuel_driver_insert on public.fuel_entries for insert to authenticated
