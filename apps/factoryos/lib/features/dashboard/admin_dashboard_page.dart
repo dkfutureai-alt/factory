@@ -61,6 +61,7 @@ class _Sidebar extends StatelessWidget {
         'Sales' => '/sales',
         'Transport' => '/fleet',
         'HR' => '/hr',
+        'Maintenance' => '/maintenance',
         _ => null,
       };
 

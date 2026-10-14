@@ -53,7 +53,7 @@ class _Metric extends StatelessWidget {
   final String value;
   final Color color;
   @override
-  Widget build(BuildContext context) => SizedBox(width: 245, height: 122, child: Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(
+  Widget build(BuildContext context) => SizedBox(width: 245, height: 142, child: Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(
     crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
       Text(label, style: const TextStyle(color: AppTheme.muted)),
       const SizedBox(height: 8),

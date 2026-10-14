@@ -1,3 +1,6 @@
+import 'package:factoryos/core/data/dashboard_repository.dart';
+import 'package:factoryos/features/dashboard/admin_dashboard_page.dart';
+import 'package:factoryos/factoryos_routes.dart';
 import 'package:factoryos/features/maintenance/data/maintenance_repository.dart';
 import 'package:factoryos/features/maintenance/presentation/maintenance_dashboard_page.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +28,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Preventive Maintenance Planner'), findsOneWidget);
     expect(find.text('Service schedule'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('admin sidebar reaches maintenance route', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1024));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(MaterialApp(home: const AdminDashboardPage(repository: PreviewDashboardRepository()), routes: FactoryOsRoutes.routes));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Maintenance').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Maintenance Management'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
