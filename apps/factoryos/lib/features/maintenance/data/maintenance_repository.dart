@@ -40,7 +40,7 @@ reportedAt: DateTime(2026, 10, 14, 9, 50),
 startedAt: DateTime(2026, 10, 14, 10, 30),
 resolvedAt: null, rootCause: '', resolution: '', safetyCleared: false,
 checklist: const ['Inspect equipment', 'Replace parts', 'Verify service'],
-spares: const [
+spares: [
 MaintenanceSparePart(sku: number.endsWith('242') ? 'SP-BELT-A42' : 'SP-BRG-6204', name: 'Service spare', requestedQuantity: number.endsWith('242') ? 1 : 2, postedIssueQuantity: 0),
 ],
 );
