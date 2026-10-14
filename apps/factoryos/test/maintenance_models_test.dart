@@ -21,14 +21,23 @@ void main() {
   test('closure requires root cause, resolution, safety and issued spares', () {
     final started = DateTime(2026, 10, 14, 10);
     final closed = DateTime(2026, 10, 14, 12);
-    MaintenanceWorkOrderDetail build({bool safety = true, String cause = 'Bearing wear', double posted = 2}) =>
-      MaintenanceWorkOrderDetail(
-        number: 'WO-1', assetCode: 'AC-02', assetName: 'Compressor', type: 'Breakdown',
-        priority: 'Critical', status: 'In progress', assignee: 'Tech',
-        reportedAt: started, startedAt: started, resolvedAt: closed,
-        rootCause: cause, resolution: 'Replaced bearing', safetyCleared: safety,
-        checklist: const [], spares: [MaintenanceSparePart(sku: 'SP-BRG-6204', name: 'Bearing', requestedQuantity: 2, postedIssueQuantity: posted)],
-      );
+    MaintenanceWorkOrderDetail build({bool safety = true, String cause = 'Bearing wear', double posted = 2}) => MaintenanceWorkOrderDetail(
+          number: 'WO-1',
+          assetCode: 'AC-02',
+          assetName: 'Compressor',
+          type: 'Breakdown',
+          priority: 'Critical',
+          status: 'In progress',
+          assignee: 'Tech',
+          reportedAt: started,
+          startedAt: started,
+          resolvedAt: closed,
+          rootCause: cause,
+          resolution: 'Replaced bearing',
+          safetyCleared: safety,
+          checklist: const [],
+          spares: [MaintenanceSparePart(sku: 'SP-BRG-6204', name: 'Bearing', requestedQuantity: 2, postedIssueQuantity: posted)],
+        );
     expect(build().canClose, isTrue);
     expect(build(safety: false).canClose, isFalse);
     expect(build(cause: '').canClose, isFalse);
@@ -44,5 +53,24 @@ void main() {
     ], 1);
     expect(plan.dueBy(DateTime(2026, 10, 15)), 1);
     expect(plan.dueBy(DateTime(2026, 10, 20)), 2);
+  });
+
+  test('breakdown spare pending quantity never becomes negative', () {
+    const pending = MaintenanceSpareRequirementSummary(workOrderNumber: 'WO-1', sku: 'SP-1', name: 'Part', requestedQuantity: 2, postedIssueQuantity: 5, stockAlert: false);
+    expect(pending.pendingQuantity, 0);
+    expect(pending.fullyIssued, isTrue);
+
+    const overview = MaintenanceBreakdownOverview(openBreakdowns: 1, waitingForParts: 0, partsIssuedToday: 1, criticalStockAlerts: 0, orders: [], spares: [pending]);
+    expect(overview.allSparesReady, isTrue);
+  });
+
+  test('maintenance report PM compliance is zero-safe and bounded', () {
+    const empty = MaintenanceReportSnapshot(assetAvailabilityRate: 0, pmCompleted: 0, pmScheduled: 0, breakdownHoursMonth: 0, spareCostMonth: 0, laborCostMonth: 0, externalServiceCostMonth: 0, reliability: [], topDowntimeAssets: []);
+    const overloaded = MaintenanceReportSnapshot(assetAvailabilityRate: 1, pmCompleted: 12, pmScheduled: 10, breakdownHoursMonth: 0, spareCostMonth: 10, laborCostMonth: 20, externalServiceCostMonth: 30, reliability: [MaintenanceReliabilityPoint(label: 'Now', availabilityRate: 1, mttrHours: 2.5)], topDowntimeAssets: []);
+    expect(empty.pmComplianceRate, 0);
+    expect(empty.currentMttrHours, 0);
+    expect(overloaded.pmComplianceRate, 1);
+    expect(overloaded.maintenanceCostMonth, 60);
+    expect(overloaded.currentMttrHours, 2.5);
   });
 }
