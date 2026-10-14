@@ -27,8 +27,13 @@ void main() {
 
     expect(find.text('Delivery Detail'), findsOneWidget);
     expect(find.text('Proof of delivery'), findsOneWidget);
+    expect(tester.takeException(), isNull, reason: 'Driver delivery header and POD section must render without overflow.');
+
+    await tester.drag(find.byType(ListView).last, const Offset(0, -700));
+    await tester.pumpAndSettle();
+
     expect(find.text('Complete delivery checklist'), findsOneWidget);
     expect(find.text('Report exception'), findsOneWidget);
-    expect(tester.takeException(), isNull, reason: 'Driver delivery page must render without overflow.');
+    expect(tester.takeException(), isNull, reason: 'Driver delivery actions must render without overflow.');
   });
 }
