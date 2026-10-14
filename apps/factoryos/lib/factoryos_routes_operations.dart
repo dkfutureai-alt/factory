@@ -28,5 +28,7 @@ class FactoryOsOperationsRoutes {
     '/reports/commercial': (_) => const CommercialReportPage(repository: PreviewReportingRepository()),
     '/reports/workforce-fleet': (_) => const WorkforceFleetReportPage(repository: PreviewReportingRepository()),
     '/reports/builder': (_) => const ReportBuilderPage(repository: PreviewReportingRepository()),
+    '/notifications': (_) => const NotificationCenterPage(repository: PreviewNotificationRepository()),
+    '/notifications/rules': (_) => const NotificationRulesPage(repository: PreviewNotificationRepository()),
   };
 }
