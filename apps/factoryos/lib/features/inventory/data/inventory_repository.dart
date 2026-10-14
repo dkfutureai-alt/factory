@@ -18,6 +18,7 @@ final class PreviewInventoryRepository implements InventoryRepository {
       todayMovements: 47,
       blockedOrDamagedCount: 6,
       items: [
+        InventoryItemSummary(sku: 'RM-STL-304-02', name: 'Stainless Steel Rod 304 • 40mm', category: 'Raw Material', location: 'RM-WH / Rack A-03', onHand: 420, unit: 'kg', reorderLevel: 500),
         InventoryItemSummary(sku: 'RM-STEEL-001', name: 'MS Steel Sheet 2mm', category: 'Raw Material', location: 'RM-A / R03-B02', onHand: 1240, unit: 'kg', reorderLevel: 600),
         InventoryItemSummary(sku: 'RM-PIPE-001', name: 'Industrial Pipe 25mm', category: 'Raw Material', location: 'RM-B / R01-B04', onHand: 182, unit: 'pcs', reorderLevel: 200),
         InventoryItemSummary(sku: 'PK-CARTON-014', name: 'Heavy Duty Carton 14in', category: 'Packaging', location: 'PK-A / R02-B01', onHand: 860, unit: 'pcs', reorderLevel: 300),
