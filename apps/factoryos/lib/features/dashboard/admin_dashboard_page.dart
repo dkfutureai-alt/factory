@@ -43,6 +43,7 @@ class _Sidebar extends StatelessWidget {
     'Quality',
     'Warehouse',
     'Dispatch',
+    'Sales',
     'Transport',
     'HR',
     'Maintenance',
@@ -55,6 +56,7 @@ class _Sidebar extends StatelessWidget {
         'Production' => '/production',
         'Warehouse' => '/warehouse',
         'Dispatch' => '/dispatch',
+        'Sales' => '/sales',
         'HR' => '/hr',
         _ => null,
       };
