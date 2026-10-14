@@ -21,6 +21,7 @@ void main() {
     expect(find.text('Purchase order queue'), findsOneWidget);
     expect(find.text('Supplier performance'), findsOneWidget);
     expect(find.text('Recent goods receipts'), findsOneWidget);
+    expect(tester.takeException(), isNull, reason: 'Purchase dashboard must render without overflow.');
 
     await tester.tap(find.textContaining('PO-2026-00481').first);
     await tester.pumpAndSettle();
@@ -28,6 +29,6 @@ void main() {
     expect(find.text('Supplier & commercial terms'), findsOneWidget);
     expect(find.text('Approval & receiving checks'), findsOneWidget);
     expect(find.textContaining('350 kg pending'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    expect(tester.takeException(), isNull, reason: 'Purchase order detail must render without overflow.');
   });
 }
