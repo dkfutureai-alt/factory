@@ -29,7 +29,7 @@ void main() {
     expect(find.text('Proof of delivery'), findsOneWidget);
     expect(tester.takeException(), isNull, reason: 'Driver delivery header and POD section must render without overflow.');
 
-    await tester.drag(find.byType(ListView).last, const Offset(0, -700));
+    await tester.fling(find.byType(ListView).last, const Offset(0, -1800), 2500);
     await tester.pumpAndSettle();
 
     expect(find.text('Complete delivery checklist'), findsOneWidget);
