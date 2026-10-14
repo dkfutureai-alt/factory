@@ -49,6 +49,7 @@ class _Sidebar extends StatelessWidget {
     'HR',
     'Maintenance',
     'Reports',
+    'Notifications',
   ];
 
   String? _routeFor(String section) => switch (section) {
@@ -63,6 +64,7 @@ class _Sidebar extends StatelessWidget {
         'HR' => '/hr',
         'Maintenance' => '/maintenance',
         'Reports' => '/reports',
+        'Notifications' => '/notifications',
         _ => null,
       };
 
