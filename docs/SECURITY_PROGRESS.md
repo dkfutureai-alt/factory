@@ -47,14 +47,14 @@ The new gate exposed and fixed three pre-existing database defects that Flutter/
 
 ## Verified repository result
 
-The accepted security milestone has passed both verification lanes:
+The security milestone passes both repository verification lanes:
 
-- FactoryOS Database CI successfully applies the complete current schema/review/command chain;
+- FactoryOS Database CI applies the complete current schema/review/command chain;
 - every current fictional demo seed applies successfully;
 - all RBAC/RLS scope assertions pass;
 - parallel Flutter CI passes analyzer and the complete existing **53-test** suite.
 
-Security documentation files are included in the Database CI path trigger, so the current recorded milestone is checked by the same PostgreSQL schema/seed/RBAC-RLS gate before acceptance.
+Security documentation files are included in the Database CI path trigger, so documentation-only changes are rechecked by the same PostgreSQL schema/seed/RBAC-RLS gate.
 
 ## Still not production-complete
 
