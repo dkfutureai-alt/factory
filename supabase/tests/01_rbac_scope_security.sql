@@ -79,6 +79,17 @@ from public.organizations o join public.roles r on r.organization_id=o.id and r.
 where o.code='DKIM'
 on conflict do nothing;
 
+-- Deterministic production child fixture. Product demo intentionally has no material
+-- requirements, so the RLS child-table assertion needs one CI-only record.
+insert into public.production_material_requirements(
+  organization_id, production_order_id, item_id, planned_quantity, issued_quantity, returned_quantity
+)
+select po.organization_id,po.id,i.id,25,0,0
+from public.production_orders po
+join public.items i on i.organization_id=po.organization_id and i.sku='RM-STEEL-001'
+where po.order_number='PRD-2026-01040'
+on conflict (production_order_id,item_id) do nothing;
+
 -- Trigger integrity: reject warehouse/factory mismatch and cross-tenant role reuse.
 do $$
 declare
@@ -157,55 +168,55 @@ select (count(*) = 1 and min(code) = 'PLANT-01') as ok from public.factories \gs
 \if :factory_scope_ok
 \else
   \echo 'RBAC TEST FAILED: factory-scoped manager can see wrong factories'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) = 3) as ok from public.warehouses \gset factory_warehouses_
 \if :factory_warehouses_ok
 \else
   \echo 'RBAC TEST FAILED: factory-scoped manager warehouse visibility is incorrect'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) = 1) as ok from public.organization_memberships \gset factory_memberships_
 \if :factory_memberships_ok
 \else
   \echo 'RBAC TEST FAILED: non-admin can enumerate organization memberships'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) = 1) as ok from public.user_roles \gset factory_roles_
 \if :factory_roles_ok
 \else
   \echo 'RBAC TEST FAILED: non-admin can enumerate role assignments'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) > 0) as ok from public.stock_transaction_lines \gset factory_stock_lines_
 \if :factory_stock_lines_ok
 \else
   \echo 'RBAC TEST FAILED: factory-scoped inventory child rows are inaccessible'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) > 0) as ok from public.production_material_requirements \gset factory_prod_children_
 \if :factory_prod_children_ok
 \else
   \echo 'RBAC TEST FAILED: factory-scoped production child rows are inaccessible'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) > 0) as ok from public.purchase_order_lines \gset factory_purchase_children_
 \if :factory_purchase_children_ok
 \else
   \echo 'RBAC TEST FAILED: factory-scoped purchase child rows are inaccessible'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) > 0) as ok from public.sales_order_lines \gset factory_sales_children_
 \if :factory_sales_children_ok
 \else
   \echo 'RBAC TEST FAILED: factory-scoped sales child rows are inaccessible'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) > 0) as ok from public.delivery_lines \gset factory_delivery_children_
 \if :factory_delivery_children_ok
 \else
   \echo 'RBAC TEST FAILED: factory-scoped delivery child rows are inaccessible'
-  \quit 1
+  select 1/0;
 \endif
 with updated as (
   update public.organization_modules set is_enabled=is_enabled where module_key='hr' returning 1
@@ -214,7 +225,7 @@ select (count(*) = 0) as ok from updated \gset factory_org_write_
 \if :factory_org_write_ok
 \else
   \echo 'RBAC TEST FAILED: factory-scoped role mutated organization-level settings'
-  \quit 1
+  select 1/0;
 \endif
 reset role;
 
@@ -225,13 +236,13 @@ select (count(*) = 1 and min(code)='PLANT-01') as ok from public.factories \gset
 \if :warehouse_factory_ok
 \else
   \echo 'RBAC TEST FAILED: warehouse-scoped user factory visibility is incorrect'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) = 1 and min(code)='RM-WH') as ok from public.warehouses \gset warehouse_exact_
 \if :warehouse_exact_ok
 \else
   \echo 'RBAC TEST FAILED: warehouse-scoped user crossed warehouse boundary'
-  \quit 1
+  select 1/0;
 \endif
 reset role;
 
@@ -242,13 +253,13 @@ select (count(*) = 1 and min(code)='PLANT-01') as ok from public.factories \gset
 \if :department_factory_ok
 \else
   \echo 'RBAC TEST FAILED: department-scoped user factory visibility is incorrect'
-  \quit 1
+  select 1/0;
 \endif
 select (count(*) = 1 and min(code)='PROD') as ok from public.departments \gset department_exact_
 \if :department_exact_ok
 \else
   \echo 'RBAC TEST FAILED: department-scoped user crossed department boundary'
-  \quit 1
+  select 1/0;
 \endif
 reset role;
 
@@ -259,7 +270,7 @@ select (count(*) = 0) as ok from public.factories \gset suspended_factories_
 \if :suspended_factories_ok
 \else
   \echo 'RBAC TEST FAILED: suspended membership retained factory visibility'
-  \quit 1
+  select 1/0;
 \endif
 reset role;
 
@@ -271,7 +282,7 @@ from public.factories \gset owner_factories_
 \if :owner_factories_ok
 \else
   \echo 'RBAC TEST FAILED: organization owner tenant isolation is incorrect'
-  \quit 1
+  select 1/0;
 \endif
 reset role;
 
