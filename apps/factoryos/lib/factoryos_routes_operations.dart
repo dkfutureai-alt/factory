@@ -20,5 +20,7 @@ class FactoryOsOperationsRoutes {
     '/maintenance/asset': (_) => const MaintenanceAssetPage(repository: PreviewMaintenanceRepository(), code: 'AC-02'),
     '/maintenance/work-order': (_) => const MaintenanceWorkOrderPage(repository: PreviewMaintenanceRepository(), number: 'WO-2026-00241'),
     '/maintenance/plan': (_) => const MaintenancePlanPage(repository: PreviewMaintenanceRepository()),
+    '/maintenance/breakdowns': (_) => const MaintenanceBreakdownSparesPage(repository: PreviewMaintenanceRepository()),
+    '/maintenance/reports': (_) => const MaintenanceReportsPage(repository: PreviewMaintenanceRepository()),
   };
 }
