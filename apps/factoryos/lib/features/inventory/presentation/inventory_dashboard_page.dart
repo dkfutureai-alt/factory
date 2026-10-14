@@ -80,9 +80,9 @@ class _InventoryBody extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Wrap(spacing: 12, runSpacing: 12, children: [
               const SizedBox(width: 420, child: TextField(decoration: InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'SKU, item name, barcode or batch'))),
-              SizedBox(width: 180, child: DropdownButtonFormField<String>(value: 'All categories', items: const [DropdownMenuItem(value: 'All categories', child: Text('All categories'))], onChanged: (_) {})),
-              SizedBox(width: 180, child: DropdownButtonFormField<String>(value: 'All warehouses', items: const [DropdownMenuItem(value: 'All warehouses', child: Text('All warehouses'))], onChanged: (_) {})),
-              SizedBox(width: 180, child: DropdownButtonFormField<String>(value: 'All status', items: const [DropdownMenuItem(value: 'All status', child: Text('All status'))], onChanged: (_) {})),
+              SizedBox(width: 180, child: DropdownButtonFormField<String>(initialValue: 'All categories', items: const [DropdownMenuItem(value: 'All categories', child: Text('All categories'))], onChanged: (_) {})),
+              SizedBox(width: 180, child: DropdownButtonFormField<String>(initialValue: 'All warehouses', items: const [DropdownMenuItem(value: 'All warehouses', child: Text('All warehouses'))], onChanged: (_) {})),
+              SizedBox(width: 180, child: DropdownButtonFormField<String>(initialValue: 'All status', items: const [DropdownMenuItem(value: 'All status', child: Text('All status'))], onChanged: (_) {})),
             ]),
           ),
         ),
