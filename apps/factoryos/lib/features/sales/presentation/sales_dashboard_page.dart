@@ -60,14 +60,14 @@ class _Metric extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox(
         width: 245,
-        height: 126,
+        height: 146,
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(label, style: const TextStyle(color: AppTheme.muted, fontSize: 12)),
               const SizedBox(height: 8),
-              Text(value, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: accent)),
+              Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: accent)),
               const SizedBox(height: 4),
               Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppTheme.muted, fontSize: 12)),
             ]),
