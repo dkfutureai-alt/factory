@@ -55,7 +55,8 @@ join public.batches b on b.organization_id=o.id and b.item_id=i.id and b.batch_n
 join public.warehouse_locations src on src.warehouse_id=wt.source_warehouse_id and src.code=x.source_location
 join public.warehouse_locations dst on dst.warehouse_id=wt.destination_warehouse_id and dst.code='RM-STAGE-01'
 where wt.transfer_number='TRF-2026-00218'
-on conflict do update set quantity=excluded.quantity;
+on conflict (warehouse_transfer_id,item_id,batch_id,serial_number_id,source_location_id,destination_location_id)
+do update set quantity=excluded.quantity;
 
 -- Historical dispatch aligned with the existing in-transit delivery for SO-2026-01842.
 insert into public.dispatch_orders(
