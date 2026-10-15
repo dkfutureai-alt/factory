@@ -134,7 +134,7 @@ Dispatch command tests also resolve fixture UUIDs before switching to the authen
 
 ## Verification
 
-Accepted exact branch head before this documentation-only acceptance note:
+Accepted runtime/code head:
 
 `d9af6e39909492298682740031f2be61a92535f4`
 
@@ -157,6 +157,8 @@ Flutter CI run `38688424928` passed:
 - live Warehouse command UI test using a deterministic fake live repository;
 - live Dispatch sequence test from stock post through finalization using a deterministic fake live repository;
 - all previously accepted FactoryOS regression coverage.
+
+Subsequent commits to this checkpoint are documentation-only and do not change the accepted runtime/code contents.
 
 No live Supabase credentials or project were required for these tests.
 
