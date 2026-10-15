@@ -88,6 +88,7 @@ jobs:
             supabase/schemas/11a_warehouse_dispatch_commands.sql
             supabase/schemas/11b_warehouse_dispatch_idempotency_fix.sql
             supabase/schemas/11c_dispatch_finalize_review_fix.sql
+            supabase/schemas/11d_dispatch_full_load_guard.sql
           )
           for schema in "${schemas[@]}"; do
             echo "Applying ${schema}"
@@ -125,3 +126,6 @@ jobs:
 
       - name: Run Warehouse and Dispatch command assertions
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/02_warehouse_dispatch_commands.sql
+
+      - name: Run Dispatch partial-load guard assertions
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/04_dispatch_partial_load_guard.sql
