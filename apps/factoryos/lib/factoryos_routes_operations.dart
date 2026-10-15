@@ -27,6 +27,7 @@ class FactoryOsOperationsRoutes {
         ),
     '/purchase': (_) => const PurchaseDashboardPage(repository: PreviewPurchaseRepository()),
     '/purchase/order': (_) => const PurchaseOrderDetailPage(repository: PreviewPurchaseRepository(), orderNumber: 'PO-2026-00481'),
+    '/purchase/grn': (_) => const PurchaseGoodsReceiptPage(repository: PreviewPurchaseReceiptRepository(), orderNumber: 'PO-2026-00481'),
     '/warehouse': (_) => const WarehouseDashboardPage(repository: PreviewWarehouseRepository()),
     '/warehouse/transfer': (_) => const WarehouseTransferDetailPage(repository: PreviewWarehouseRepository(), transferNumber: 'TRF-2026-00218'),
     '/dispatch': (_) => const DispatchDashboardPage(repository: PreviewDispatchRepository()),
