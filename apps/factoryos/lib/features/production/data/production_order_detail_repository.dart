@@ -5,6 +5,7 @@ class ProductionOrderDetail {
   final List<ProductionMaterialRequirement> materials;
   final List<ProductionTimelineEvent> timeline;
   double get achievement => planned == 0 ? 0 : completed / planned;
+  bool get canAttemptCompletion => status != 'Completed' && qcStatus == 'Pass';
 }
 
 class ProductionMaterialRequirement {
@@ -20,10 +21,18 @@ class ProductionTimelineEvent {
   final bool isWarning;
 }
 
-abstract interface class ProductionOrderDetailRepository { Future<ProductionOrderDetail> loadOrder(String number); }
+abstract interface class ProductionOrderDetailRepository {
+  bool get supportsCompletion;
+  Future<ProductionOrderDetail> loadOrder(String number);
+  Future<ProductionOrderDetail> completeActiveBatch(String number);
+}
 
 final class PreviewProductionOrderDetailRepository implements ProductionOrderDetailRepository {
   const PreviewProductionOrderDetailRepository();
+
+  @override
+  bool get supportsCompletion => false;
+
   @override
   Future<ProductionOrderDetail> loadOrder(String number) async => const ProductionOrderDetail(
     number:'PRD-2026-01038', product:'Industrial Component X', line:'LINE-02', status:'In Production', planned:500, completed:420,
@@ -38,4 +47,9 @@ final class PreviewProductionOrderDetailRepository implements ProductionOrderDet
       ProductionTimelineEvent(title:'QC hold raised',detail:'QC-2026-00418',time:'13:42',isWarning:true),
     ],
   );
+
+  @override
+  Future<ProductionOrderDetail> completeActiveBatch(String number) async {
+    throw UnsupportedError('Production completion is unavailable in preview mode.');
+  }
 }
