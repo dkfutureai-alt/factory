@@ -18,6 +18,22 @@ class FactoryOsRoutes {
               repository: services.authRepository,
               connectionLabel: services.config.connectionLabel,
             ),
+        '/inventory': (_) => InventoryDashboardPage(
+              repository: services.inventoryRepository,
+              detailRepository: services.inventoryItemDetailRepository,
+            ),
+        '/inventory/item': (_) => InventoryItemDetailPage(
+              repository: services.inventoryItemDetailRepository,
+              sku: 'RM-STEEL-001',
+            ),
+        '/production': (_) => ProductionDashboardPage(
+              repository: services.productionRepository,
+              detailRepository: services.productionOrderDetailRepository,
+            ),
+        '/production/order': (_) => ProductionOrderDetailPage(
+              repository: services.productionOrderDetailRepository,
+              orderNumber: 'PRD-2026-01038',
+            ),
         '/warehouse': (_) => WarehouseDashboardPage(repository: services.warehouseRepository),
         '/warehouse/transfer': (_) => WarehouseTransferDetailPage(
               repository: services.warehouseRepository,
