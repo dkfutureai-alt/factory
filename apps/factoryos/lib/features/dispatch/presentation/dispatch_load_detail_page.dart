@@ -4,7 +4,7 @@ import '../../../core/theme/app_theme.dart';
 import '../data/dispatch_repository.dart';
 import '../domain/dispatch_models.dart';
 
-class DispatchLoadDetailPage extends StatelessWidget {
+class DispatchLoadDetailPage extends StatefulWidget {
   const DispatchLoadDetailPage({
     super.key,
     required this.repository,
@@ -15,13 +15,46 @@ class DispatchLoadDetailPage extends StatelessWidget {
   final String dispatchNumber;
 
   @override
+  State<DispatchLoadDetailPage> createState() => _DispatchLoadDetailPageState();
+}
+
+class _DispatchLoadDetailPageState extends State<DispatchLoadDetailPage> {
+  late Future<DispatchLoadDetail> _dispatchFuture;
+  bool _submitting = false;
+  String? _commandError;
+
+  @override
+  void initState() {
+    super.initState();
+    _dispatchFuture = widget.repository.loadDispatch(widget.dispatchNumber);
+  }
+
+  Future<void> _runCommand(Future<DispatchLoadDetail> Function(String) command) async {
+    if (_submitting || !widget.repository.supportsMutations) return;
+    setState(() {
+      _submitting = true;
+      _commandError = null;
+    });
+    try {
+      final updated = await command(widget.dispatchNumber);
+      if (!mounted) return;
+      setState(() => _dispatchFuture = Future.value(updated));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _commandError = error.toString());
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(dispatchNumber, style: const TextStyle(fontWeight: FontWeight.w800)),
+            Text(widget.dispatchNumber, style: const TextStyle(fontWeight: FontWeight.w800)),
             const Text('Dispatch load • ledger + checks + trip gate', style: TextStyle(fontSize: 12, color: AppTheme.muted)),
           ],
         ),
@@ -37,7 +70,7 @@ class DispatchLoadDetailPage extends StatelessWidget {
         ],
       ),
       body: FutureBuilder<DispatchLoadDetail>(
-        future: repository.loadDispatch(dispatchNumber),
+        future: _dispatchFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
@@ -61,7 +94,14 @@ class DispatchLoadDetailPage extends StatelessWidget {
               LayoutBuilder(
                 builder: (context, constraints) {
                   final lines = _LoadLines(dispatch: dispatch);
-                  final gate = _FinalizeGate(dispatch: dispatch);
+                  final gate = _FinalizeGate(
+                    dispatch: dispatch,
+                    liveMutations: widget.repository.supportsMutations,
+                    submitting: _submitting,
+                    commandError: _commandError,
+                    onPostStock: () => _runCommand(widget.repository.postStock),
+                    onFinalize: () => _runCommand(widget.repository.finalizeDispatch),
+                  );
                   if (constraints.maxWidth > 920) {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,58 +191,103 @@ class _LoadLines extends StatelessWidget {
 }
 
 class _FinalizeGate extends StatelessWidget {
-  const _FinalizeGate({required this.dispatch});
+  const _FinalizeGate({
+    required this.dispatch,
+    required this.liveMutations,
+    required this.submitting,
+    required this.commandError,
+    required this.onPostStock,
+    required this.onFinalize,
+  });
+
   final DispatchLoadDetail dispatch;
+  final bool liveMutations;
+  final bool submitting;
+  final String? commandError;
+  final VoidCallback onPostStock;
+  final VoidCallback onFinalize;
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Finalization gate', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 14),
-              _GateRow(ok: dispatch.linesFullyLoaded, label: 'All load quantities reconciled'),
-              _GateRow(ok: dispatch.ledgerReconciled, label: 'Posted sales_dispatch ledger'),
-              _GateRow(ok: dispatch.requiredChecksComplete, label: 'Required documents & checks complete'),
-              _GateRow(ok: dispatch.tripAssigned, label: 'Trip ${dispatch.tripNumber.isEmpty ? 'pending' : dispatch.tripNumber}'),
-              const Divider(height: 28),
-              ...dispatch.checks.map((check) => _GateRow(ok: check.complete, label: check.label)),
+  Widget build(BuildContext context) {
+    final canPostStock = (dispatch.status == 'Ready' || dispatch.status == 'Loading') &&
+        dispatch.linesFullyLoaded &&
+        !dispatch.ledgerReconciled;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Finalization gate', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 14),
+            _GateRow(ok: dispatch.linesFullyLoaded, label: 'All load quantities reconciled'),
+            _GateRow(ok: dispatch.ledgerReconciled, label: 'Posted sales_dispatch ledger'),
+            _GateRow(ok: dispatch.requiredChecksComplete, label: 'Required documents & checks complete'),
+            _GateRow(ok: dispatch.tripAssigned, label: 'Trip ${dispatch.tripNumber.isEmpty ? 'pending' : dispatch.tripNumber}'),
+            const Divider(height: 28),
+            ...dispatch.checks.map((check) => _GateRow(ok: check.complete, label: check.label)),
+            if (commandError != null) ...[
               const SizedBox(height: 8),
-              if (dispatch.status == 'Dispatched') ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () => Navigator.of(context).pushNamed('/delivery/detail'),
-                    icon: const Icon(Icons.local_shipping_outlined),
-                    label: const Text('Open Delivery handoff'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'This preview represents a finalized dispatch backed by the seeded posted stock ledger.',
-                  style: TextStyle(fontSize: 12, color: AppTheme.muted),
-                ),
-              ] else ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: null,
-                    icon: const Icon(Icons.fact_check_outlined),
-                    label: const Text('Finalize dispatch'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Preview repository only. The verified finalize RPC will be connected after FactoryOS Supabase is available.',
-                  style: TextStyle(fontSize: 12, color: AppTheme.muted),
-                ),
-              ],
+              Text(commandError!, style: const TextStyle(color: AppTheme.danger, fontSize: 12, fontWeight: FontWeight.w700)),
             ],
-          ),
+            const SizedBox(height: 8),
+            if (dispatch.status == 'Dispatched') ...[
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.of(context).pushNamed('/delivery/detail'),
+                  icon: const Icon(Icons.local_shipping_outlined),
+                  label: const Text('Open Delivery handoff'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Dispatch is finalized and handed off to Delivery.',
+                style: TextStyle(fontSize: 12, color: AppTheme.muted),
+              ),
+            ] else if (dispatch.status == 'Loaded') ...[
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: liveMutations && !submitting && dispatch.canFinalize ? onFinalize : null,
+                  icon: submitting
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.fact_check_outlined),
+                  label: const Text('Finalize dispatch'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                liveMutations
+                    ? 'Finalization is available only after ledger reconciliation, required checks and Trip assignment all pass.'
+                    : 'Preview repository only. Live finalization is disabled.',
+                style: const TextStyle(fontSize: 12, color: AppTheme.muted),
+              ),
+            ] else ...[
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: liveMutations && !submitting && canPostStock ? onPostStock : null,
+                  icon: submitting
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.inventory_2_outlined),
+                  label: const Text('Post dispatch stock'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                liveMutations
+                    ? 'Stock posting is blocked until every planned unit is fully loaded. Posting locks dispatch lines through the Inventory ledger.'
+                    : 'Preview repository only. Live stock-changing commands are intentionally disabled.',
+                style: const TextStyle(fontSize: 12, color: AppTheme.muted),
+              ),
+            ],
+          ],
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _GateRow extends StatelessWidget {
