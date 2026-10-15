@@ -6,11 +6,19 @@
 -- to the CI database owner so RLS does not hide rows that the command has already created.
 
 -- Capture forbidden sibling scope IDs before switching to an RLS-constrained actor.
-select id::text as fg_wh_id from public.warehouses where code='FG-WH' \gset ci_
-select wl.id::text as fg_loc_id
-from public.warehouse_locations wl
-join public.warehouses w on w.id=wl.warehouse_id
-where w.code='FG-WH' and wl.code='FG-A-R01-B08' \gset ci_
+select set_config(
+  'factoryos.test.fg_wh_id',
+  (select id::text from public.warehouses where code='FG-WH'),
+  false
+);
+select set_config(
+  'factoryos.test.fg_loc_id',
+  (select wl.id::text
+   from public.warehouse_locations wl
+   join public.warehouses w on w.id=wl.warehouse_id
+   where w.code='FG-WH' and wl.code='FG-A-R01-B08'),
+  false
+);
 
 -- CI-only serial-tracked fixture. Production/demo seed intentionally remains free of fake serial stock.
 insert into public.items(
@@ -115,8 +123,8 @@ declare denied boolean:=false;
 begin
   begin
     perform public.post_manual_stock_adjustment(
-      :'ci_fg_wh_id'::uuid,
-      :'ci_fg_loc_id'::uuid,
+      current_setting('factoryos.test.fg_wh_id')::uuid,
+      current_setting('factoryos.test.fg_loc_id')::uuid,
       (select id from public.items where sku='PK-CARTON-014'),
       null,null,5,22,'CI cross warehouse attempt','ci-stock-entry-cross-wh'
     );
