@@ -8,10 +8,14 @@ class FactoryOsOperationsRoutes {
     '/inventory': (_) => const InventoryDashboardPage(
           repository: PreviewInventoryRepository(),
           detailRepository: PreviewInventoryItemDetailRepository(),
+          stockEntryRepository: PreviewInventoryStockEntryRepository(),
         ),
     '/inventory/item': (_) => const InventoryItemDetailPage(
           repository: PreviewInventoryItemDetailRepository(),
           sku: 'RM-STL-304-02',
+        ),
+    '/inventory/stock-entry': (_) => const InventoryStockEntryPage(
+          repository: PreviewInventoryStockEntryRepository(),
         ),
     '/production': (_) => const ProductionDashboardPage(
           repository: PreviewProductionRepository(),
