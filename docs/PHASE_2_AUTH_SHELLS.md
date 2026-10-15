@@ -7,12 +7,13 @@
 - Admin Web sign-in and authenticated bootstrap.
 - Admin access restricted in the client to management roles, with RLS remaining authoritative.
 - Live organization, factory, member-count and enabled-module data on the admin dashboard.
-- Responsive admin navigation for desktop and smaller widths.
+- Responsive admin layout.
 - Mobile sign-in and authenticated context bootstrap.
 - Mobile bottom navigation and database-driven module cards.
 - Missing-configuration, loading, access-error and sign-out states.
 - Tenant policy hardening so regular employees see only assigned factories and their own membership rows.
 - Flutter CI for core tests, static analysis and admin web release build.
+- Supabase Flutter 2.18.x `publishableKey` initialization, with temporary environment fallback for legacy `SUPABASE_ANON_KEY` deployments.
 
 ## Not Yet Claimed Complete
 
@@ -25,7 +26,7 @@ cd apps/admin_web
 flutter pub get
 flutter run -d chrome \
   --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 ```
 
 ## Run Mobile Source Shell
@@ -37,5 +38,5 @@ cd apps/mobile
 flutter pub get
 flutter run \
   --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 ```
