@@ -21,10 +21,14 @@ class FactoryOsRoutes {
         '/inventory': (_) => InventoryDashboardPage(
               repository: services.inventoryRepository,
               detailRepository: services.inventoryItemDetailRepository,
+              stockEntryRepository: services.inventoryStockEntryRepository,
             ),
         '/inventory/item': (_) => InventoryItemDetailPage(
               repository: services.inventoryItemDetailRepository,
               sku: 'RM-STEEL-001',
+            ),
+        '/inventory/stock-entry': (_) => InventoryStockEntryPage(
+              repository: services.inventoryStockEntryRepository,
             ),
         '/production': (_) => ProductionDashboardPage(
               repository: services.productionRepository,
