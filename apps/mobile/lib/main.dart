@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
+import 'production_execution.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -377,6 +378,10 @@ class HomeTab extends StatelessWidget {
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const InventoryScannerPage()));
       return;
     }
+    if (module.key == 'production') {
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ProductionExecutionPage()));
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${module.name} activates in its module phase.')));
   }
 
@@ -403,6 +408,7 @@ class HomeTab extends StatelessWidget {
               final icon = switch (module.key) {
                 'hr' => Icons.groups_2_outlined,
                 'inventory' => Icons.inventory_2_outlined,
+                'production' => Icons.precision_manufacturing_outlined,
                 _ => Icons.widgets_outlined,
               };
               return Card(
