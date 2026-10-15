@@ -93,6 +93,35 @@ Core HR, attendance, leave, holiday and report workflows are complete and valida
 
 Core Inventory is complete and validated.
 
+## 2026-10-15 — Phase 5 Production
+
+- Created the Production screen/system design before implementation, preserving the existing FactoryOS visual language and mobile-first operations pattern.
+- Reused Inventory Item Master as the product/material source rather than creating a duplicate product catalog.
+- Added versioned production recipes/BOMs with output yield, material quantities and scrap allowance.
+- Added factory-scoped work centers/machines/lines/stations with capacity metadata.
+- Added production orders with product/recipe, work center, planned quantity, priority and lifecycle timestamps/status.
+- Added production batches linked to optional HR shifts and operators.
+- Added production-specific operator permissions so assigned supervisors/employees can execute production without receiving general Inventory write access.
+- Added immutable material-consumption history backed by the existing Inventory transaction + signed stock ledger.
+- Added transaction-scoped stock locking and insufficient-stock rejection for production material issue.
+- Added production output recording with good/scrap quantities, lot/batch reference and atomic finished-goods Inventory receipt.
+- Added immutable scrap and downtime event history.
+- Added derived WIP, production dashboard, order report and BOM-requirement report functions.
+- Hardened batch completion so the full batch plan must be accounted for before completion; order completion uses total processed quantity (good + scrap).
+- Added audit logging for production masters and operational records.
+- Added fictional oxygen-cylinder production demo data, including a 47L fill recipe, filling/preparation/QC work centers, orders, active batch, consumption, finished output, scrap and downtime.
+- Added responsive Admin Production workspace with dashboard, BOM/recipes, work centers, orders, execution and reports.
+- Added mobile Production execution workflow linked from the role-aware module grid.
+- Mobile production supports batch start, BOM material issue, output/scrap receipt, downtime and pause/resume/complete actions.
+- Added Phase 5 SQL smoke coverage for schema/RLS/RPCs, seed balances, recipe integrity and immutable production history.
+- Added real authenticated Production E2E coverage for manager order creation, employee order-creation denial, employee batch execution, BOM accounting, negative-stock rejection, finished-goods receipt, output-over-plan rejection, batch completion, ledger balance verification and cross-factory denial.
+- Flutter validation passed: shared analysis/tests, admin analysis, admin release web build and mobile analysis with Production linked.
+- Supabase validation passed: Edge Function check, clean start/reset, migrations `0001`–`0012`, base + Phase 5 seeds, every SQL smoke test and the complete authenticated HR/Inventory/Production chain.
+
+### Phase 5 status
+
+Core Production is complete and validated.
+
 ### Next
 
-Start Phase 5: Production — product/BOM or recipe setup -> work centers/machines -> production orders -> material issue/consumption -> batch/shift execution -> WIP/output -> scrap/downtime -> finished-goods receipt -> production reports.
+Start Phase 6: Quality — inspection plans/checklists -> incoming/in-process/final inspection -> sample/results -> pass/fail/hold -> NCR/deviation -> quarantine/release -> certificate/quality reports.
