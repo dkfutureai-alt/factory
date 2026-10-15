@@ -18,6 +18,11 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Check invitation Edge Function
+        run: deno check supabase/functions/invite-user/index.ts
       - name: Start local Supabase
         run: supabase start
       - name: Reset and apply migrations + seed
@@ -31,3 +36,5 @@ jobs:
               -v ON_ERROR_STOP=1 \
               -f "${test_file}"
           done
+      - name: Run real Auth and RLS flow
+        run: bash supabase/tests/auth_login_e2e.sh
