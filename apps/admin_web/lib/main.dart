@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'access_management.dart';
+import 'hr_management.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +36,20 @@ class FactoryAdminApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'FactoryOS Admin',
         theme: FactoryTheme.light(),
-        home: config.isConfigured ? const AuthGate() : const _Message(text: 'Provide SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY.'),
+        home: config.isConfigured ? const AuthGate() : const ConfigPage(),
+      );
+}
+
+class ConfigPage extends StatelessWidget {
+  const ConfigPage({super.key});
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(FactorySpacing.lg),
+            child: Text('Provide SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY using --dart-define.'),
+          ),
+        ),
       );
 }
 
@@ -290,9 +304,11 @@ class _AdminShellState extends State<AdminShell> {
   @override
   Widget build(BuildContext context) {
     final w = widget.workspace;
+    final hrEnabled = w.modules.any((module) => module.key == 'hr');
     final tabs = <_Tab>[
       _Tab('Overview', Icons.dashboard_outlined, Overview(workspace: w)),
       _Tab('Factories', Icons.factory_outlined, Factories(workspace: w, onChanged: widget.onRefresh)),
+      if (hrEnabled) _Tab('HR', Icons.groups_2_outlined, HrManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (w.role.canManageAccess) _Tab('Users', Icons.groups_outlined, AccessManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       _Tab('Modules', Icons.widgets_outlined, ModuleList(modules: w.modules)),
       _Tab('Organization', Icons.settings_outlined, Organization(workspace: w, onChanged: widget.onRefresh)),
