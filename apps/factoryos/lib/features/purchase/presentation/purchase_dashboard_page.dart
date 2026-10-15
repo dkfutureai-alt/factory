@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../data/purchase_order_workflow_repository.dart';
+import '../data/purchase_receipt_repository.dart';
 import '../data/purchase_repository.dart';
 import '../domain/purchase_models.dart';
 import 'purchase_order_detail_page.dart';
@@ -12,10 +13,12 @@ class PurchaseDashboardPage extends StatelessWidget {
     super.key,
     required this.repository,
     this.workflowRepository = const PreviewPurchaseOrderWorkflowRepository(),
+    this.receiptRepository = const PreviewPurchaseReceiptRepository(),
   });
 
   final PurchaseRepository repository;
   final PurchaseOrderWorkflowRepository workflowRepository;
+  final PurchaseReceiptRepository receiptRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +37,7 @@ class PurchaseDashboardPage extends StatelessWidget {
             child: FilledButton.icon(
               key: const Key('create-purchase-order'),
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => PurchaseOrderEditorPage(repository: workflowRepository),
-                ),
+                MaterialPageRoute<void>(builder: (_) => PurchaseOrderEditorPage(repository: workflowRepository)),
               ),
               icon: const Icon(Icons.add),
               label: const Text('Create purchase order'),
@@ -68,6 +69,7 @@ class PurchaseDashboardPage extends StatelessWidget {
                 orders: data.orders,
                 repository: repository,
                 workflowRepository: workflowRepository,
+                receiptRepository: receiptRepository,
               ),
               const SizedBox(height: 18),
               LayoutBuilder(
@@ -116,10 +118,11 @@ class _Metric extends StatelessWidget {
 }
 
 class _PurchaseOrderQueue extends StatelessWidget {
-  const _PurchaseOrderQueue({required this.orders, required this.repository, required this.workflowRepository});
+  const _PurchaseOrderQueue({required this.orders, required this.repository, required this.workflowRepository, required this.receiptRepository});
   final List<PurchaseOrderSummary> orders;
   final PurchaseRepository repository;
   final PurchaseOrderWorkflowRepository workflowRepository;
+  final PurchaseReceiptRepository receiptRepository;
 
   Color _statusColor(PurchaseOrderSummary order) {
     if (order.status == 'Overdue' || order.isOverdue) return AppTheme.danger;
@@ -146,6 +149,7 @@ class _PurchaseOrderQueue extends StatelessWidget {
                         repository: repository,
                         orderNumber: order.orderNumber,
                         workflowRepository: workflowRepository,
+                        receiptRepository: receiptRepository,
                       ),
                     ),
                   ),
