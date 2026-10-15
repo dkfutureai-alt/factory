@@ -1,0 +1,91 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../features/auth/data/auth_repository.dart';
+import '../../features/dispatch/data/dispatch_repository.dart';
+import '../../features/dispatch/data/supabase_dispatch_repository.dart';
+import '../../features/inventory/data/inventory_item_detail_repository.dart';
+import '../../features/inventory/data/inventory_repository.dart';
+import '../../features/inventory/data/inventory_stock_entry_repository.dart';
+import '../../features/inventory/data/supabase_inventory_item_detail_repository.dart';
+import '../../features/inventory/data/supabase_inventory_repository.dart';
+import '../../features/inventory/data/supabase_inventory_stock_entry_repository.dart';
+import '../../features/production/data/production_order_detail_repository.dart';
+import '../../features/production/data/production_repository.dart';
+import '../../features/production/data/supabase_production_order_detail_repository.dart';
+import '../../features/production/data/supabase_production_repository.dart';
+import '../../features/purchase/data/purchase_order_workflow_repository.dart';
+import '../../features/purchase/data/purchase_receipt_repository.dart';
+import '../../features/purchase/data/purchase_repository.dart';
+import '../../features/purchase/data/supabase_purchase_order_workflow_repository.dart';
+import '../../features/purchase/data/supabase_purchase_receipt_repository.dart';
+import '../../features/purchase/data/supabase_purchase_repository.dart';
+import '../../features/warehouse/data/supabase_warehouse_repository.dart';
+import '../../features/warehouse/data/warehouse_repository.dart';
+import 'backend_config.dart';
+
+class FactoryOsServices {
+  const FactoryOsServices({
+    required this.config,
+    required this.authRepository,
+    required this.inventoryRepository,
+    required this.inventoryItemDetailRepository,
+    required this.inventoryStockEntryRepository,
+    required this.productionRepository,
+    required this.productionOrderDetailRepository,
+    required this.purchaseRepository,
+    required this.purchaseReceiptRepository,
+    required this.purchaseOrderWorkflowRepository,
+    required this.warehouseRepository,
+    required this.dispatchRepository,
+  });
+
+  factory FactoryOsServices.preview([FactoryOsBackendConfig? config]) {
+    return FactoryOsServices(
+      config: config ?? const FactoryOsBackendConfig(mode: FactoryOsBackendMode.preview),
+      authRepository: const PreviewAuthRepository(),
+      inventoryRepository: const PreviewInventoryRepository(),
+      inventoryItemDetailRepository: const PreviewInventoryItemDetailRepository(),
+      inventoryStockEntryRepository: const PreviewInventoryStockEntryRepository(),
+      productionRepository: const PreviewProductionRepository(),
+      productionOrderDetailRepository: const PreviewProductionOrderDetailRepository(),
+      purchaseRepository: const PreviewPurchaseRepository(),
+      purchaseReceiptRepository: const PreviewPurchaseReceiptRepository(),
+      purchaseOrderWorkflowRepository: const PreviewPurchaseOrderWorkflowRepository(),
+      warehouseRepository: const PreviewWarehouseRepository(),
+      dispatchRepository: const PreviewDispatchRepository(),
+    );
+  }
+
+  factory FactoryOsServices.supabase({
+    required FactoryOsBackendConfig config,
+    required SupabaseClient client,
+  }) {
+    return FactoryOsServices(
+      config: config,
+      authRepository: SupabaseAuthRepository(client),
+      inventoryRepository: SupabaseInventoryRepository(client),
+      inventoryItemDetailRepository: SupabaseInventoryItemDetailRepository(client),
+      inventoryStockEntryRepository: SupabaseInventoryStockEntryRepository(client),
+      productionRepository: SupabaseProductionRepository(client),
+      productionOrderDetailRepository: SupabaseProductionOrderDetailRepository(client),
+      purchaseRepository: SupabasePurchaseRepository(client),
+      purchaseReceiptRepository: SupabasePurchaseReceiptRepository(client),
+      purchaseOrderWorkflowRepository: SupabasePurchaseOrderWorkflowRepository(client),
+      warehouseRepository: SupabaseWarehouseRepository(client),
+      dispatchRepository: SupabaseDispatchRepository(client),
+    );
+  }
+
+  final FactoryOsBackendConfig config;
+  final AuthRepository authRepository;
+  final InventoryRepository inventoryRepository;
+  final InventoryItemDetailRepository inventoryItemDetailRepository;
+  final InventoryStockEntryRepository inventoryStockEntryRepository;
+  final ProductionRepository productionRepository;
+  final ProductionOrderDetailRepository productionOrderDetailRepository;
+  final PurchaseRepository purchaseRepository;
+  final PurchaseReceiptRepository purchaseReceiptRepository;
+  final PurchaseOrderWorkflowRepository purchaseOrderWorkflowRepository;
+  final WarehouseRepository warehouseRepository;
+  final DispatchRepository dispatchRepository;
+}

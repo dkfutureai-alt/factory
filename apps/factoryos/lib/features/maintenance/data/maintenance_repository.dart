@@ -1,0 +1,129 @@
+import '../domain/maintenance_models.dart';
+
+abstract class MaintenanceRepository {
+  Future<MaintenanceOverview> loadOverview();
+  Future<MaintenanceAssetDetail> loadAsset(String code);
+  Future<MaintenanceWorkOrderDetail> loadWorkOrder(String number);
+  Future<MaintenancePlan> loadPlan();
+  Future<MaintenanceBreakdownOverview> loadBreakdowns();
+  Future<MaintenanceReportSnapshot> loadReports();
+}
+
+class PreviewMaintenanceRepository implements MaintenanceRepository {
+  const PreviewMaintenanceRepository();
+
+  @override
+  Future<MaintenanceOverview> loadOverview() async => const MaintenanceOverview(
+        totalAssets: 21,
+        operationalAssets: 18,
+        pmDue: 4,
+        breakdowns: 2,
+        assets: [
+          MaintenanceAssetSummary(code: 'AC-02', name: 'Air Compressor', location: 'Line 02', status: 'Maintenance', nextService: '18 Oct'),
+          MaintenanceAssetSummary(code: 'CL-01', name: 'CNC Lathe', location: 'Line 01', status: 'Service due', nextService: '15 Oct'),
+        ],
+        orders: [
+          MaintenanceWorkOrderSummary(number: 'WO-2026-00241', assetCode: 'AC-02', assetName: 'Air Compressor', type: 'Breakdown', priority: 'Critical', status: 'In progress', assignee: 'S. Patil'),
+          MaintenanceWorkOrderSummary(number: 'WO-2026-00242', assetCode: 'CL-01', assetName: 'CNC Lathe', type: 'Corrective', priority: 'High', status: 'Awaiting spares', assignee: 'A. Jadhav'),
+        ],
+      );
+
+  @override
+  Future<MaintenanceAssetDetail> loadAsset(String code) async => code == 'CL-01'
+      ? const MaintenanceAssetDetail(
+          code: 'CL-01',
+          name: 'CNC Lathe',
+          location: 'Line 01',
+          serialNumber: 'DEMO-CL-001',
+          status: 'Service due',
+          operatingHours: 10230,
+          lastService: '15 Sep 2026',
+          nextService: '15 Oct 2026',
+          history: [MaintenanceHistoryEntry('WO-2026-00242', 'Belt inspection', 'Awaiting spares')],
+        )
+      : const MaintenanceAssetDetail(
+          code: 'AC-02',
+          name: 'Air Compressor',
+          location: 'Main Plant / Line 02',
+          serialNumber: 'DEMO-AC-002',
+          status: 'Maintenance',
+          operatingHours: 8420,
+          lastService: '18 Sep 2026',
+          nextService: '18 Oct 2026',
+          history: [
+            MaintenanceHistoryEntry('WO-2026-00241', 'Bearing temperature alert', 'In progress'),
+            MaintenanceHistoryEntry('WO-2026-00212', 'Lubrication and inspection', 'Completed'),
+          ],
+        );
+
+  @override
+  Future<MaintenanceWorkOrderDetail> loadWorkOrder(String number) async => MaintenanceWorkOrderDetail(
+        number: number,
+        assetCode: number.endsWith('242') ? 'CL-01' : 'AC-02',
+        assetName: number.endsWith('242') ? 'CNC Lathe' : 'Air Compressor',
+        type: number.endsWith('242') ? 'Corrective' : 'Breakdown',
+        priority: number.endsWith('242') ? 'High' : 'Critical',
+        status: number.endsWith('242') ? 'Awaiting spares' : 'In progress',
+        assignee: number.endsWith('242') ? 'A. Jadhav' : 'S. Patil',
+        reportedAt: DateTime(2026, 10, 14, 9, 50),
+        startedAt: DateTime(2026, 10, 14, 10, 30),
+        resolvedAt: null,
+        rootCause: '',
+        resolution: '',
+        safetyCleared: false,
+        checklist: const ['Inspect equipment', 'Replace parts', 'Verify service'],
+        spares: [
+          MaintenanceSparePart(
+            sku: number.endsWith('242') ? 'SP-BELT-A42' : 'SP-BRG-6204',
+            name: number.endsWith('242') ? 'V-Belt A42' : 'Bearing 6204',
+            requestedQuantity: number.endsWith('242') ? 1 : 2,
+            postedIssueQuantity: 0,
+          ),
+        ],
+      );
+
+  @override
+  Future<MaintenancePlan> loadPlan() async => MaintenancePlan([
+        MaintenancePlanEntry(code: 'PM-CL-01', assetCode: 'CL-01', assetName: 'CNC Lathe', task: 'Belt inspection', dueAt: DateTime(2026, 10, 15), status: 'Due'),
+        MaintenancePlanEntry(code: 'PM-AC-02', assetCode: 'AC-02', assetName: 'Air Compressor', task: 'Oil check', dueAt: DateTime(2026, 10, 18), status: 'Due'),
+        MaintenancePlanEntry(code: 'PM-CV-03', assetCode: 'CV-03', assetName: 'Packing Conveyor', task: 'Alignment', dueAt: DateTime(2026, 10, 19), status: 'Scheduled'),
+        MaintenancePlanEntry(code: 'PM-DG-01', assetCode: 'DG-01', assetName: 'Diesel Generator', task: 'Filter service', dueAt: DateTime(2026, 10, 21), status: 'Scheduled'),
+      ], 12);
+
+  @override
+  Future<MaintenanceBreakdownOverview> loadBreakdowns() async => const MaintenanceBreakdownOverview(
+        openBreakdowns: 2,
+        waitingForParts: 1,
+        partsIssuedToday: 0,
+        criticalStockAlerts: 1,
+        orders: [
+          MaintenanceWorkOrderSummary(number: 'WO-2026-00241', assetCode: 'AC-02', assetName: 'Air Compressor', type: 'Breakdown', priority: 'Critical', status: 'In progress', assignee: 'S. Patil'),
+          MaintenanceWorkOrderSummary(number: 'WO-2026-00242', assetCode: 'CL-01', assetName: 'CNC Lathe', type: 'Corrective', priority: 'High', status: 'Awaiting spares', assignee: 'A. Jadhav'),
+        ],
+        spares: [
+          MaintenanceSpareRequirementSummary(workOrderNumber: 'WO-2026-00241', sku: 'SP-BRG-6204', name: 'Bearing 6204', requestedQuantity: 2, postedIssueQuantity: 0, stockAlert: false),
+          MaintenanceSpareRequirementSummary(workOrderNumber: 'WO-2026-00242', sku: 'SP-BELT-A42', name: 'V-Belt A42', requestedQuantity: 1, postedIssueQuantity: 0, stockAlert: true),
+        ],
+      );
+
+  @override
+  Future<MaintenanceReportSnapshot> loadReports() async => const MaintenanceReportSnapshot(
+        assetAvailabilityRate: 0.924,
+        pmCompleted: 22,
+        pmScheduled: 25,
+        breakdownHoursMonth: 14.6,
+        spareCostMonth: 46800,
+        laborCostMonth: 24400,
+        externalServiceCostMonth: 13000,
+        reliability: [
+          MaintenanceReliabilityPoint(label: 'August', availabilityRate: 0.908, mttrHours: 3.8),
+          MaintenanceReliabilityPoint(label: 'September', availabilityRate: 0.917, mttrHours: 3.2),
+          MaintenanceReliabilityPoint(label: 'October', availabilityRate: 0.924, mttrHours: 2.6),
+        ],
+        topDowntimeAssets: [
+          MaintenanceDowntimeAsset(assetCode: 'AC-02', assetName: 'Air Compressor', hours: 6.8),
+          MaintenanceDowntimeAsset(assetCode: 'CL-01', assetName: 'CNC Lathe', hours: 4.4),
+          MaintenanceDowntimeAsset(assetCode: 'DG-01', assetName: 'Diesel Generator', hours: 3.4),
+        ],
+      );
+}
