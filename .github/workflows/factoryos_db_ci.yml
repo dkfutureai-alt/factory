@@ -129,3 +129,6 @@ jobs:
 
       - name: Run Dispatch partial-load guard assertions
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/04_dispatch_partial_load_guard.sql
+
+      - name: Run Production completion command assertions
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/05_production_completion_commands.sql
