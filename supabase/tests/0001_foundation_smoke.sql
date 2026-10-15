@@ -40,4 +40,42 @@ begin
   end if;
 end $$;
 
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'organizations'
+      and policyname = 'organizations_insert_platform_owner'
+  ) then
+    raise exception 'platform owner organization insert policy missing';
+  end if;
+
+  if not exists (
+    select 1
+    from pg_trigger t
+    join pg_class c on c.oid = t.tgrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relname = 'organizations'
+      and t.tgname = 'organizations_audit_change'
+      and not t.tgisinternal
+  ) then
+    raise exception 'organization audit trigger missing';
+  end if;
+
+  if not exists (
+    select 1
+    from pg_trigger t
+    join pg_class c on c.oid = t.tgrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relname = 'factories'
+      and t.tgname = 'factories_audit_change'
+      and not t.tgisinternal
+  ) then
+    raise exception 'factory audit trigger missing';
+  end if;
+end $$;
+
 select 'foundation smoke checks passed' as result;
