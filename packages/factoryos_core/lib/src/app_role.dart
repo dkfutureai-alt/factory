@@ -26,6 +26,13 @@ enum AppRole {
         _ => false,
       };
 
+  bool get canManageOrganizationSetup => switch (this) {
+        AppRole.platformOwner || AppRole.orgAdmin => true,
+        _ => false,
+      };
+
+  bool get canManageFactories => canManageOrganizationSetup;
+
   bool get canManagePeople => switch (this) {
         AppRole.platformOwner ||
         AppRole.orgAdmin ||
