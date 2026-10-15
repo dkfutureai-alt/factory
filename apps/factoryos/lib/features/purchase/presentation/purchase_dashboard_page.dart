@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../data/purchase_order_workflow_repository.dart';
 import '../data/purchase_repository.dart';
 import '../domain/purchase_models.dart';
+import 'purchase_order_detail_page.dart';
+import 'purchase_order_editor_page.dart';
 
 class PurchaseDashboardPage extends StatelessWidget {
-  const PurchaseDashboardPage({super.key, required this.repository});
+  const PurchaseDashboardPage({
+    super.key,
+    required this.repository,
+    this.workflowRepository = const PreviewPurchaseOrderWorkflowRepository(),
+  });
+
   final PurchaseRepository repository;
+  final PurchaseOrderWorkflowRepository workflowRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +31,16 @@ class PurchaseDashboardPage extends StatelessWidget {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: FilledButton.icon(onPressed: () {}, icon: const Icon(Icons.add), label: const Text('Create purchase order')),
+            child: FilledButton.icon(
+              key: const Key('create-purchase-order'),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => PurchaseOrderEditorPage(repository: workflowRepository),
+                ),
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text('Create purchase order'),
+            ),
           ),
         ],
       ),
@@ -46,7 +64,11 @@ class PurchaseDashboardPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 18),
-              _PurchaseOrderQueue(orders: data.orders),
+              _PurchaseOrderQueue(
+                orders: data.orders,
+                repository: repository,
+                workflowRepository: workflowRepository,
+              ),
               const SizedBox(height: 18),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -94,8 +116,10 @@ class _Metric extends StatelessWidget {
 }
 
 class _PurchaseOrderQueue extends StatelessWidget {
-  const _PurchaseOrderQueue({required this.orders});
+  const _PurchaseOrderQueue({required this.orders, required this.repository, required this.workflowRepository});
   final List<PurchaseOrderSummary> orders;
+  final PurchaseRepository repository;
+  final PurchaseOrderWorkflowRepository workflowRepository;
 
   Color _statusColor(PurchaseOrderSummary order) {
     if (order.status == 'Overdue' || order.isOverdue) return AppTheme.danger;
@@ -116,9 +140,17 @@ class _PurchaseOrderQueue extends StatelessWidget {
               ...orders.map(
                 (order) => ListTile(
                   contentPadding: EdgeInsets.zero,
-                  onTap: () => Navigator.of(context).pushNamed('/purchase/order'),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => PurchaseOrderDetailPage(
+                        repository: repository,
+                        orderNumber: order.orderNumber,
+                        workflowRepository: workflowRepository,
+                      ),
+                    ),
+                  ),
                   title: Text('${order.orderNumber} • ${order.supplier}', style: const TextStyle(fontWeight: FontWeight.w800)),
-                  subtitle: Text('Expected ${order.expectedDate.day} Oct 2026 • ₹${(order.totalValue / 100000).toStringAsFixed(2)}L'),
+                  subtitle: Text('Expected ${order.expectedDate.day}/${order.expectedDate.month}/${order.expectedDate.year} • ₹${(order.totalValue / 100000).toStringAsFixed(2)}L'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
