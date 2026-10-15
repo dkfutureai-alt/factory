@@ -40,5 +40,8 @@ jobs:
               -v ON_ERROR_STOP=1 \
               -f "${test_file}"
           done
-      - name: Run real Auth and RLS flow
-        run: bash supabase/tests/auth_login_e2e.sh
+      - name: Run real Auth, RLS and inventory flow
+        run: |
+          set -euo pipefail
+          source supabase/tests/auth_login_e2e.sh
+          source supabase/tests/inventory_auth_e2e.sh
