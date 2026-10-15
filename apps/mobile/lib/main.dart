@@ -2,6 +2,8 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'hr_self_service.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final config = MobileConfig.fromEnvironment();
@@ -358,6 +360,14 @@ class HomeTab extends StatelessWidget {
   const HomeTab({required this.data, super.key});
   final MobileData data;
 
+  void openModule(BuildContext context, AppModule module) {
+    if (module.key == 'hr') {
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const HrSelfServicePage()));
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${module.name} activates in its module phase.')));
+  }
+
   @override
   Widget build(BuildContext context) {
     final primaryFactory = data.factories.isEmpty ? null : data.factories.first;
@@ -377,7 +387,17 @@ class HomeTab extends StatelessWidget {
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.35, crossAxisSpacing: FactorySpacing.sm, mainAxisSpacing: FactorySpacing.sm),
           itemBuilder: (context, moduleIndex) {
             final module = data.modules[moduleIndex];
-            return Card(child: Padding(padding: const EdgeInsets.all(FactorySpacing.md), child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [const Icon(Icons.widgets_outlined, color: FactoryColors.blue), const SizedBox(height: FactorySpacing.sm), Text(module.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))])));
+            final icon = module.key == 'hr' ? Icons.groups_2_outlined : Icons.widgets_outlined;
+            return Card(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(FactoryRadius.lg),
+                onTap: () => openModule(context, module),
+                child: Padding(
+                  padding: const EdgeInsets.all(FactorySpacing.md),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: FactoryColors.blue), const SizedBox(height: FactorySpacing.sm), Text(module.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))]),
+                ),
+              ),
+            );
           },
         ),
         if (data.modules.isEmpty) const Card(child: Padding(padding: EdgeInsets.all(FactorySpacing.lg), child: Text('No modules are available for this role.'))),
@@ -434,7 +454,7 @@ class MobileMessagePage extends StatelessWidget {
 
 bool _moduleAllowed(AppRole role, String key) {
   if (role == AppRole.platformOwner || role == AppRole.orgAdmin || role == AppRole.factoryManager || role == AppRole.supervisor) return true;
-  if (role == AppRole.driver) return const {'dashboard', 'vehicles', 'delivery', 'reports'}.contains(key);
+  if (role == AppRole.driver) return const {'dashboard', 'hr', 'vehicles', 'delivery', 'reports'}.contains(key);
   if (role == AppRole.employee) return const {'dashboard', 'hr', 'inventory', 'production', 'quality', 'warehouse', 'delivery', 'maintenance', 'reports'}.contains(key);
   return const {'dashboard', 'reports'}.contains(key);
 }
