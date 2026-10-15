@@ -1229,7 +1229,7 @@ class SectionCard extends StatelessWidget {
                           ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                   ),
-                  if (action != null) action!,
+                  ?action,
                 ],
               ),
             ),
