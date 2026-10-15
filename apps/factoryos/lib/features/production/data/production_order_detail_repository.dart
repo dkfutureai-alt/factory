@@ -34,19 +34,33 @@ final class PreviewProductionOrderDetailRepository implements ProductionOrderDet
   bool get supportsCompletion => false;
 
   @override
-  Future<ProductionOrderDetail> loadOrder(String number) async => const ProductionOrderDetail(
-    number:'PRD-2026-01038', product:'Industrial Component X', line:'LINE-02', status:'In Production', planned:500, completed:420,
-    startedAt:'14 Oct • 09:20', dueAt:'14 Oct • 17:00', batchNumber:'PB-141026-A06', qcStatus:'QC Hold', rejected:8,
-    materials:[
-      ProductionMaterialRequirement(sku:'RM-STL-304-02',name:'Stainless Steel Rod 304 • 40mm',required:492,available:420,unit:'kg'),
-      ProductionMaterialRequirement(sku:'RM-BRG-6204',name:'Bearing 6204 ZZ',required:500,available:820,unit:'nos'),
-    ],
-    timeline:[
-      ProductionTimelineEvent(title:'Order started',detail:'Ravi Patil',time:'09:20',isWarning:false),
-      ProductionTimelineEvent(title:'Material issued',detail:'STK-2026-1942',time:'10:05',isWarning:false),
-      ProductionTimelineEvent(title:'QC hold raised',detail:'QC-2026-00418',time:'13:42',isWarning:true),
-    ],
-  );
+  Future<ProductionOrderDetail> loadOrder(String number) async {
+    return switch (number) {
+      'PRD-2026-01039' => const ProductionOrderDetail(
+          number:'PRD-2026-01039',product:'Valve Assembly 25mm',line:'LINE-01',status:'QC Pending',planned:300,completed:300,
+          startedAt:'14 Oct • 07:42',dueAt:'14 Oct • 13:00',batchNumber:'PB-141026-A04',qcStatus:'Pending',rejected:5,
+          materials:[ProductionMaterialRequirement(sku:'RM-PIPE-001',name:'Industrial Pipe 25mm',required:300,available:182,unit:'pcs')],
+          timeline:[ProductionTimelineEvent(title:'Order started',detail:'LINE-01',time:'07:42',isWarning:false),ProductionTimelineEvent(title:'Quality pending',detail:'QC-2026-00419',time:'12:20',isWarning:false)]),
+      'PRD-2026-01040' => const ProductionOrderDetail(
+          number:'PRD-2026-01040',product:'Bracket Set A',line:'LINE-03',status:'Material Pending',planned:700,completed:0,
+          startedAt:'Not started',dueAt:'14 Oct • 21:30',batchNumber:'No active batch',qcStatus:'Pending',rejected:0,
+          materials:[ProductionMaterialRequirement(sku:'RM-STEEL-001',name:'MS Steel Sheet 2mm',required:25,available:1240,unit:'kg')],
+          timeline:[ProductionTimelineEvent(title:'Material request pending',detail:'Order has not started',time:'13:30',isWarning:true)]),
+      _ => const ProductionOrderDetail(
+          number:'PRD-2026-01038', product:'Industrial Component X', line:'LINE-02', status:'In Production', planned:500, completed:420,
+          startedAt:'14 Oct • 09:20', dueAt:'14 Oct • 17:00', batchNumber:'PB-141026-A06', qcStatus:'Hold', rejected:8,
+          materials:[
+            ProductionMaterialRequirement(sku:'RM-STL-304-02',name:'Stainless Steel Rod 304 • 40mm',required:492,available:420,unit:'kg'),
+            ProductionMaterialRequirement(sku:'SP-BRG-6204',name:'Bearing 6204 ZZ',required:500,available:820,unit:'pcs'),
+          ],
+          timeline:[
+            ProductionTimelineEvent(title:'Order started',detail:'LINE-02',time:'09:20',isWarning:false),
+            ProductionTimelineEvent(title:'Material issued',detail:'STK-2026-1942',time:'10:05',isWarning:false),
+            ProductionTimelineEvent(title:'Quality hold',detail:'QC-2026-00418',time:'13:42',isWarning:true),
+          ],
+        ),
+    };
+  }
 
   @override
   Future<ProductionOrderDetail> completeActiveBatch(String number) async {
