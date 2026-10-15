@@ -107,10 +107,18 @@ cross join (values
 where d.dispatch_number='DSP-CI-001'
 on conflict (dispatch_order_id,check_key) do update set is_required=true,is_complete=excluded.is_complete,evidence_reference=excluded.evidence_reference,completed_at=excluded.completed_at;
 
+-- Resolve the command target while running as the test owner. Once role authenticated is
+-- active, RLS visibility is deliberately narrower; the RPC itself must decide authorization.
+select set_config(
+  'factoryos.test.dispatch_id',
+  (select id::text from public.dispatch_orders where dispatch_number='DSP-CI-001'),
+  false
+);
+
 -- Owner posts dispatch inventory. The ledger link must be negative and immutable.
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
 set role authenticated;
-select public.post_dispatch_stock((select id from public.dispatch_orders where dispatch_number='DSP-CI-001'));
+select public.post_dispatch_stock(current_setting('factoryos.test.dispatch_id')::uuid);
 reset role;
 
 select (d.status='loaded' and dl.stock_transaction_line_id is not null and st.status='posted' and st.transaction_type='sales_dispatch' and stl.quantity_delta=-10) as ok
@@ -132,7 +140,7 @@ do $$
 declare failed_as_expected boolean:=false;
 begin
   begin
-    perform public.finalize_dispatch((select id from public.dispatch_orders where dispatch_number='DSP-CI-001'));
+    perform public.finalize_dispatch(current_setting('factoryos.test.dispatch_id')::uuid);
   exception when others then
     failed_as_expected:=position('required dispatch checks are incomplete' in sqlerrm)>0;
   end;
@@ -141,9 +149,9 @@ end
 $$;
 
 update public.dispatch_checks set is_complete=true,evidence_reference='CI-WEIGHT',completed_at=now()
-where dispatch_order_id=(select id from public.dispatch_orders where dispatch_number='DSP-CI-001') and check_key='vehicle_weight';
+where dispatch_order_id=current_setting('factoryos.test.dispatch_id')::uuid and check_key='vehicle_weight';
 
-select public.finalize_dispatch((select id from public.dispatch_orders where dispatch_number='DSP-CI-001'));
+select public.finalize_dispatch(current_setting('factoryos.test.dispatch_id')::uuid);
 reset role;
 
 select (status='dispatched' and dispatched_at is not null) as ok from public.dispatch_orders where dispatch_number='DSP-CI-001' \gset dispatch_final_
@@ -168,11 +176,11 @@ where so.order_number='SO-CI-DSP-001' \gset dispatch_handoff_
 -- Replaying both commands must not duplicate ledger or delivery rows.
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
 set role authenticated;
-select public.post_dispatch_stock((select id from public.dispatch_orders where dispatch_number='DSP-CI-001'));
-select public.finalize_dispatch((select id from public.dispatch_orders where dispatch_number='DSP-CI-001'));
+select public.post_dispatch_stock(current_setting('factoryos.test.dispatch_id')::uuid);
+select public.finalize_dispatch(current_setting('factoryos.test.dispatch_id')::uuid);
 reset role;
 select (
-  (select count(*) from public.stock_transactions where reference_type='dispatch_order' and reference_id=(select id from public.dispatch_orders where dispatch_number='DSP-CI-001'))=1
+  (select count(*) from public.stock_transactions where reference_type='dispatch_order' and reference_id=current_setting('factoryos.test.dispatch_id')::uuid)=1
   and
   (select count(*) from public.deliveries where sales_order_id=(select id from public.sales_orders where order_number='SO-CI-DSP-001'))=1
 ) as ok \gset dispatch_idempotent_
@@ -183,4 +191,5 @@ select (
 \endif
 
 select set_config('request.jwt.claim.sub','',false);
+select set_config('factoryos.test.dispatch_id','',false);
 \echo 'Warehouse/Dispatch command assertions passed.'
