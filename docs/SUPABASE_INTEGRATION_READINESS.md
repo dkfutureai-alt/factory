@@ -1,44 +1,44 @@
 # FactoryOS Supabase Integration Readiness checkpoint (2026-10-15)
 
-FactoryOS is now **Supabase-integration-ready at repository level** for Authentication, Warehouse and Dispatch. No Supabase project was created or modified, and `janseva-production` remains untouched.
+FactoryOS is **Supabase-integration-ready at repository level** for Authentication, Warehouse and Dispatch. No Supabase project was created or modified. `janseva-production` remains untouched.
 
-## Implemented
+## Delivered
 
-- Design #50: Supabase-ready connected Login.
+- 50th design-first SVG: connected Supabase-ready Login.
 - `supabase_flutter: ^2.18.3`.
-- Explicit `preview` / `supabase` backend modes.
-- Environment inputs: `FACTORYOS_BACKEND`, `FACTORYOS_SUPABASE_URL`, `FACTORYOS_SUPABASE_PUBLISHABLE_KEY`.
-- Visible configuration failure instead of silent live→preview fallback.
-- No service-role key in the Flutter client.
-- Supabase Auth adapter with password sign-in, current-session restore and sign-out.
-- Supabase Warehouse adapter; transfer completion calls only `complete_warehouse_transfer`.
-- Supabase Dispatch adapter; mutations call only `post_dispatch_stock` and `finalize_dispatch`.
-- Preview Warehouse/Dispatch adapters remain mutation-disabled.
-- Dispatch lifecycle hardened so outbound stock cannot post until every planned unit is fully loaded.
-- Notifications security fixture teardown restored so security tests remain isolated.
+- Explicit preview/live backend configuration and service composition.
+- Supabase Auth repository with password sign-in, session restore and sign-out.
+- Supabase Warehouse adapter using `complete_warehouse_transfer` only for completion.
+- Supabase Dispatch adapter using `post_dispatch_stock` and `finalize_dispatch` only for mutations.
+- Preview Warehouse/Dispatch repositories remain mutation-disabled.
+- Client never reads or stores a service-role key.
+- Requested live mode fails visibly when URL/key configuration is invalid; it does not silently fall back to demo data.
+- Dispatch stock posting now requires every line to be fully loaded before immutable ledger linkage.
+- Notification security test state is restored after suspension assertions.
 
-## Verified runtime/code milestone
+## Verified runtime/code head
 
-Accepted runtime/code head: `d9af6e39909492298682740031f2be61a92535f4`.
+`d9af6e39909492298682740031f2be61a92535f4`
 
-- Database CI `38688424899`: **success**.
-- Flutter CI `38688424928`: analyzer clean, **66/66 tests passed**.
-- Dispatch partial-load regression: planned 10 / loaded 5 is rejected with no stock transaction or ledger link.
+- Database CI `38688424899`: success.
+- Flutter CI `38688424928`: analyzer clean; **66/66 tests passed**.
+- Partial Dispatch planned 10 / loaded 5 is rejected with no stock transaction or ledger link.
 - Live-command widget tests verify Warehouse completion and Dispatch stock-post → finalize sequencing through repository boundaries.
 
-Documentation commits after the accepted runtime head do not modify runtime code.
+Commits after the accepted runtime/code head are documentation-only.
 
-## Production gates still open
+## Remaining production gates
 
-- Dedicated FactoryOS Supabase project is not yet created/connected.
-- Schemas are not deployed to Supabase.
-- Real Auth/JWT/Data API/RLS/RPC and Supabase advisor verification are pending.
-- Only Auth, Warehouse and Dispatch have live Flutter adapters so far.
-- Full deployed Dispatch → Trip → Delivery → Return → Warehouse E2E is pending.
-- FCM dispatcher, live Reporting/exports, POD storage and scanner/camera integration are pending.
+- Dedicated FactoryOS Supabase project creation/connection.
+- Schema deployment and real Auth/JWT/Data API/RLS/RPC verification.
+- Supabase security/performance advisors.
+- Real FactoryOS users/memberships/roles.
+- Live adapters for remaining modules beyond Auth/Warehouse/Dispatch.
+- Deployed Dispatch → Trip → Delivery → Return → Warehouse E2E.
+- Trusted FCM dispatcher, live Reporting/exports, POD storage and scanner/camera integration.
 
 ## Next dependency
 
-Create/connect a dedicated FactoryOS Supabase project only after **organization + estimated-cost confirmation**. Never reuse `janseva-production`.
+A dedicated FactoryOS Supabase project may be created only after **organization + estimated-cost confirmation**. Never reuse `janseva-production`.
 
-This checkpoint is a repository/local-PostgreSQL integration milestone, not a deployed-Supabase or production-completion claim.
+This is not a deployed-Supabase or production-completion claim.
