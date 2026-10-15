@@ -1,5 +1,7 @@
--- FactoryOS Purchase Order audit action compatibility fix.
--- The core audit_action enum intentionally stays small; workflow-specific verbs live in metadata.command.
+-- FactoryOS Purchase Order audit action compatibility.
+-- Submission is a reusable lifecycle event and is recorded explicitly in the shared audit stream.
+
+alter type public.audit_action add value if not exists 'submit';
 
 create or replace function public.submit_purchase_order(
   target_purchase_order_id uuid,
@@ -55,7 +57,7 @@ begin
 
   perform private.record_purchase_command(po.organization_id,po.id,'submit',target_idempotency_key,request_hash,actor_id);
   insert into public.audit_logs(organization_id,factory_id,actor_user_id,action,entity_type,entity_id,metadata)
-  values(po.organization_id,po.factory_id,actor_id,'update','purchase_order',po.id::text,
+  values(po.organization_id,po.factory_id,actor_id,'submit','purchase_order',po.id::text,
     jsonb_build_object(
       'source','purchase_order_workflow',
       'command','submit',
