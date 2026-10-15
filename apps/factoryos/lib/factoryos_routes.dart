@@ -38,6 +38,15 @@ class FactoryOsRoutes {
               repository: services.productionOrderDetailRepository,
               orderNumber: 'PRD-2026-01038',
             ),
+        '/purchase': (_) => PurchaseDashboardPage(repository: services.purchaseRepository),
+        '/purchase/order': (_) => PurchaseOrderDetailPage(
+              repository: services.purchaseRepository,
+              orderNumber: 'PO-2026-00481',
+            ),
+        '/purchase/grn': (_) => PurchaseGoodsReceiptPage(
+              repository: services.purchaseReceiptRepository,
+              orderNumber: 'PO-2026-00481',
+            ),
         '/warehouse': (_) => WarehouseDashboardPage(repository: services.warehouseRepository),
         '/warehouse/transfer': (_) => WarehouseTransferDetailPage(
               repository: services.warehouseRepository,
