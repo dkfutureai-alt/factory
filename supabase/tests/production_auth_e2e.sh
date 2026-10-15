@@ -109,10 +109,41 @@ curl -fsS -X POST "$API_URL/rest/v1/rpc/production_issue_material" \
   -d "{\"p_batch_id\":\"$BATCH_ID\",\"p_item_id\":\"$RAW_ITEM_ID\",\"p_from_location_id\":\"$RAW_LOCATION_ID\",\"p_quantity\":10}" >/dev/null
 echo 'assigned employee production material issue passed'
 
+BOM_RESPONSE="$(curl -fsS -X POST "$API_URL/rest/v1/rpc/production_bom_requirements" \
+  -H "apikey: $ANON_KEY" -H "Authorization: Bearer $EMPLOYEE_TOKEN" -H 'Content-Type: application/json' \
+  -d "{\"p_order_id\":\"$ORDER_ID\"}")"
+python3 -c 'import json,sys; rows=json.load(sys.stdin); assert len(rows)==1,rows; row=rows[0]; assert float(row["required_quantity"])==10.0,row; assert float(row["issued_quantity"])==10.0,row; assert float(row["remaining_quantity"])==0.0,row; print("production BOM requirement accounting passed")' <<<"$BOM_RESPONSE"
+
+OVER_ISSUE_FILE="$(mktemp)"
+OVER_ISSUE_STATUS="$(curl -sS -o "$OVER_ISSUE_FILE" -w '%{http_code}' -X POST "$API_URL/rest/v1/rpc/production_issue_material" \
+  -H "apikey: $ANON_KEY" -H "Authorization: Bearer $EMPLOYEE_TOKEN" -H 'Content-Type: application/json' \
+  -d "{\"p_batch_id\":\"$BATCH_ID\",\"p_item_id\":\"$RAW_ITEM_ID\",\"p_from_location_id\":\"$RAW_LOCATION_ID\",\"p_quantity\":11}")"
+if [[ "$OVER_ISSUE_STATUS" == 2* ]]; then
+  echo 'Production material issue unexpectedly allowed negative stock.' >&2
+  cat "$OVER_ISSUE_FILE" >&2
+  rm -f "$OVER_ISSUE_FILE"
+  exit 1
+fi
+rm -f "$OVER_ISSUE_FILE"
+echo 'production over-consumption / negative-stock denial passed'
+
 curl -fsS -X POST "$API_URL/rest/v1/rpc/production_record_output" \
   -H "apikey: $ANON_KEY" -H "Authorization: Bearer $EMPLOYEE_TOKEN" -H 'Content-Type: application/json' \
   -d "{\"p_batch_id\":\"$BATCH_ID\",\"p_good_quantity\":5,\"p_scrap_quantity\":0,\"p_to_location_id\":\"$FG_LOCATION_ID\",\"p_lot_batch_no\":\"E2E-LOT-1\"}" >/dev/null
 echo 'assigned employee finished-goods receipt passed'
+
+OVER_OUTPUT_FILE="$(mktemp)"
+OVER_OUTPUT_STATUS="$(curl -sS -o "$OVER_OUTPUT_FILE" -w '%{http_code}' -X POST "$API_URL/rest/v1/rpc/production_record_output" \
+  -H "apikey: $ANON_KEY" -H "Authorization: Bearer $EMPLOYEE_TOKEN" -H 'Content-Type: application/json' \
+  -d "{\"p_batch_id\":\"$BATCH_ID\",\"p_good_quantity\":1,\"p_scrap_quantity\":0,\"p_to_location_id\":\"$FG_LOCATION_ID\"}")"
+if [[ "$OVER_OUTPUT_STATUS" == 2* ]]; then
+  echo 'Production output unexpectedly exceeded the batch plan.' >&2
+  cat "$OVER_OUTPUT_FILE" >&2
+  rm -f "$OVER_OUTPUT_FILE"
+  exit 1
+fi
+rm -f "$OVER_OUTPUT_FILE"
+echo 'production output-over-plan denial passed'
 
 curl -fsS -X POST "$API_URL/rest/v1/rpc/production_set_batch_status" \
   -H "apikey: $ANON_KEY" -H "Authorization: Bearer $EMPLOYEE_TOKEN" -H 'Content-Type: application/json' \
