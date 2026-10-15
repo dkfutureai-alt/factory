@@ -13,4 +13,12 @@ void main() {
     expect(AppRole.employee.canUseAdminPortal, isFalse);
     expect(AppRole.driver.canUseAdminPortal, isFalse);
   });
+
+  test('organization setup changes remain admin-only', () {
+    expect(AppRole.platformOwner.canManageOrganizationSetup, isTrue);
+    expect(AppRole.orgAdmin.canManageOrganizationSetup, isTrue);
+    expect(AppRole.orgAdmin.canManageFactories, isTrue);
+    expect(AppRole.factoryManager.canManageFactories, isFalse);
+    expect(AppRole.supervisor.canManageOrganizationSetup, isFalse);
+  });
 }
