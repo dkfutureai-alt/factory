@@ -1,6 +1,8 @@
 import 'package:factoryos/features/dispatch/data/dispatch_repository.dart';
 import 'package:factoryos/features/dispatch/domain/dispatch_models.dart';
 import 'package:factoryos/features/dispatch/presentation/dispatch_load_detail_page.dart';
+import 'package:factoryos/features/production/data/production_order_detail_repository.dart';
+import 'package:factoryos/features/production/presentation/production_order_detail_page.dart';
 import 'package:factoryos/features/warehouse/data/warehouse_repository.dart';
 import 'package:factoryos/features/warehouse/domain/warehouse_models.dart';
 import 'package:factoryos/features/warehouse/presentation/warehouse_transfer_detail_page.dart';
@@ -56,6 +58,31 @@ void main() {
 
     expect(repository.finalizeCalls, 1);
     expect(find.widgetWithText(FilledButton, 'Open Delivery handoff'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('live Production completes only through repository command', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final repository = _LiveProductionFake();
+
+    await tester.pumpWidget(MaterialApp(
+      home: ProductionOrderDetailPage(
+        repository: repository,
+        orderNumber: 'PRD-LIVE-001',
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    final button = find.widgetWithText(FilledButton, 'Complete batch');
+    expect(button, findsOneWidget);
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+
+    expect(repository.completeCalls, 1);
+    expect(find.widgetWithText(FilledButton, 'Complete batch'), findsNothing);
+    expect(find.text('5 units'), findsOneWidget);
+    expect(find.text('Production batch completed and order totals reconciled.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
@@ -173,4 +200,45 @@ class _LiveDispatchFake implements DispatchRepository {
         bays: [],
         checks: [],
       );
+}
+
+class _LiveProductionFake implements ProductionOrderDetailRepository {
+  int completeCalls = 0;
+  bool completed = false;
+
+  @override
+  bool get supportsCompletion => true;
+
+  ProductionOrderDetail get _detail => ProductionOrderDetail(
+        number: 'PRD-LIVE-001',
+        product: 'Test Product',
+        line: 'LINE-01',
+        status: completed ? 'Completed' : 'In Production',
+        planned: 5,
+        completed: completed ? 5 : 4,
+        startedAt: '15 Oct • 09:00',
+        dueAt: '15 Oct • 17:00',
+        batchNumber: 'PB-LIVE-001',
+        qcStatus: 'Pass',
+        rejected: 0,
+        materials: const [],
+        timeline: const [
+          ProductionTimelineEvent(
+            title: 'Quality pass',
+            detail: 'QC-LIVE-001',
+            time: '11:30',
+            isWarning: false,
+          ),
+        ],
+      );
+
+  @override
+  Future<ProductionOrderDetail> loadOrder(String number) async => _detail;
+
+  @override
+  Future<ProductionOrderDetail> completeActiveBatch(String number) async {
+    completeCalls++;
+    completed = true;
+    return _detail;
+  }
 }
