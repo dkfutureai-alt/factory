@@ -77,12 +77,13 @@ void main() {
     final button = find.widgetWithText(FilledButton, 'Complete batch');
     expect(button, findsOneWidget);
     await tester.tap(button);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
 
     expect(repository.completeCalls, 1);
+    expect(find.text('Production batch completed and order totals reconciled.'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Complete batch'), findsNothing);
     expect(find.text('5 units'), findsNWidgets(2));
-    expect(find.text('Production batch completed and order totals reconciled.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
