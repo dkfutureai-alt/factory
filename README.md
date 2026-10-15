@@ -38,23 +38,28 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 1: architecture, tenancy, RBAC and database core — complete and CI validated.
 - Phase 2: authentication, invitation, onboarding, role assignment and factory assignment — complete and CI validated.
 - Phase 3: HR, employees, departments/designations, shifts, attendance, leave, holidays and HR reporting — complete at the core application/database level and CI validated.
-- Phase 4: Inventory — next.
+- Phase 4: inventory item/category/unit masters, stock locations, atomic receive/issue/transfer, QR/barcode scan, stock ledger, reorder alerts and inventory reports — complete at the core application/database level and CI validated.
+- Phase 5: Production — next.
 
 Latest validated checks:
 
 - invitation Edge Function type-check — pass;
 - clean local Supabase start/reset, all migrations and fictional seed — pass;
-- foundation, access and HR SQL smoke/integrity tests — pass;
-- real local employee signup -> password login -> JWT -> PostgREST -> factory/HR RLS — pass;
+- foundation, access, HR and inventory SQL smoke/integrity tests — pass;
+- real local employee signup -> password login -> JWT -> PostgREST -> factory/HR/inventory RLS — pass;
 - employee self-profile, check-in and leave-request RPC flows — pass;
 - factory-manager attendance correction and cross-factory denial — pass;
+- employee inventory scan restricted to assigned factory — pass;
+- factory-manager inventory receive, transfer and issue RPC flows — pass;
+- ledger-derived balance verification and insufficient-stock rejection — pass;
+- cross-factory manager inventory denial and employee inventory-write denial — pass;
 - shared Flutter core analysis and permission tests — pass;
 - admin web analysis and release web build — pass;
-- mobile Flutter analysis including HR self-service — pass.
+- mobile Flutter analysis including HR self-service and barcode/QR inventory scanning — pass.
 
-Production deployment still needs project-specific SMTP/invite redirect configuration and mobile platform/release configuration; these are environment/release tasks rather than missing Phase 2/3 business logic.
+Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–4 business logic.
 
-See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md` and `docs/PHASE_3_HR.md`.
+See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md` and `docs/PHASE_4_INVENTORY.md`.
 
 ## Local Supabase
 
@@ -66,7 +71,7 @@ for test_file in supabase/tests/*.sql; do
     -v ON_ERROR_STOP=1 \
     -f "$test_file"
 done
-bash supabase/tests/auth_login_e2e.sh
+bash -c 'source supabase/tests/auth_login_e2e.sh && source supabase/tests/inventory_auth_e2e.sh'
 ```
 
 ## Development Sequence
