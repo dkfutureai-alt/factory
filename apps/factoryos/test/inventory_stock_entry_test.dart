@@ -1,5 +1,6 @@
 import 'package:factoryos/factoryos_exports.dart';
 import 'package:factoryos/features/inventory/domain/inventory_stock_entry_models.dart';
+import 'package:factoryos/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
