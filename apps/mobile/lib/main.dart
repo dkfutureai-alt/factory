@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'hr_self_service.dart';
+import 'inventory_scanner.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -338,9 +339,16 @@ class _MobileHomeState extends State<MobileHome> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [HomeTab(data: widget.data), const SimpleTab(title: 'Tasks', icon: Icons.task_alt), const SimpleTab(title: 'Scan', icon: Icons.qr_code_scanner), const SimpleTab(title: 'Alerts', icon: Icons.notifications_none), ProfileTab(data: widget.data)];
+    final hasInventory = widget.data.modules.any((module) => module.key == 'inventory');
+    final pages = [
+      HomeTab(data: widget.data),
+      const SimpleTab(title: 'Tasks', icon: Icons.task_alt),
+      hasInventory ? const InventoryScannerPage() : const SimpleTab(title: 'Scan', icon: Icons.qr_code_scanner),
+      const SimpleTab(title: 'Alerts', icon: Icons.notifications_none),
+      ProfileTab(data: widget.data),
+    ];
     return Scaffold(
-      body: SafeArea(child: pages[index]),
+      body: pages[index],
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
         onDestinationSelected: (value) => setState(() => index = value),
@@ -365,43 +373,53 @@ class HomeTab extends StatelessWidget {
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const HrSelfServicePage()));
       return;
     }
+    if (module.key == 'inventory') {
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const InventoryScannerPage()));
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${module.name} activates in its module phase.')));
   }
 
   @override
   Widget build(BuildContext context) {
     final primaryFactory = data.factories.isEmpty ? null : data.factories.first;
-    return ListView(
-      padding: const EdgeInsets.all(FactorySpacing.md),
-      children: [
-        Row(children: [const CircleAvatar(child: Icon(Icons.factory_outlined)), const SizedBox(width: FactorySpacing.sm), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(data.organizationName, style: const TextStyle(fontWeight: FontWeight.w800)), Text(data.role.label)]))]),
-        const SizedBox(height: FactorySpacing.lg),
-        Card(child: ListTile(leading: const Icon(Icons.location_on_outlined), title: Text(primaryFactory == null ? 'No factory assigned' : primaryFactory['name'] as String), subtitle: primaryFactory == null ? null : Text([primaryFactory['code'], primaryFactory['city'], primaryFactory['state']].whereType<String>().join(' · ')))),
-        const SizedBox(height: FactorySpacing.lg),
-        Text('Your modules', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
-        const SizedBox(height: FactorySpacing.md),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: data.modules.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.35, crossAxisSpacing: FactorySpacing.sm, mainAxisSpacing: FactorySpacing.sm),
-          itemBuilder: (context, moduleIndex) {
-            final module = data.modules[moduleIndex];
-            final icon = module.key == 'hr' ? Icons.groups_2_outlined : Icons.widgets_outlined;
-            return Card(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(FactoryRadius.lg),
-                onTap: () => openModule(context, module),
-                child: Padding(
-                  padding: const EdgeInsets.all(FactorySpacing.md),
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: FactoryColors.blue), const SizedBox(height: FactorySpacing.sm), Text(module.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))]),
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.all(FactorySpacing.md),
+        children: [
+          Row(children: [const CircleAvatar(child: Icon(Icons.factory_outlined)), const SizedBox(width: FactorySpacing.sm), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(data.organizationName, style: const TextStyle(fontWeight: FontWeight.w800)), Text(data.role.label)]))]),
+          const SizedBox(height: FactorySpacing.lg),
+          Card(child: ListTile(leading: const Icon(Icons.location_on_outlined), title: Text(primaryFactory == null ? 'No factory assigned' : primaryFactory['name'] as String), subtitle: primaryFactory == null ? null : Text([primaryFactory['code'], primaryFactory['city'], primaryFactory['state']].whereType<String>().join(' · ')))),
+          const SizedBox(height: FactorySpacing.lg),
+          Text('Your modules', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+          const SizedBox(height: FactorySpacing.md),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: data.modules.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.35, crossAxisSpacing: FactorySpacing.sm, mainAxisSpacing: FactorySpacing.sm),
+            itemBuilder: (context, moduleIndex) {
+              final module = data.modules[moduleIndex];
+              final icon = switch (module.key) {
+                'hr' => Icons.groups_2_outlined,
+                'inventory' => Icons.inventory_2_outlined,
+                _ => Icons.widgets_outlined,
+              };
+              return Card(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(FactoryRadius.lg),
+                  onTap: () => openModule(context, module),
+                  child: Padding(
+                    padding: const EdgeInsets.all(FactorySpacing.md),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: FactoryColors.blue), const SizedBox(height: FactorySpacing.sm), Text(module.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))]),
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-        if (data.modules.isEmpty) const Card(child: Padding(padding: EdgeInsets.all(FactorySpacing.lg), child: Text('No modules are available for this role.'))),
-      ],
+              );
+            },
+          ),
+          if (data.modules.isEmpty) const Card(child: Padding(padding: EdgeInsets.all(FactorySpacing.lg), child: Text('No modules are available for this role.'))),
+        ],
+      ),
     );
   }
 }
@@ -412,7 +430,7 @@ class SimpleTab extends StatelessWidget {
   final IconData icon;
 
   @override
-  Widget build(BuildContext context) => Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 52), const SizedBox(height: FactorySpacing.md), Text(title, style: Theme.of(context).textTheme.headlineSmall), const SizedBox(height: FactorySpacing.xs), const Text('Workflow activates in its module phase.')]));
+  Widget build(BuildContext context) => SafeArea(child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 52), const SizedBox(height: FactorySpacing.md), Text(title, style: Theme.of(context).textTheme.headlineSmall), const SizedBox(height: FactorySpacing.xs), const Text('Workflow activates in its module phase.')])));
 }
 
 class ProfileTab extends StatelessWidget {
@@ -420,17 +438,19 @@ class ProfileTab extends StatelessWidget {
   final MobileData data;
 
   @override
-  Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.all(FactorySpacing.lg),
-        children: [
-          Text('Profile', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
-          const SizedBox(height: FactorySpacing.lg),
-          Card(child: ListTile(leading: const Icon(Icons.business_outlined), title: Text(data.organizationName), subtitle: Text(data.role.label))),
-          const SizedBox(height: FactorySpacing.md),
-          for (final factory in data.factories) Card(child: ListTile(leading: const Icon(Icons.factory_outlined), title: Text(factory['name'] as String), subtitle: Text(factory['code'] as String))),
-          const SizedBox(height: FactorySpacing.lg),
-          FilledButton.tonalIcon(onPressed: () => Supabase.instance.client.auth.signOut(), icon: const Icon(Icons.logout), label: const Text('Sign out')),
-        ],
+  Widget build(BuildContext context) => SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(FactorySpacing.lg),
+          children: [
+            Text('Profile', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
+            const SizedBox(height: FactorySpacing.lg),
+            Card(child: ListTile(leading: const Icon(Icons.business_outlined), title: Text(data.organizationName), subtitle: Text(data.role.label))),
+            const SizedBox(height: FactorySpacing.md),
+            for (final factory in data.factories) Card(child: ListTile(leading: const Icon(Icons.factory_outlined), title: Text(factory['name'] as String), subtitle: Text(factory['code'] as String))),
+            const SizedBox(height: FactorySpacing.lg),
+            FilledButton.tonalIcon(onPressed: () => Supabase.instance.client.auth.signOut(), icon: const Icon(Icons.logout), label: const Text('Sign out')),
+          ],
+        ),
       );
 }
 
