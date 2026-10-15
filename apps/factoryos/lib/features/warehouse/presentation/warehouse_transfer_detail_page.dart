@@ -4,7 +4,7 @@ import '../../../core/theme/app_theme.dart';
 import '../data/warehouse_repository.dart';
 import '../domain/warehouse_models.dart';
 
-class WarehouseTransferDetailPage extends StatelessWidget {
+class WarehouseTransferDetailPage extends StatefulWidget {
   const WarehouseTransferDetailPage({
     super.key,
     required this.repository,
@@ -15,13 +15,46 @@ class WarehouseTransferDetailPage extends StatelessWidget {
   final String transferNumber;
 
   @override
+  State<WarehouseTransferDetailPage> createState() => _WarehouseTransferDetailPageState();
+}
+
+class _WarehouseTransferDetailPageState extends State<WarehouseTransferDetailPage> {
+  late Future<WarehouseTransferDetail> _transferFuture;
+  bool _submitting = false;
+  String? _commandError;
+
+  @override
+  void initState() {
+    super.initState();
+    _transferFuture = widget.repository.loadTransfer(widget.transferNumber);
+  }
+
+  Future<void> _completeTransfer() async {
+    if (_submitting || !widget.repository.supportsMutations) return;
+    setState(() {
+      _submitting = true;
+      _commandError = null;
+    });
+    try {
+      final updated = await widget.repository.completeTransfer(widget.transferNumber);
+      if (!mounted) return;
+      setState(() => _transferFuture = Future.value(updated));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _commandError = error.toString());
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(transferNumber, style: const TextStyle(fontWeight: FontWeight.w800)),
+            Text(widget.transferNumber, style: const TextStyle(fontWeight: FontWeight.w800)),
             const Text(
               'Warehouse transfer • Inventory ledger controlled',
               style: TextStyle(fontSize: 12, color: AppTheme.muted),
@@ -30,7 +63,7 @@ class WarehouseTransferDetailPage extends StatelessWidget {
         ),
       ),
       body: FutureBuilder<WarehouseTransferDetail>(
-        future: repository.loadTransfer(transferNumber),
+        future: _transferFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
@@ -60,7 +93,13 @@ class WarehouseTransferDetailPage extends StatelessWidget {
               LayoutBuilder(
                 builder: (context, constraints) {
                   final lines = _TransferLines(transfer: transfer);
-                  final gate = _CompletionGate(transfer: transfer);
+                  final gate = _CompletionGate(
+                    transfer: transfer,
+                    liveMutations: widget.repository.supportsMutations,
+                    submitting: _submitting,
+                    commandError: _commandError,
+                    onComplete: transfer.canComplete ? _completeTransfer : null,
+                  );
                   if (constraints.maxWidth > 920) {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,8 +186,19 @@ class _TransferLines extends StatelessWidget {
 }
 
 class _CompletionGate extends StatelessWidget {
-  const _CompletionGate({required this.transfer});
+  const _CompletionGate({
+    required this.transfer,
+    required this.liveMutations,
+    required this.submitting,
+    required this.commandError,
+    required this.onComplete,
+  });
+
   final WarehouseTransferDetail transfer;
+  final bool liveMutations;
+  final bool submitting;
+  final String? commandError;
+  final VoidCallback? onComplete;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -166,19 +216,27 @@ class _CompletionGate extends StatelessWidget {
               Text('Reason: ${transfer.reason}', style: const TextStyle(color: AppTheme.muted)),
               const SizedBox(height: 6),
               Text('Assigned: ${transfer.assignee}', style: const TextStyle(color: AppTheme.muted)),
+              if (commandError != null) ...[
+                const SizedBox(height: 12),
+                Text(commandError!, style: const TextStyle(color: AppTheme.danger, fontSize: 12, fontWeight: FontWeight.w700)),
+              ],
               const SizedBox(height: 18),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: null,
-                  icon: const Icon(Icons.swap_horiz),
+                  onPressed: !liveMutations || submitting ? null : onComplete,
+                  icon: submitting
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.swap_horiz),
                   label: Text(transfer.ledgerReconciled ? 'Transfer completed' : 'Complete transfer'),
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Preview repository only. The verified backend command posts both ledger sides atomically; live invocation will be enabled after FactoryOS Supabase is connected.',
-                style: TextStyle(fontSize: 12, color: AppTheme.muted),
+              Text(
+                liveMutations
+                    ? 'Live command mode. Completion runs the verified atomic transfer RPC; stock remains ledger-controlled.'
+                    : 'Preview repository only. Live stock-changing commands are intentionally disabled.',
+                style: const TextStyle(fontSize: 12, color: AppTheme.muted),
               ),
             ],
           ),
