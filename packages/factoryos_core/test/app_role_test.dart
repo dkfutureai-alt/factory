@@ -17,8 +17,21 @@ void main() {
   test('organization setup changes remain admin-only', () {
     expect(AppRole.platformOwner.canManageOrganizationSetup, isTrue);
     expect(AppRole.orgAdmin.canManageOrganizationSetup, isTrue);
-    expect(AppRole.orgAdmin.canManageFactories, isTrue);
-    expect(AppRole.factoryManager.canManageFactories, isFalse);
-    expect(AppRole.supervisor.canManageOrganizationSetup, isFalse);
+    expect(AppRole.factoryManager.canManageOrganizationSetup, isFalse);
+  });
+
+  test('access management remains admin-only', () {
+    expect(AppRole.platformOwner.canManageAccess, isTrue);
+    expect(AppRole.orgAdmin.canManageAccess, isTrue);
+    expect(AppRole.factoryManager.canManageAccess, isFalse);
+  });
+
+  test('factory-scoped roles require assignments', () {
+    expect(AppRole.factoryManager.requiresFactoryAssignment, isTrue);
+    expect(AppRole.supervisor.requiresFactoryAssignment, isTrue);
+    expect(AppRole.employee.requiresFactoryAssignment, isTrue);
+    expect(AppRole.driver.requiresFactoryAssignment, isTrue);
+    expect(AppRole.orgAdmin.requiresFactoryAssignment, isFalse);
+    expect(AppRole.viewer.requiresFactoryAssignment, isFalse);
   });
 }

@@ -20,23 +20,23 @@ enum AppRole {
   }
 
   bool get canUseAdminPortal => switch (this) {
-        AppRole.platformOwner ||
-        AppRole.orgAdmin ||
-        AppRole.factoryManager => true,
+        AppRole.platformOwner || AppRole.orgAdmin || AppRole.factoryManager => true,
         _ => false,
       };
-
-  bool get canManageOrganizationSetup => switch (this) {
-        AppRole.platformOwner || AppRole.orgAdmin => true,
-        _ => false,
-      };
-
-  bool get canManageFactories => canManageOrganizationSetup;
 
   bool get canManagePeople => switch (this) {
-        AppRole.platformOwner ||
-        AppRole.orgAdmin ||
-        AppRole.factoryManager => true,
+        AppRole.platformOwner || AppRole.orgAdmin || AppRole.factoryManager => true,
+        _ => false,
+      };
+
+  bool get canManageOrganizationSetup =>
+      this == AppRole.platformOwner || this == AppRole.orgAdmin;
+
+  bool get canManageAccess =>
+      this == AppRole.platformOwner || this == AppRole.orgAdmin;
+
+  bool get requiresFactoryAssignment => switch (this) {
+        AppRole.factoryManager || AppRole.supervisor || AppRole.employee || AppRole.driver => true,
         _ => false,
       };
 }
