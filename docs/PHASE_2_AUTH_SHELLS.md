@@ -1,54 +1,28 @@
-# Phase 2 — Authentication and Application Shells
+# Phase 2 — Authentication, Onboarding and Access
 
 ## Implemented
 
-- Shared Flutter package with FactoryOS design tokens, roles and module model.
-- Supabase configuration via `--dart-define`; no secret/service-role keys are committed.
-- Admin Web sign-in and authenticated bootstrap.
-- Admin access restricted in the client to management roles, with RLS remaining authoritative.
-- Live organization, factory, member-count and enabled-module data on the admin dashboard.
-- Responsive admin layout.
-- Organization settings edit form for Organization Admin and Platform Owner.
-- Factory create, edit and soft-deactivate management for Organization Admin and Platform Owner.
-- Factory Manager remains read-only for organization/factory setup while retaining admin-portal access.
-- Server-side automatic audit logging for organization and factory inserts/updates/deletes.
-- Mobile sign-in and authenticated context bootstrap.
-- Mobile bottom navigation and database-driven module cards.
-- Missing-configuration, loading, access-error and sign-out states.
-- Tenant policy hardening so regular employees see only assigned factories and their own membership rows.
-- Flutter CI for core tests, static analysis and admin web release build.
-- Supabase migration/reset/seed/smoke-test CI.
-- Supabase Flutter 2.18.x `publishableKey` initialization, with temporary environment fallback for legacy `SUPABASE_ANON_KEY` deployments.
+- Supabase email/password sign-in for Admin Web and Mobile.
+- Server-side Supabase Auth invitation function; client apps never receive a service-role key.
+- Invitation intent stores role, factory assignments, expiry and lifecycle status separately from credentials.
+- First-login onboarding on both web and mobile for profile, phone and password completion.
+- Atomic invitation acceptance creates/reactivates organization membership and factory assignments.
+- Admin user-access screen to invite users, edit roles, reassign factories, revoke invitations and deactivate access.
+- Role-escalation protection prevents Organization Admins from creating Platform Owners or removing their own admin role.
+- Factory Manager membership administration is scoped to factories the manager is actually assigned to.
+- Employee-facing factory reads remain restricted to assigned factories by RLS.
+- Mobile module visibility is role-aware; module-specific business RLS continues in each later module phase.
+- Access changes are audited without writing invitation email addresses into audit metadata.
+- Supabase Flutter uses the current `publishableKey` API with temporary legacy environment-key fallback.
 
-## Permission Notes
+## Automated validation
 
-- `platform_owner`: admin portal + organization/factory setup management.
-- `org_admin`: admin portal + own organization/factory setup management.
-- `factory_manager`: admin portal + operational management, but no organization/factory setup writes.
-- RLS is authoritative; hiding an action in Flutter is not treated as a security boundary.
+The Supabase workflow validates clean migrations, seed data, RLS structure, invitation acceptance, role reassignment, factory reassignment, role-escalation denial and Factory Manager scope denial. The Flutter workflow validates shared core tests, admin analysis, an admin release web build and mobile analysis.
 
-## Not Yet Claimed Complete
+## Production configuration required
 
-Platform runner files for Android/iOS, invitation/onboarding and role-management forms remain to be finished and tested before Phase 2 is closed.
+Before production invitation email delivery, deploy `invite-user`, configure Supabase Auth email/SMTP settings and set `FACTORYOS_INVITE_REDIRECT_URL` for the production web/deep-link destination. Local validation covers the application and database access flow but does not claim third-party SMTP delivery.
 
-## Run Admin Web
+## Phase 2 completion boundary
 
-```bash
-cd apps/admin_web
-flutter pub get
-flutter run -d chrome \
-  --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
-  --dart-define=SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
-```
-
-## Run Mobile Source Shell
-
-Generate/restore platform runners for the target Flutter version, then:
-
-```bash
-cd apps/mobile
-flutter pub get
-flutter run \
-  --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
-  --dart-define=SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
-```
+The core invitation → onboarding → role assignment → factory assignment → authenticated access flow is implemented. Android/iOS release runners, production SMTP and production deep-link configuration remain environment/release tasks rather than access-logic gaps.
