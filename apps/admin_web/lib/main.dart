@@ -1,34 +1,40 @@
-import 'dart:async';
-
 import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  const config = AppConfig.fromEnvironment();
+  final config = AppConfig.fromEnvironment();
   if (config.isConfigured) {
-    await Supabase.initialize(url: config.supabaseUrl, anonKey: config.anonKey);
+    await Supabase.initialize(
+      url: config.supabaseUrl,
+      publishableKey: config.publishableKey,
+    );
   }
   runApp(FactoryAdminApp(config: config));
 }
 
 class AppConfig {
-  const AppConfig({required this.supabaseUrl, required this.anonKey});
+  const AppConfig({required this.supabaseUrl, required this.publishableKey});
 
-  const AppConfig.fromEnvironment()
-      : supabaseUrl = const String.fromEnvironment('SUPABASE_URL'),
-        anonKey = const String.fromEnvironment('SUPABASE_ANON_KEY');
+  factory AppConfig.fromEnvironment() {
+    const url = String.fromEnvironment('SUPABASE_URL');
+    const currentKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+    const legacyKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+    return AppConfig(
+      supabaseUrl: url,
+      publishableKey: currentKey.isNotEmpty ? currentKey : legacyKey,
+    );
+  }
 
   final String supabaseUrl;
-  final String anonKey;
+  final String publishableKey;
 
-  bool get isConfigured => supabaseUrl.isNotEmpty && anonKey.isNotEmpty;
+  bool get isConfigured => supabaseUrl.isNotEmpty && publishableKey.isNotEmpty;
 }
 
 class FactoryAdminApp extends StatelessWidget {
   const FactoryAdminApp({required this.config, super.key});
-
   final AppConfig config;
 
   @override
@@ -50,18 +56,13 @@ class MissingConfigPage extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: Card(
+          constraints: const BoxConstraints(maxWidth: 580),
+          child: const Card(
             child: Padding(
-              padding: const EdgeInsets.all(FactorySpacing.xl),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('FactoryOS Admin', style: Theme.of(context).textTheme.headlineMedium),
-                  const SizedBox(height: FactorySpacing.md),
-                  const Text('Backend configuration is missing. Run with --dart-define=SUPABASE_URL=... and --dart-define=SUPABASE_ANON_KEY=...'),
-                ],
+              padding: EdgeInsets.all(FactorySpacing.xl),
+              child: Text(
+                'FactoryOS backend is not configured. Provide SUPABASE_URL and '
+                'SUPABASE_PUBLISHABLE_KEY using --dart-define.',
               ),
             ),
           ),
@@ -79,10 +80,15 @@ class AuthGate extends StatelessWidget {
     final client = Supabase.instance.client;
     return StreamBuilder<AuthState>(
       stream: client.auth.onAuthStateChange,
-      initialData: AuthState(AuthChangeEvent.initialSession, client.auth.currentSession),
+      initialData: AuthState(
+        AuthChangeEvent.initialSession,
+        client.auth.currentSession,
+      ),
       builder: (context, snapshot) {
         final session = snapshot.data?.session;
-        return session == null ? const SignInPage() : AdminBootstrap(user: session.user);
+        return session == null
+            ? const SignInPage()
+            : AdminBootstrap(user: session.user);
       },
     );
   }
@@ -96,32 +102,32 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  bool submitting = false;
+  final email = TextEditingController();
+  final password = TextEditingController();
+  bool busy = false;
   String? error;
 
   @override
   void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
+    email.dispose();
+    password.dispose();
     super.dispose();
   }
 
-  Future<void> submit() async {
+  Future<void> signIn() async {
     setState(() {
-      submitting = true;
+      busy = true;
       error = null;
     });
     try {
       await Supabase.instance.client.auth.signInWithPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text,
+        email: email.text.trim(),
+        password: password.text,
       );
-    } on AuthException catch (e) {
-      if (mounted) setState(() => error = e.message);
+    } on AuthException catch (exception) {
+      if (mounted) setState(() => error = exception.message);
     } finally {
-      if (mounted) setState(() => submitting = false);
+      if (mounted) setState(() => busy = false);
     }
   }
 
@@ -138,19 +144,40 @@ class _SignInPageState extends State<SignInPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('FactoryOS', style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w800)),
+                  Text(
+                    'FactoryOS',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineLarge
+                        ?.copyWith(fontWeight: FontWeight.w900),
+                  ),
                   const SizedBox(height: FactorySpacing.xs),
-                  Text('Factory administration', style: Theme.of(context).textTheme.titleMedium),
+                  const Text('Factory administration'),
                   const SizedBox(height: FactorySpacing.lg),
-                  TextField(controller: emailController, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
+                  TextField(
+                    controller: email,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                  ),
                   const SizedBox(height: FactorySpacing.md),
-                  TextField(controller: passwordController, obscureText: true, onSubmitted: (_) => submit(), decoration: const InputDecoration(labelText: 'Password')),
+                  TextField(
+                    controller: password,
+                    obscureText: true,
+                    onSubmitted: (_) => signIn(),
+                    decoration: const InputDecoration(labelText: 'Password'),
+                  ),
                   if (error != null) ...[
                     const SizedBox(height: FactorySpacing.sm),
-                    Text(error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    Text(
+                      error!,
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
                   ],
                   const SizedBox(height: FactorySpacing.lg),
-                  FilledButton(onPressed: submitting ? null : submit, child: Text(submitting ? 'Signing in…' : 'Sign in')),
+                  FilledButton(
+                    onPressed: busy ? null : signIn,
+                    child: Text(busy ? 'Signing in…' : 'Sign in'),
+                  ),
                 ],
               ),
             ),
@@ -161,9 +188,8 @@ class _SignInPageState extends State<SignInPage> {
   }
 }
 
-class AdminContext {
-  const AdminContext({
-    required this.organizationId,
+class AdminData {
+  const AdminData({
     required this.organizationName,
     required this.role,
     required this.factories,
@@ -171,7 +197,6 @@ class AdminContext {
     required this.modules,
   });
 
-  final String organizationId;
   final String organizationName;
   final AppRole role;
   final List<Map<String, dynamic>> factories;
@@ -179,28 +204,35 @@ class AdminContext {
   final List<AppModule> modules;
 }
 
-class AdminContextRepository {
-  AdminContextRepository(this.client);
+class AdminRepository {
+  AdminRepository(this.client);
   final SupabaseClient client;
 
-  Future<AdminContext> load(User user) async {
-    final rows = await client
+  Future<AdminData> load(User user) async {
+    final memberships = await client
         .from('organization_members')
-        .select('organization_id, role, organizations(id,name,code)')
+        .select('organization_id, role, organizations(name)')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .limit(1);
 
-    if (rows.isEmpty) throw StateError('No active organization membership found.');
-    final row = Map<String, dynamic>.from(rows.first);
-    final role = AppRole.fromWireName(row['role'] as String);
-    if (!role.canUseAdminPortal) throw StateError('Your role does not have access to the admin portal.');
+    if (memberships.isEmpty) {
+      throw StateError('No active organization membership found.');
+    }
 
-    final organization = Map<String, dynamic>.from(row['organizations'] as Map);
-    final organizationId = row['organization_id'] as String;
+    final membership = Map<String, dynamic>.from(memberships.first);
+    final role = AppRole.fromWireName(membership['role'] as String);
+    if (!role.canUseAdminPortal) {
+      throw StateError('Your role does not have access to the admin portal.');
+    }
+
+    final organizationId = membership['organization_id'] as String;
+    final organization = Map<String, dynamic>.from(
+      membership['organizations'] as Map,
+    );
     final factories = await client
         .from('factories')
-        .select('id,name,code,city,state,is_active')
+        .select('id,name,code,city,state')
         .eq('organization_id', organizationId)
         .eq('is_active', true)
         .order('name');
@@ -211,18 +243,17 @@ class AdminContextRepository {
         .eq('is_active', true);
     final moduleRows = await client
         .from('organization_modules')
-        .select('module_key, app_modules(key,name,sort_order)')
+        .select('app_modules(key,name,sort_order)')
         .eq('organization_id', organizationId)
         .eq('is_enabled', true);
 
     final modules = moduleRows
-        .map((item) => Map<String, dynamic>.from(item['app_modules'] as Map))
+        .map((row) => Map<String, dynamic>.from(row['app_modules'] as Map))
         .map(AppModule.fromMap)
         .toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
-    return AdminContext(
-      organizationId: organizationId,
+    return AdminData(
       organizationName: organization['name'] as String,
       role: role,
       factories: List<Map<String, dynamic>>.from(factories),
@@ -241,19 +272,23 @@ class AdminBootstrap extends StatefulWidget {
 }
 
 class _AdminBootstrapState extends State<AdminBootstrap> {
-  late Future<AdminContext> future;
+  late Future<AdminData> future;
 
   @override
   void initState() {
     super.initState();
-    future = AdminContextRepository(Supabase.instance.client).load(widget.user);
+    future = AdminRepository(Supabase.instance.client).load(widget.user);
   }
 
-  void retry() => setState(() => future = AdminContextRepository(Supabase.instance.client).load(widget.user));
+  void retry() {
+    setState(() {
+      future = AdminRepository(Supabase.instance.client).load(widget.user);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<AdminContext>(
+    return FutureBuilder<AdminData>(
       future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -262,148 +297,160 @@ class _AdminBootstrapState extends State<AdminBootstrap> {
         if (snapshot.hasError) {
           return Scaffold(
             body: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 520),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(FactorySpacing.lg),
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.lock_outline, size: 42),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(FactorySpacing.lg),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.lock_outline, size: 44),
                       const SizedBox(height: FactorySpacing.md),
-                      Text('${snapshot.error}', textAlign: TextAlign.center),
+                      Text('${snapshot.error}'),
                       const SizedBox(height: FactorySpacing.md),
-                      Wrap(spacing: FactorySpacing.sm, children: [
-                        OutlinedButton(onPressed: retry, child: const Text('Retry')),
-                        FilledButton(onPressed: () => Supabase.instance.client.auth.signOut(), child: const Text('Sign out')),
-                      ]),
-                    ]),
+                      Wrap(
+                        spacing: FactorySpacing.sm,
+                        children: [
+                          OutlinedButton(
+                            onPressed: retry,
+                            child: const Text('Retry'),
+                          ),
+                          FilledButton(
+                            onPressed: () =>
+                                Supabase.instance.client.auth.signOut(),
+                            child: const Text('Sign out'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           );
         }
-        return AdminShell(data: snapshot.requireData);
+        return AdminDashboard(data: snapshot.requireData);
       },
     );
   }
 }
 
-class AdminShell extends StatefulWidget {
-  const AdminShell({required this.data, super.key});
-  final AdminContext data;
-
-  @override
-  State<AdminShell> createState() => _AdminShellState();
-}
-
-class _AdminShellState extends State<AdminShell> {
-  int selected = 0;
-
-  static const destinations = [
-    NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('Dashboard')),
-    NavigationRailDestination(icon: Icon(Icons.factory_outlined), selectedIcon: Icon(Icons.factory), label: Text('Factories')),
-    NavigationRailDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups), label: Text('Team')),
-    NavigationRailDestination(icon: Icon(Icons.widgets_outlined), selectedIcon: Icon(Icons.widgets), label: Text('Modules')),
-  ];
+class AdminDashboard extends StatelessWidget {
+  const AdminDashboard({required this.data, super.key});
+  final AdminData data;
 
   @override
   Widget build(BuildContext context) {
-    final compact = MediaQuery.sizeOf(context).width < 920;
-    final pages = [
-      OverviewPage(data: widget.data),
-      FactoriesPage(factories: widget.data.factories),
-      TeamPage(memberCount: widget.data.memberCount, role: widget.data.role),
-      ModulesPage(modules: widget.data.modules),
-    ];
-
-    if (compact) {
-      return Scaffold(
-        appBar: AppBar(title: Text(widget.data.organizationName), actions: [IconButton(onPressed: () => Supabase.instance.client.auth.signOut(), icon: const Icon(Icons.logout))]),
-        body: pages[selected],
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: selected,
-          onDestinationSelected: (value) => setState(() => selected = value),
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Home'),
-            NavigationDestination(icon: Icon(Icons.factory_outlined), selectedIcon: Icon(Icons.factory), label: 'Factories'),
-            NavigationDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups), label: 'Team'),
-            NavigationDestination(icon: Icon(Icons.widgets_outlined), selectedIcon: Icon(Icons.widgets), label: 'Modules'),
-          ],
-        ),
-      );
-    }
-
     return Scaffold(
-      body: Row(
-        children: [
-          NavigationRail(
-            extended: MediaQuery.sizeOf(context).width >= 1180,
-            selectedIndex: selected,
-            onDestinationSelected: (value) => setState(() => selected = value),
-            leading: const Padding(
-              padding: EdgeInsets.symmetric(vertical: FactorySpacing.lg),
-              child: Text('FactoryOS', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: FactoryColors.navy)),
-            ),
-            trailing: Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: FactorySpacing.lg),
-                  child: IconButton(tooltip: 'Sign out', onPressed: () => Supabase.instance.client.auth.signOut(), icon: const Icon(Icons.logout)),
-                ),
-              ),
-            ),
-            destinations: destinations,
+      appBar: AppBar(
+        title: const Text('FactoryOS'),
+        actions: [
+          IconButton(
+            tooltip: 'Sign out',
+            onPressed: () => Supabase.instance.client.auth.signOut(),
+            icon: const Icon(Icons.logout),
           ),
-          const VerticalDivider(width: 1),
-          Expanded(child: pages[selected]),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(FactorySpacing.lg),
+        children: [
+          Text(
+            data.organizationName,
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          Text('${data.role.label} · live Supabase organization context'),
+          const SizedBox(height: FactorySpacing.lg),
+          Wrap(
+            spacing: FactorySpacing.md,
+            runSpacing: FactorySpacing.md,
+            children: [
+              MetricCard(
+                label: 'Active factories',
+                value: '${data.factories.length}',
+                icon: Icons.factory_outlined,
+              ),
+              MetricCard(
+                label: 'Active members',
+                value: '${data.memberCount}',
+                icon: Icons.groups_outlined,
+              ),
+              MetricCard(
+                label: 'Enabled modules',
+                value: '${data.modules.length}',
+                icon: Icons.widgets_outlined,
+              ),
+            ],
+          ),
+          const SizedBox(height: FactorySpacing.lg),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final twoColumns = constraints.maxWidth >= 900;
+              final width = twoColumns
+                  ? (constraints.maxWidth - FactorySpacing.md) / 2
+                  : constraints.maxWidth;
+              return Wrap(
+                spacing: FactorySpacing.md,
+                runSpacing: FactorySpacing.md,
+                children: [
+                  SizedBox(
+                    width: width,
+                    child: SectionCard(
+                      title: 'Factories',
+                      children: data.factories.isEmpty
+                          ? const [ListTile(title: Text('No accessible factories'))]
+                          : data.factories
+                              .map(
+                                (factory) => ListTile(
+                                  leading: const Icon(Icons.factory_outlined),
+                                  title: Text(factory['name'] as String),
+                                  subtitle: Text(
+                                    [
+                                      factory['code'],
+                                      factory['city'],
+                                      factory['state'],
+                                    ].whereType<String>().join(' · '),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width,
+                    child: SectionCard(
+                      title: 'Enabled modules',
+                      children: data.modules
+                          .map(
+                            (module) => ListTile(
+                              leading: const Icon(Icons.check_circle_outline),
+                              title: Text(module.name),
+                              subtitle: Text(module.key),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
   }
 }
 
-class OverviewPage extends StatelessWidget {
-  const OverviewPage({required this.data, super.key});
-  final AdminContext data;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(FactorySpacing.lg),
-      children: [
-        Text(data.organizationName, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
-        const SizedBox(height: FactorySpacing.xs),
-        Text('${data.role.label} · live organization context'),
-        const SizedBox(height: FactorySpacing.lg),
-        Wrap(
-          spacing: FactorySpacing.md,
-          runSpacing: FactorySpacing.md,
-          children: [
-            MetricCard(label: 'Active factories', value: '${data.factories.length}', icon: Icons.factory_outlined),
-            MetricCard(label: 'Active members', value: '${data.memberCount}', icon: Icons.groups_outlined),
-            MetricCard(label: 'Enabled modules', value: '${data.modules.length}', icon: Icons.widgets_outlined),
-          ],
-        ),
-        const SizedBox(height: FactorySpacing.lg),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(FactorySpacing.lg),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Foundation status', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-              const SizedBox(height: FactorySpacing.sm),
-              const Text('Dashboard values above are read from Supabase. Production, inventory, HR and delivery KPIs will appear only after their ledger/workflow modules are implemented.'),
-            ]),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class MetricCard extends StatelessWidget {
-  const MetricCard({required this.label, required this.value, required this.icon, super.key});
+  const MetricCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    super.key,
+  });
+
   final String label;
   final String value;
   final IconData icon;
@@ -415,79 +462,58 @@ class MetricCard extends StatelessWidget {
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(FactorySpacing.lg),
-          child: Row(children: [
-            CircleAvatar(child: Icon(icon)),
-            const SizedBox(width: FactorySpacing.md),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
-              Text(label),
-            ]),
-          ]),
+          child: Row(
+            children: [
+              CircleAvatar(child: Icon(icon)),
+              const SizedBox(width: FactorySpacing.md),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w900),
+                  ),
+                  Text(label),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class FactoriesPage extends StatelessWidget {
-  const FactoriesPage({required this.factories, super.key});
-  final List<Map<String, dynamic>> factories;
+class SectionCard extends StatelessWidget {
+  const SectionCard({required this.title, required this.children, super.key});
+  final String title;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(FactorySpacing.lg),
-      children: [
-        Text('Factories', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
-        const SizedBox(height: FactorySpacing.md),
-        if (factories.isEmpty) const Card(child: Padding(padding: EdgeInsets.all(FactorySpacing.lg), child: Text('No accessible factories.'))),
-        for (final factory in factories)
-          Card(
-            child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.factory_outlined)),
-              title: Text(factory['name'] as String),
-              subtitle: Text([factory['code'], factory['city'], factory['state']].whereType<String>().where((e) => e.isNotEmpty).join(' · ')),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(FactorySpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(FactorySpacing.sm),
+              child: Text(
+                title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
             ),
-          ),
-      ],
-    );
-  }
-}
-
-class TeamPage extends StatelessWidget {
-  const TeamPage({required this.memberCount, required this.role, super.key});
-  final int memberCount;
-  final AppRole role;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(FactorySpacing.lg),
-      children: [
-        Text('Team', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
-        const SizedBox(height: FactorySpacing.md),
-        MetricCard(label: 'Active organization members', value: '$memberCount', icon: Icons.groups_outlined),
-        const SizedBox(height: FactorySpacing.md),
-        Card(child: Padding(padding: const EdgeInsets.all(FactorySpacing.lg), child: Text('${role.label} access is active. Member create/edit workflows are scheduled for the HR phase.'))),
-      ],
-    );
-  }
-}
-
-class ModulesPage extends StatelessWidget {
-  const ModulesPage({required this.modules, super.key});
-  final List<AppModule> modules;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(FactorySpacing.lg),
-      children: [
-        Text('Enabled modules', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
-        const SizedBox(height: FactorySpacing.md),
-        for (final module in modules)
-          Card(child: ListTile(leading: const Icon(Icons.check_circle_outline), title: Text(module.name), subtitle: Text(module.key))),
-      ],
+            ...children,
+          ],
+        ),
+      ),
     );
   }
 }
