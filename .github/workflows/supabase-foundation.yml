@@ -10,6 +10,10 @@ on:
       - 'supabase/**'
       - '.github/workflows/supabase-foundation.yml'
 
+concurrency:
+  group: supabase-foundation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   database-test:
     runs-on: ubuntu-latest
