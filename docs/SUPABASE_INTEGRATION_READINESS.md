@@ -57,6 +57,8 @@ Implemented live boundaries:
 - `SupabaseWarehouseRepository`
 - `SupabaseDispatchRepository`
 
+The backend configuration, bootstrap, Auth boundary and live Warehouse/Dispatch repository adapters are exported through the central FactoryOS export surface for reuse by later modules.
+
 Existing routes remain preview-compatible for tests. Runtime route composition overrides Login, Warehouse and Dispatch only when the live service graph is selected, allowing later modules to migrate incrementally.
 
 ## Authentication readiness
@@ -132,11 +134,11 @@ Dispatch command tests also resolve fixture UUIDs before switching to the authen
 
 ## Verification
 
-Accepted pre-documentation code head:
+Accepted exact branch head before this documentation-only acceptance note:
 
-`f54b647599a692361c75a95a619d401d7e7c760e`
+`d9af6e39909492298682740031f2be61a92535f4`
 
-Database CI run `38687917334` passed:
+Database CI run `38688424899` passed:
 
 - Supabase auth compatibility bootstrap;
 - complete schema/review/command chain through `11d_dispatch_full_load_guard.sql`;
@@ -146,9 +148,9 @@ Database CI run `38687917334` passed:
 - Warehouse/Dispatch command assertions;
 - Dispatch partial-load rejection assertions.
 
-Flutter CI run `38687917418` passed:
+Flutter CI run `38688424928` passed:
 
-- `flutter analyze --fatal-infos`;
+- `flutter analyze --fatal-infos` with no issues;
 - **66/66 tests**;
 - backend configuration validation tests;
 - preview Auth tests;
