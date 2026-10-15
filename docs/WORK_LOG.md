@@ -19,18 +19,29 @@
 ## 2026-10-15 — Phase 2 Authentication + Management
 
 - Added shared Flutter core package with roles, module model and theme tokens.
-- Added Supabase-aware responsive admin web shell with real organization/factory/member/module data.
-- Added Supabase-aware employee mobile shell with role and assigned-factory context.
-- Added configuration/loading/error/auth states.
-- Hardened tenant read policies before employee app connection.
-- Updated Supabase Flutter integration to the current `publishableKey` API while retaining temporary environment fallback for legacy key naming.
-- Added Organization Admin/Platform Owner organization-settings editing.
-- Added factory create, edit and soft-deactivate management.
-- Kept Factory Manager read-only for organization/factory setup; RLS remains authoritative.
-- Added server-side organization/factory audit triggers and Platform Owner organization-create policy.
-- Expanded SQL smoke checks to verify management policy/audit triggers and changed CI to execute all SQL tests.
-- Validation passed: Supabase start/reset/migrations/seed/smoke checks; shared core analysis and 3 permission tests; admin analysis; admin release web build; mobile analysis.
+- Added Supabase-aware responsive admin web and employee mobile shells.
+- Added email/password authentication and current Supabase `publishableKey` configuration.
+- Added Organization Admin/Platform Owner organization settings and factory create/edit/soft-deactivate management.
+- Added server-side organization/factory access audit logging.
+- Added invitation records with expiry, lifecycle state, requested role and requested factory assignments.
+- Added server-side `invite-user` Supabase Auth Edge Function; service credentials remain server-side only.
+- Added first-login onboarding on Admin Web and Mobile for profile, phone and password completion.
+- Added atomic invitation acceptance that activates organization membership and factory assignments.
+- Added Admin Users & Access UI for invitation, role reassignment, factory reassignment, invitation revocation and access deactivation.
+- Added role-escalation protection so Organization Admins cannot create Platform Owners or remove their own admin role.
+- Tightened Factory Manager membership management to factories actually assigned to that manager.
+- Kept employee factory reads restricted to assigned factories through RLS.
+- Added role-aware mobile module visibility.
+- Expanded audit logging to invitation, organization-member and factory-member changes.
+- Added SQL tests for invitation acceptance, role/factory reassignment, escalation denial and Factory Manager scope.
+- Added Edge Function Deno type-checking to CI.
+- Added real local Supabase authentication validation: signup -> password login -> JWT -> PostgREST -> assigned-factory-only RLS.
+- Validation passed: Supabase Edge Function check/start/reset/migrations/seed/all SQL smoke tests/real Auth+RLS flow; shared core analysis and 5 permission tests; admin analysis; admin release web build; mobile analysis.
+
+### Phase 2 status
+
+Core access workflow is complete and validated. Production SMTP/invite redirects and Android/iOS release configuration remain deployment/release configuration tasks.
 
 ### Next
 
-Finish Phase 2 invitation/onboarding and role-management workflow, restore/generate mobile platform runners, perform end-to-end authenticated role testing, then proceed to HR.
+Start Phase 3: HR master data -> employees -> departments/designations -> shifts -> attendance/check-in/out -> leave -> holidays -> HR reports, following the design-image-first workflow.
