@@ -81,7 +81,7 @@ void main() {
 
     expect(repository.completeCalls, 1);
     expect(find.widgetWithText(FilledButton, 'Complete batch'), findsNothing);
-    expect(find.text('5 units'), findsOneWidget);
+    expect(find.text('5 units'), findsNWidgets(2));
     expect(find.text('Production batch completed and order totals reconciled.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
