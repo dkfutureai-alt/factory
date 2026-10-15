@@ -65,6 +65,7 @@ jobs:
             supabase/schemas/01a_rbac_scope_hardening.sql
             supabase/schemas/02_inventory.sql
             supabase/schemas/02a_inventory_review_fixes.sql
+            supabase/schemas/02b_inventory_stock_entry_commands.sql
             supabase/schemas/03_production_quality.sql
             supabase/schemas/03a_production_review_fixes.sql
             supabase/schemas/04_purchase.sql
@@ -101,6 +102,7 @@ jobs:
           seeds=(
             supabase/seed/01_demo_foundation.sql
             supabase/seed/02_demo_inventory_production.sql
+            supabase/seed/02a_demo_inventory_adjustment_roles.sql
             supabase/seed/03_demo_purchase.sql
             supabase/seed/04_demo_hr.sql
             supabase/seed/05_demo_sales.sql
@@ -132,3 +134,6 @@ jobs:
 
       - name: Run Production completion command assertions
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/05_production_completion_commands.sql
+
+      - name: Run Inventory Stock Entry command assertions
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/06_inventory_stock_entry_commands.sql
