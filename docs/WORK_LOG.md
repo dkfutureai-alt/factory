@@ -14,6 +14,7 @@
 - Added core Supabase migration with organizations, factories, profiles, membership, module catalog and audit logs.
 - Added RLS helper functions and tenant policies.
 - Added fictional seed tenant/factory data and SQL smoke checks.
+- GitHub Actions validation passed: Supabase start/reset, migrations, seed and foundation smoke checks.
 
 ## 2026-10-15 — Phase 2 Started
 
@@ -22,7 +23,9 @@
 - Added Supabase-aware employee mobile shell with role and assigned-factory context.
 - Added configuration/loading/error/auth states.
 - Hardened tenant read policies before employee app connection.
+- Updated Supabase Flutter integration to the current `publishableKey` API while retaining temporary environment fallback for legacy key naming.
 - Added Flutter analysis/test/build workflow.
+- Validation passed: shared core analysis/tests, admin analysis, admin release web build and mobile analysis.
 
 ### Next
 
