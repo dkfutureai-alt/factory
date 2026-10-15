@@ -3,18 +3,22 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/inventory_item_detail_repository.dart';
 import '../data/inventory_repository.dart';
+import '../data/inventory_stock_entry_repository.dart';
 import '../domain/inventory_models.dart';
 import 'inventory_item_detail_page.dart';
+import 'inventory_stock_entry_page.dart';
 
 class InventoryDashboardPage extends StatelessWidget {
   const InventoryDashboardPage({
     super.key,
     required this.repository,
     this.detailRepository,
+    this.stockEntryRepository,
   });
 
   final InventoryRepository repository;
   final InventoryItemDetailRepository? detailRepository;
+  final InventoryStockEntryRepository? stockEntryRepository;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -27,6 +31,23 @@ class InventoryDashboardPage extends StatelessWidget {
             ],
           ),
           actions: [
+            TextButton.icon(
+              onPressed: () {
+                final stockEntry = stockEntryRepository;
+                if (stockEntry == null) {
+                  Navigator.of(context).pushNamed('/inventory/stock-entry');
+                  return;
+                }
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => InventoryStockEntryPage(repository: stockEntry),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.post_add),
+              label: const Text('Stock entry'),
+            ),
+            const SizedBox(width: 8),
             TextButton.icon(
               onPressed: () => Navigator.of(context).pushNamed('/scanner'),
               icon: const Icon(Icons.qr_code_scanner),
