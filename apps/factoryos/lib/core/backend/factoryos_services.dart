@@ -13,6 +13,10 @@ import '../../features/production/data/production_order_detail_repository.dart';
 import '../../features/production/data/production_repository.dart';
 import '../../features/production/data/supabase_production_order_detail_repository.dart';
 import '../../features/production/data/supabase_production_repository.dart';
+import '../../features/purchase/data/purchase_receipt_repository.dart';
+import '../../features/purchase/data/purchase_repository.dart';
+import '../../features/purchase/data/supabase_purchase_receipt_repository.dart';
+import '../../features/purchase/data/supabase_purchase_repository.dart';
 import '../../features/warehouse/data/supabase_warehouse_repository.dart';
 import '../../features/warehouse/data/warehouse_repository.dart';
 import 'backend_config.dart';
@@ -26,6 +30,8 @@ class FactoryOsServices {
     required this.inventoryStockEntryRepository,
     required this.productionRepository,
     required this.productionOrderDetailRepository,
+    required this.purchaseRepository,
+    required this.purchaseReceiptRepository,
     required this.warehouseRepository,
     required this.dispatchRepository,
   });
@@ -39,6 +45,8 @@ class FactoryOsServices {
       inventoryStockEntryRepository: const PreviewInventoryStockEntryRepository(),
       productionRepository: const PreviewProductionRepository(),
       productionOrderDetailRepository: const PreviewProductionOrderDetailRepository(),
+      purchaseRepository: const PreviewPurchaseRepository(),
+      purchaseReceiptRepository: const PreviewPurchaseReceiptRepository(),
       warehouseRepository: const PreviewWarehouseRepository(),
       dispatchRepository: const PreviewDispatchRepository(),
     );
@@ -56,6 +64,8 @@ class FactoryOsServices {
       inventoryStockEntryRepository: SupabaseInventoryStockEntryRepository(client),
       productionRepository: SupabaseProductionRepository(client),
       productionOrderDetailRepository: SupabaseProductionOrderDetailRepository(client),
+      purchaseRepository: SupabasePurchaseRepository(client),
+      purchaseReceiptRepository: SupabasePurchaseReceiptRepository(client),
       warehouseRepository: SupabaseWarehouseRepository(client),
       dispatchRepository: SupabaseDispatchRepository(client),
     );
@@ -68,6 +78,8 @@ class FactoryOsServices {
   final InventoryStockEntryRepository inventoryStockEntryRepository;
   final ProductionRepository productionRepository;
   final ProductionOrderDetailRepository productionOrderDetailRepository;
+  final PurchaseRepository purchaseRepository;
+  final PurchaseReceiptRepository purchaseReceiptRepository;
   final WarehouseRepository warehouseRepository;
   final DispatchRepository dispatchRepository;
 }
