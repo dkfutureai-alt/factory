@@ -5,6 +5,8 @@ API_URL='http://127.0.0.1:54321'
 DB_URL='postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 EMAIL='e2e-login@factoryos.test'
 PASSWORD='Password123!'
+MANAGER_EMAIL='e2e-manager@factoryos.test'
+MANAGER_PASSWORD='Manager123!'
 ORG_ID='41000000-0000-4000-8000-000000000001'
 FACTORY_ALLOWED='42000000-0000-4000-8000-000000000001'
 FACTORY_BLOCKED='42000000-0000-4000-8000-000000000002'
@@ -26,8 +28,14 @@ SIGNUP_RESPONSE="$(curl -fsS \
   -H "apikey: $ANON_KEY" \
   -H 'Content-Type: application/json' \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")"
-
 USER_ID="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["user"]["id"])' <<<"$SIGNUP_RESPONSE")"
+
+MANAGER_SIGNUP_RESPONSE="$(curl -fsS \
+  -X POST "$API_URL/auth/v1/signup" \
+  -H "apikey: $ANON_KEY" \
+  -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$MANAGER_EMAIL\",\"password\":\"$MANAGER_PASSWORD\"}")"
+MANAGER_USER_ID="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["user"]["id"])' <<<"$MANAGER_SIGNUP_RESPONSE")"
 
 psql "$DB_URL" -v ON_ERROR_STOP=1 <<SQL
 insert into public.organizations (id, name, code)
@@ -39,10 +47,14 @@ values
   ('$FACTORY_BLOCKED', '$ORG_ID', 'Blocked Plant', 'BLOCK');
 
 insert into public.organization_members (organization_id, user_id, role)
-values ('$ORG_ID', '$USER_ID', 'employee');
+values
+  ('$ORG_ID', '$USER_ID', 'employee'),
+  ('$ORG_ID', '$MANAGER_USER_ID', 'factory_manager');
 
 insert into public.factory_members (organization_id, factory_id, user_id)
-values ('$ORG_ID', '$FACTORY_ALLOWED', '$USER_ID');
+values
+  ('$ORG_ID', '$FACTORY_ALLOWED', '$USER_ID'),
+  ('$ORG_ID', '$FACTORY_ALLOWED', '$MANAGER_USER_ID');
 
 insert into public.departments (id, organization_id, name, code)
 values ('$DEPARTMENT_ID', '$ORG_ID', 'Production', 'PROD');
@@ -78,18 +90,23 @@ LOGIN_RESPONSE="$(curl -fsS \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")"
 ACCESS_TOKEN="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])' <<<"$LOGIN_RESPONSE")"
 
+MANAGER_LOGIN_RESPONSE="$(curl -fsS \
+  -X POST "$API_URL/auth/v1/token?grant_type=password" \
+  -H "apikey: $ANON_KEY" \
+  -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$MANAGER_EMAIL\",\"password\":\"$MANAGER_PASSWORD\"}")"
+MANAGER_ACCESS_TOKEN="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])' <<<"$MANAGER_LOGIN_RESPONSE")"
+
 FACTORY_RESPONSE="$(curl -fsS \
   "$API_URL/rest/v1/factories?select=id,name&order=name" \
   -H "apikey: $ANON_KEY" \
   -H "Authorization: Bearer $ACCESS_TOKEN")"
-
 python3 -c 'import json,sys; allowed=sys.argv[1]; rows=json.load(sys.stdin); ids={r["id"] for r in rows}; assert ids=={allowed}, f"expected only {allowed}, got {ids}"; print("real signup + password login + JWT + factory RLS passed")' "$FACTORY_ALLOWED" <<<"$FACTORY_RESPONSE"
 
 EMPLOYEE_RESPONSE="$(curl -fsS \
   "$API_URL/rest/v1/employees?select=id,employee_code,full_name&order=employee_code" \
   -H "apikey: $ANON_KEY" \
   -H "Authorization: Bearer $ACCESS_TOKEN")"
-
 python3 -c 'import json,sys; allowed=sys.argv[1]; rows=json.load(sys.stdin); ids={r["id"] for r in rows}; assert ids=={allowed}, f"expected only linked employee {allowed}, got {ids}"; print("employee HR RLS passed")' "$EMPLOYEE_ALLOWED" <<<"$EMPLOYEE_RESPONSE"
 
 MY_EMPLOYEE_RESPONSE="$(curl -fsS \
@@ -98,7 +115,6 @@ MY_EMPLOYEE_RESPONSE="$(curl -fsS \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{}')"
-
 python3 -c 'import json,sys; expected=sys.argv[1]; rows=json.load(sys.stdin); assert len(rows)==1 and rows[0]["employee_id"]==expected, rows; print("employee self profile RPC passed")' "$EMPLOYEE_ALLOWED" <<<"$MY_EMPLOYEE_RESPONSE"
 
 ATTENDANCE_RESPONSE="$(curl -fsS \
@@ -107,8 +123,31 @@ ATTENDANCE_RESPONSE="$(curl -fsS \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"p_action":"check_in"}')"
-
 python3 -c 'import json,sys; row=json.load(sys.stdin); assert row["status"]=="present" and row["check_in_at"], row; print("employee self check-in RPC passed")' <<<"$ATTENDANCE_RESPONSE"
+
+MANAGER_ATTENDANCE_RESPONSE="$(curl -fsS \
+  -X POST "$API_URL/rest/v1/rpc/admin_set_attendance" \
+  -H "apikey: $ANON_KEY" \
+  -H "Authorization: Bearer $MANAGER_ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d "{\"p_employee_id\":\"$EMPLOYEE_ALLOWED\",\"p_work_date\":\"2099-01-01\",\"p_status\":\"absent\"}")"
+python3 -c 'import json,sys; row=json.load(sys.stdin); assert row["status"]=="absent" and row["work_date"]=="2099-01-01", row; print("factory manager attendance RPC passed")' <<<"$MANAGER_ATTENDANCE_RESPONSE"
+
+MANAGER_BLOCKED_RESPONSE_FILE="$(mktemp)"
+MANAGER_BLOCKED_STATUS="$(curl -sS -o "$MANAGER_BLOCKED_RESPONSE_FILE" -w '%{http_code}' \
+  -X POST "$API_URL/rest/v1/rpc/admin_set_attendance" \
+  -H "apikey: $ANON_KEY" \
+  -H "Authorization: Bearer $MANAGER_ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d "{\"p_employee_id\":\"$EMPLOYEE_BLOCKED\",\"p_work_date\":\"2099-01-01\",\"p_status\":\"absent\"}")"
+if [[ "$MANAGER_BLOCKED_STATUS" == 2* ]]; then
+  echo 'Factory manager unexpectedly changed attendance in a blocked factory.' >&2
+  cat "$MANAGER_BLOCKED_RESPONSE_FILE" >&2
+  rm -f "$MANAGER_BLOCKED_RESPONSE_FILE"
+  exit 1
+fi
+rm -f "$MANAGER_BLOCKED_RESPONSE_FILE"
+echo 'factory manager cross-factory attendance denial passed'
 
 LEAVE_RESPONSE="$(curl -fsS \
   -X POST "$API_URL/rest/v1/rpc/request_my_leave" \
@@ -116,11 +155,9 @@ LEAVE_RESPONSE="$(curl -fsS \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H 'Content-Type: application/json' \
   -d "{\"p_leave_type_id\":\"$LEAVE_TYPE_ID\",\"p_start_date\":\"2099-01-10\",\"p_end_date\":\"2099-01-11\",\"p_reason\":\"E2E leave test\"}")"
-
 LEAVE_ID="$(python3 -c 'import json,sys; value=json.load(sys.stdin); print(value)' <<<"$LEAVE_RESPONSE")"
 LEAVE_ROWS="$(curl -fsS \
   "$API_URL/rest/v1/leave_requests?select=id,status,employee_id&id=eq.$LEAVE_ID" \
   -H "apikey: $ANON_KEY" \
   -H "Authorization: Bearer $ACCESS_TOKEN")"
-
 python3 -c 'import json,sys; employee=sys.argv[1]; rows=json.load(sys.stdin); assert len(rows)==1 and rows[0]["employee_id"]==employee and rows[0]["status"]=="pending", rows; print("employee leave request RPC + RLS passed")' "$EMPLOYEE_ALLOWED" <<<"$LEAVE_ROWS"
