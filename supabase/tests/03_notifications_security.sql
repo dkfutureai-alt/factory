@@ -47,4 +47,13 @@ begin
  denied:=false;
  begin perform public.mark_notification_read(rid); exception when others then denied:=true; end;
  if not denied then raise exception 'NOTIFICATION SECURITY: suspended member used RPC'; end if;
+
+ -- Test isolation: restore the deterministic RBAC fixture for suites that follow.
+ update public.organization_memberships
+ set status='active', activated_at=coalesce(activated_at, now())
+ where organization_id=(select id from public.organizations where code='DKIM')
+   and user_id='10000000-0000-0000-0000-000000000001';
+ perform set_config('request.jwt.claim.sub','',false);
 end $$;
+
+\echo 'Notification security assertions passed with fixture state restored.'
