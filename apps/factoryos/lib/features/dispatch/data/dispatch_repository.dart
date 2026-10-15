@@ -45,12 +45,18 @@ class DispatchCheck {
 }
 
 abstract interface class DispatchRepository {
+  bool get supportsMutations;
   Future<DispatchOverview> loadOverview();
   Future<DispatchLoadDetail> loadDispatch(String dispatchNumber);
+  Future<DispatchLoadDetail> postStock(String dispatchNumber);
+  Future<DispatchLoadDetail> finalizeDispatch(String dispatchNumber);
 }
 
 final class PreviewDispatchRepository implements DispatchRepository {
   const PreviewDispatchRepository();
+
+  @override
+  bool get supportsMutations => false;
 
   @override
   Future<DispatchOverview> loadOverview() async => const DispatchOverview(
@@ -137,4 +143,14 @@ final class PreviewDispatchRepository implements DispatchRepository {
           DispatchRequiredCheck(label: 'Vehicle weight captured', required: true, complete: true),
         ],
       );
+
+  @override
+  Future<DispatchLoadDetail> postStock(String dispatchNumber) {
+    throw UnsupportedError('Dispatch mutations are disabled in preview mode.');
+  }
+
+  @override
+  Future<DispatchLoadDetail> finalizeDispatch(String dispatchNumber) {
+    throw UnsupportedError('Dispatch mutations are disabled in preview mode.');
+  }
 }
