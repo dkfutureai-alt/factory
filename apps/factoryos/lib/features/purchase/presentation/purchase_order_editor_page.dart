@@ -342,8 +342,14 @@ class _EditorPanel extends StatelessWidget {
                     width: 270,
                     child: DropdownButtonFormField<String>(
                       initialValue: factoryId,
+                      isExpanded: true,
                       decoration: const InputDecoration(labelText: 'Factory'),
-                      items: data.factories.map((item) => DropdownMenuItem(value: item.id, child: Text('${item.code} • ${item.name}'))).toList(),
+                      items: data.factories
+                          .map((item) => DropdownMenuItem(
+                                value: item.id,
+                                child: Text('${item.code} • ${item.name}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                              ))
+                          .toList(),
                       onChanged: editable ? onFactoryChanged : null,
                     ),
                   ),
@@ -351,8 +357,14 @@ class _EditorPanel extends StatelessWidget {
                     width: 340,
                     child: DropdownButtonFormField<String>(
                       initialValue: supplierId,
+                      isExpanded: true,
                       decoration: const InputDecoration(labelText: 'Supplier'),
-                      items: data.suppliers.map((item) => DropdownMenuItem(value: item.id, child: Text(item.name))).toList(),
+                      items: data.suppliers
+                          .map((item) => DropdownMenuItem(
+                                value: item.id,
+                                child: Text(item.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              ))
+                          .toList(),
                       onChanged: editable ? onSupplierChanged : null,
                     ),
                   ),
@@ -436,8 +448,14 @@ class _LineEditor extends StatelessWidget {
               width: 310,
               child: DropdownButtonFormField<String>(
                 initialValue: line.itemId,
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Item'),
-                items: items.map((value) => DropdownMenuItem(value: value.id, child: Text('${value.sku} • ${value.name}'))).toList(),
+                items: items
+                    .map((value) => DropdownMenuItem(
+                          value: value.id,
+                          child: Text('${value.sku} • ${value.name}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ))
+                    .toList(),
                 onChanged: enabled
                     ? (value) {
                         if (value == null) return;
