@@ -229,7 +229,7 @@ class _PurchaseOrderEditorPageState extends State<PurchaseOrderEditorPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(_orderNumber == null ? 'Create Purchase Order' : 'Edit $_orderNumber', style: const TextStyle(fontWeight: FontWeight.w800)),
-              Text('Draft → Submit → Approval → GRN', style: const TextStyle(fontSize: 12, color: AppTheme.muted)),
+              const Text('Draft → Submit → Approval → GRN', style: TextStyle(fontSize: 12, color: AppTheme.muted)),
             ],
           ),
         ),
@@ -277,7 +277,7 @@ class _PurchaseOrderEditorPageState extends State<PurchaseOrderEditorPage> {
           supportsMutations: widget.repository.supportsMutations,
           saving: _saving,
           canEdit: editable,
-          onSave: _save,
+          onSave: () => _save(),
           onSubmit: _submit,
         );
         if (wide) {
@@ -382,16 +382,22 @@ class _EditorPanel extends StatelessWidget {
                   OutlinedButton.icon(onPressed: editable ? onAddLine : null, icon: const Icon(Icons.add), label: const Text('Add item')),
                 ]),
                 const SizedBox(height: 12),
-                if (lines.isEmpty) const Padding(padding: EdgeInsets.symmetric(vertical: 32), child: Center(child: Text('No items yet. Drafts may be saved empty, but submission requires at least one line.', style: TextStyle(color: AppTheme.muted)))),
-                ...List.generate(lines.length, (index) => _LineEditor(
-                      key: ValueKey('po-line-$index-${lines[index].itemId}'),
-                      index: index,
-                      line: lines[index],
-                      items: data.items,
-                      enabled: editable,
-                      onChanged: (line) => onReplaceLine(index, line),
-                      onRemove: () => onRemoveLine(index),
-                    )),
+                if (lines.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Center(child: Text('No items yet. Drafts may be saved empty, but submission requires at least one line.', style: TextStyle(color: AppTheme.muted))),
+                  ),
+                ...List.generate(
+                  lines.length,
+                  (index) => _LineEditor(
+                    key: ValueKey('po-line-$index-${lines[index].itemId}'),
+                    line: lines[index],
+                    items: data.items,
+                    enabled: editable,
+                    onChanged: (line) => onReplaceLine(index, line),
+                    onRemove: () => onRemoveLine(index),
+                  ),
+                ),
               ]),
             ),
           ),
@@ -402,17 +408,23 @@ class _EditorPanel extends StatelessWidget {
 }
 
 class _LineEditor extends StatelessWidget {
-  const _LineEditor({super.key, required this.index, required this.line, required this.items, required this.enabled, required this.onChanged, required this.onRemove});
-  final int index;
+  const _LineEditor({super.key, required this.line, required this.items, required this.enabled, required this.onChanged, required this.onRemove});
   final PurchaseOrderDraftLine line;
   final List<PurchaseOrderItemOption> items;
   final bool enabled;
   final ValueChanged<PurchaseOrderDraftLine> onChanged;
   final VoidCallback onRemove;
 
+  PurchaseOrderItemOption? _selectedItem() {
+    for (final item in items) {
+      if (item.id == line.itemId) return item;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final item = items.where((value) => value.id == line.itemId).cast<PurchaseOrderItemOption?>().firstOrNull;
+    final item = _selectedItem();
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DecoratedBox(
@@ -428,13 +440,14 @@ class _LineEditor extends StatelessWidget {
                 items: items.map((value) => DropdownMenuItem(value: value.id, child: Text('${value.sku} • ${value.name}'))).toList(),
                 onChanged: enabled
                     ? (value) {
-                        final nextItem = items.firstWhere((item) => item.id == value);
+                        if (value == null) return;
+                        final nextItem = items.firstWhere((candidate) => candidate.id == value);
                         onChanged(PurchaseOrderDraftLine(itemId: nextItem.id, orderedQuantity: line.orderedQuantity, unitPrice: nextItem.defaultUnitPrice, taxRate: line.taxRate, note: line.note));
                       }
                     : null,
               ),
             ),
-            SizedBox(width: 110, child: TextFormField(initialValue: _number(line.orderedQuantity), enabled: enabled, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: item?.unit.isEmpty ?? true ? 'Qty' : 'Qty (${item!.unit})'), onChanged: (value) => onChanged(PurchaseOrderDraftLine(itemId: line.itemId, orderedQuantity: double.tryParse(value) ?? 0, unitPrice: line.unitPrice, taxRate: line.taxRate, note: line.note)))),
+            SizedBox(width: 110, child: TextFormField(initialValue: _number(line.orderedQuantity), enabled: enabled, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: item == null || item.unit.isEmpty ? 'Qty' : 'Qty (${item.unit})'), onChanged: (value) => onChanged(PurchaseOrderDraftLine(itemId: line.itemId, orderedQuantity: double.tryParse(value) ?? 0, unitPrice: line.unitPrice, taxRate: line.taxRate, note: line.note)))),
             SizedBox(width: 130, child: TextFormField(initialValue: _number(line.unitPrice), enabled: enabled, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Unit price'), onChanged: (value) => onChanged(PurchaseOrderDraftLine(itemId: line.itemId, orderedQuantity: line.orderedQuantity, unitPrice: double.tryParse(value) ?? 0, taxRate: line.taxRate, note: line.note)))),
             SizedBox(width: 100, child: TextFormField(initialValue: _number(line.taxRate), enabled: enabled, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Tax %'), onChanged: (value) => onChanged(PurchaseOrderDraftLine(itemId: line.itemId, orderedQuantity: line.orderedQuantity, unitPrice: line.unitPrice, taxRate: double.tryParse(value) ?? 0, note: line.note)))),
             SizedBox(width: 120, child: Text('₹${line.totalValue.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w800))),
@@ -457,7 +470,7 @@ class _SummaryPanel extends StatelessWidget {
   final bool supportsMutations;
   final bool saving;
   final bool canEdit;
-  final Future<PurchaseOrderWorkflowResult?> Function({bool quiet}) onSave;
+  final VoidCallback onSave;
   final VoidCallback onSubmit;
 
   @override
@@ -487,7 +500,7 @@ class _SummaryPanel extends StatelessWidget {
               Text(supportsMutations ? 'Server commands enforce scope, revision and audit rules.' : 'Preview mode • no database mutation', style: const TextStyle(color: AppTheme.muted, fontSize: 12)),
               const SizedBox(height: 18),
               Row(children: [
-                Expanded(child: OutlinedButton(onPressed: canEdit && !saving ? () => onSave() : null, child: Text(saving ? 'Saving…' : 'Save draft'))),
+                Expanded(child: OutlinedButton(onPressed: canEdit && !saving ? onSave : null, child: Text(saving ? 'Saving…' : 'Save draft'))),
                 const SizedBox(width: 10),
                 Expanded(child: FilledButton(onPressed: canEdit && !saving ? onSubmit : null, child: const Text('Submit approval'))),
               ]),
@@ -516,8 +529,4 @@ class _SummaryMetric extends StatelessWidget {
           Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: accent)),
         ]),
       );
-}
-
-extension _FirstOrNull<T> on Iterable<T> {
-  T? get firstOrNull => isEmpty ? null : first;
 }
