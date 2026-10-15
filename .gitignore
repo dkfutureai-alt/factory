@@ -1,0 +1,23 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+build/
+coverage/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Supabase local runtime
+supabase/.branches/
+supabase/.temp/

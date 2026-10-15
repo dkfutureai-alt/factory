@@ -1,0 +1,29 @@
+name: Supabase Foundation Checks
+
+on:
+  push:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/supabase-foundation.yml'
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/supabase-foundation.yml'
+
+jobs:
+  database-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Supabase
+        run: supabase start
+      - name: Reset and apply migrations + seed
+        run: supabase db reset
+      - name: Run foundation smoke checks
+        run: |
+          psql 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' \
+            -v ON_ERROR_STOP=1 \
+            -f supabase/tests/0001_foundation_smoke.sql

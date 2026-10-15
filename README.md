@@ -1,21 +1,21 @@
 # FactoryOS
 
-FactoryOS is a multi-tenant, modular, white-label factory operations and management platform intended for real factory clients.
+FactoryOS is a multi-tenant, modular, white-label factory operations and management platform for real factory clients.
 
 ## Product Goal
 
 Connect the end-to-end operating chain:
 
-Purchase → Raw Material → Inventory → Production → Quality → Finished Goods → Warehouse → Sales → Dispatch → Vehicle/Driver → Delivery → Customer → Payment/Return
+Purchase -> Raw Material -> Inventory -> Production -> Quality -> Finished Goods -> Warehouse -> Sales -> Dispatch -> Vehicle/Driver -> Delivery -> Customer -> Payment/Return
 
-and support HR, attendance, leave, maintenance, assets, fuel, documents, approvals, audit history, notifications, reporting, and client configuration.
+and support HR, attendance, leave, maintenance, assets, fuel, documents, approvals, audit history, notifications, reporting and client configuration.
 
 ## Target Applications
 
-- `apps/admin_web` — responsive administration portal
-- `apps/mobile` — role-aware employee, supervisor, and driver application
-- `packages/factoryos_core` — shared domain models, permissions, utilities, and design tokens
-- `supabase` — PostgreSQL migrations, RLS policies, functions, and demo seed data
+- `apps/admin_web` — responsive administration portal (Phase 2)
+- `apps/mobile` — role-aware employee, supervisor and driver application (Phase 2)
+- `packages/factoryos_core` — shared domain/permission/design primitives (Phase 2)
+- `supabase` — PostgreSQL migrations, RLS policies, functions and demo seed data
 - `docs` — architecture, workflows, product decisions, QA and release documentation
 
 ## Backend
@@ -29,46 +29,47 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Inventory changes must be ledger-backed.
 - Critical multi-step business operations must be atomic.
 - Every client organization is isolated using organization context plus RLS.
-- Major UI screens are designed before implementation and then compared against the approved visual specification.
+- Major UI screens are designed before implementation and compared with the approved visual specification.
 - No module is complete until database, CRUD, permissions, validation, loading/error states, realistic seed data and workflow tests are verified.
 
 ## Current Status
 
-The repository was initialized from an empty state on 2026-10-14. Phase 0 audit found no prior code, branches, commits, database schema, screens or test suite.
+Phase 0 audit found that the repository contained only the initial README.
 
-Current phase: **Foundation / Architecture**.
+Current phase: **Phase 1 Foundation — implemented; validation pending CI/local Supabase run.**
 
-See:
+Foundation files:
 
+- `docs/PHASE_1_FOUNDATION.md`
 - `docs/ARCHITECTURE.md`
 - `docs/RBAC_AND_TENANCY.md`
 - `docs/BUSINESS_FLOWS.md`
+- `docs/DESIGN_SYSTEM.md`
 - `docs/WORK_LOG.md`
 - `supabase/migrations/0001_core_foundation.sql`
+- `supabase/seed.sql`
+- `supabase/tests/0001_foundation_smoke.sql`
 
 ## Development Sequence
 
 1. Repository audit
-2. Architecture and design system
-3. Database, tenancy and authentication
-4. Roles and permissions
-5. Organization/factory setup
-6. HR
-7. Inventory
-8. Production
-9. Quality
-10. Sales and purchase
-11. Warehouse
-12. Vehicles and drivers
-13. Trips and fuel
-14. Dispatch and delivery
-15. Maintenance
-16. Reports and dashboards
-17. Notifications
-18. Audit and security hardening
-19. Full QA/performance
-20. Production release
+2. Foundation: architecture, tenancy, RBAC and database core
+3. Authentication + organization/factory setup + app shells
+4. HR
+5. Inventory
+6. Production
+7. Quality
+8. Purchase and sales
+9. Warehouse
+10. Vehicles, drivers, trips and fuel
+11. Dispatch, delivery and returnables
+12. Maintenance
+13. Reports and dashboards
+14. Notifications
+15. Audit/security hardening
+16. Full QA/performance
+17. Production release
 
 ## Demo Tenant
 
-The demo environment will use a clearly fictional manufacturing company and interconnected records so dashboards and reports are generated from real database data rather than UI constants.
+The demo seed uses a clearly fictional factory and interconnected records. Release dashboards must be generated from database data rather than UI constants.
