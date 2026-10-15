@@ -124,7 +124,10 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
           if (snapshot.hasError) return _InventoryError(message: '${snapshot.error}', onRetry: reload);
           final data = snapshot.requireData;
           final canMaster = widget.actorRole.canManageOrganizationSetup;
-          final canOperate = widget.actorRole.canManagePeople;
+          final canOperate = switch (widget.actorRole) {
+            AppRole.platformOwner || AppRole.orgAdmin || AppRole.factoryManager => true,
+            _ => false,
+          };
           final sections = <_Section>[
             _Section('Dashboard', Icons.dashboard_outlined, _InventoryDashboard(data: data, onMovement: canOperate ? (type) => movement(data, type) : null)),
             _Section('Items', Icons.inventory_2_outlined, _Items(data: data, canEdit: canMaster, onAdd: () => editItem(data), onEdit: (row) => editItem(data, row), onToggle: toggleItem)),
@@ -151,7 +154,7 @@ class _InventoryManagementPageState extends State<InventoryManagementPage> {
                 padding: const EdgeInsets.symmetric(horizontal: FactorySpacing.lg, vertical: FactorySpacing.sm),
                 scrollDirection: Axis.horizontal,
                 itemCount: sections.length,
-                separatorBuilder: (_, __) => const SizedBox(width: FactorySpacing.xs),
+                separatorBuilder: (_, _) => const SizedBox(width: FactorySpacing.xs),
                 itemBuilder: (_, i) => ChoiceChip(selected: section == i, avatar: Icon(sections[i].icon, size: 18), label: Text(sections[i].label), onSelected: (_) => setState(() => section = i)),
               ),
             ),
