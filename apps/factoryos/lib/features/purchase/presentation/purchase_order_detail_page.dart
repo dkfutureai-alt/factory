@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../data/purchase_order_workflow_repository.dart';
+import '../data/purchase_receipt_repository.dart';
 import '../data/purchase_repository.dart';
 import '../domain/purchase_models.dart';
+import 'purchase_goods_receipt_page.dart';
+import 'purchase_order_approval_page.dart';
+import 'purchase_order_editor_page.dart';
 
 class PurchaseOrderDetailPage extends StatelessWidget {
-  const PurchaseOrderDetailPage({super.key, required this.repository, required this.orderNumber});
+  const PurchaseOrderDetailPage({
+    super.key,
+    required this.repository,
+    required this.orderNumber,
+    this.workflowRepository = const PreviewPurchaseOrderWorkflowRepository(),
+    this.receiptRepository = const PreviewPurchaseReceiptRepository(),
+  });
+
   final PurchaseRepository repository;
   final String orderNumber;
+  final PurchaseOrderWorkflowRepository workflowRepository;
+  final PurchaseReceiptRepository receiptRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +45,11 @@ class PurchaseOrderDetailPage extends StatelessWidget {
                       Text('Expected ${detail.expectedDateLabel}', style: const TextStyle(color: AppTheme.muted)),
                     ]),
                   ),
-                  FilledButton.icon(
-                    key: const Key('record-purchase-receipt'),
-                    onPressed: detail.fullyReceived ? null : () => Navigator.of(context).pushNamed('/purchase/grn'),
-                    icon: const Icon(Icons.inventory_2_outlined),
-                    label: const Text('Record receipt'),
+                  _PrimaryAction(
+                    detail: detail,
+                    orderNumber: orderNumber,
+                    workflowRepository: workflowRepository,
+                    receiptRepository: receiptRepository,
                   ),
                 ],
               ),
@@ -71,6 +85,49 @@ class PurchaseOrderDetailPage extends StatelessWidget {
   }
 
   static String _money(double value) => '₹${(value / 100000).toStringAsFixed(2)}L';
+}
+
+class _PrimaryAction extends StatelessWidget {
+  const _PrimaryAction({required this.detail, required this.orderNumber, required this.workflowRepository, required this.receiptRepository});
+
+  final PurchaseOrderDetail detail;
+  final String orderNumber;
+  final PurchaseOrderWorkflowRepository workflowRepository;
+  final PurchaseReceiptRepository receiptRepository;
+
+  @override
+  Widget build(BuildContext context) {
+    if (detail.status == 'Draft') {
+      return FilledButton.icon(
+        key: const Key('edit-purchase-order'),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => PurchaseOrderEditorPage(repository: workflowRepository, orderNumber: orderNumber)),
+        ),
+        icon: const Icon(Icons.edit_outlined),
+        label: const Text('Edit purchase order'),
+      );
+    }
+    if (detail.status == 'Pending approval') {
+      return FilledButton.icon(
+        key: const Key('review-purchase-order'),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => PurchaseOrderApprovalPage(repository: workflowRepository, orderNumber: orderNumber)),
+        ),
+        icon: const Icon(Icons.fact_check_outlined),
+        label: const Text('Review approval'),
+      );
+    }
+    return FilledButton.icon(
+      key: const Key('record-purchase-receipt'),
+      onPressed: detail.fullyReceived
+          ? null
+          : () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => PurchaseGoodsReceiptPage(repository: receiptRepository, orderNumber: orderNumber)),
+              ),
+      icon: const Icon(Icons.inventory_2_outlined),
+      label: const Text('Record receipt'),
+    );
+  }
 }
 
 class _Metric extends StatelessWidget {
