@@ -54,8 +54,13 @@ export 'features/production/data/supabase_production_order_detail_repository.dar
 export 'features/production/data/supabase_production_repository.dart';
 export 'features/production/presentation/production_dashboard_page.dart';
 export 'features/production/presentation/production_order_detail_page.dart';
+export 'features/purchase/data/purchase_receipt_repository.dart';
 export 'features/purchase/data/purchase_repository.dart';
+export 'features/purchase/data/supabase_purchase_receipt_repository.dart';
+export 'features/purchase/data/supabase_purchase_repository.dart';
+export 'features/purchase/domain/purchase_receipt_models.dart';
 export 'features/purchase/presentation/purchase_dashboard_page.dart';
+export 'features/purchase/presentation/purchase_goods_receipt_page.dart';
 export 'features/purchase/presentation/purchase_order_detail_page.dart';
 export 'features/reporting/data/reporting_repository.dart';
 export 'features/reporting/presentation/commercial_report_page.dart';
