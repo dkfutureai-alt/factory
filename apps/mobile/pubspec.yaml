@@ -15,6 +15,7 @@ dependencies:
   factoryos_core:
     path: ../../packages/factoryos_core
   supabase_flutter: ^2.18.3
+  mobile_scanner: ^7.4.2
 
 dev_dependencies:
   flutter_test:
