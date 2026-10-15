@@ -1,0 +1,22 @@
+name: factoryos_mobile
+description: FactoryOS role-aware employee, supervisor and driver app.
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: '>=3.9.0 <4.0.0'
+
+flutter:
+  uses-material-design: true
+
+dependencies:
+  flutter:
+    sdk: flutter
+  factoryos_core:
+    path: ../../packages/factoryos_core
+  supabase_flutter: ^2.18.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

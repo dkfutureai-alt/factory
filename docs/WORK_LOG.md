@@ -15,6 +15,15 @@
 - Added RLS helper functions and tenant policies.
 - Added fictional seed tenant/factory data and SQL smoke checks.
 
+## 2026-10-15 — Phase 2 Started
+
+- Added shared Flutter core package with roles, module model and theme tokens.
+- Added Supabase-aware responsive admin web shell with real organization/factory/member/module data.
+- Added Supabase-aware employee mobile shell with role and assigned-factory context.
+- Added configuration/loading/error/auth states.
+- Hardened tenant read policies before employee app connection.
+- Added Flutter analysis/test/build workflow.
+
 ### Next
 
-Phase 2 — Auth + organization/factory setup UX and role-aware application shells.
+Finish Phase 2 organization/factory CRUD, onboarding/invitations, platform runners and end-to-end auth validation; then proceed to HR.

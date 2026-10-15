@@ -10,12 +10,12 @@ Purchase -> Raw Material -> Inventory -> Production -> Quality -> Finished Goods
 
 and support HR, attendance, leave, maintenance, assets, fuel, documents, approvals, audit history, notifications, reporting and client configuration.
 
-## Target Applications
+## Applications
 
-- `apps/admin_web` — responsive administration portal (Phase 2)
-- `apps/mobile` — role-aware employee, supervisor and driver application (Phase 2)
-- `packages/factoryos_core` — shared domain/permission/design primitives (Phase 2)
-- `supabase` — PostgreSQL migrations, RLS policies, functions and demo seed data
+- `apps/admin_web` — responsive Supabase-aware administration portal
+- `apps/mobile` — role-aware employee, supervisor and driver Flutter shell
+- `packages/factoryos_core` — shared roles, module model and design primitives
+- `supabase` — PostgreSQL migrations, RLS policies, functions, demo seed and smoke tests
 - `docs` — architecture, workflows, product decisions, QA and release documentation
 
 ## Backend
@@ -34,21 +34,19 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 
 ## Current Status
 
-Phase 0 audit found that the repository contained only the initial README.
+- Phase 0: repository audit — complete.
+- Phase 1: architecture, tenancy, RBAC and database core — implemented; CI/local database validation required.
+- Phase 2: authentication + organization/factory app shells — in progress.
 
-Current phase: **Phase 1 Foundation — implemented; validation pending CI/local Supabase run.**
+See `docs/PHASE_1_FOUNDATION.md` and `docs/PHASE_2_AUTH_SHELLS.md`.
 
-Foundation files:
+## Local Supabase
 
-- `docs/PHASE_1_FOUNDATION.md`
-- `docs/ARCHITECTURE.md`
-- `docs/RBAC_AND_TENANCY.md`
-- `docs/BUSINESS_FLOWS.md`
-- `docs/DESIGN_SYSTEM.md`
-- `docs/WORK_LOG.md`
-- `supabase/migrations/0001_core_foundation.sql`
-- `supabase/seed.sql`
-- `supabase/tests/0001_foundation_smoke.sql`
+```bash
+supabase start
+supabase db reset
+psql 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' -v ON_ERROR_STOP=1 -f supabase/tests/0001_foundation_smoke.sql
+```
 
 ## Development Sequence
 

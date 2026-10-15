@@ -1,0 +1,49 @@
+name: Flutter Quality
+
+on:
+  push:
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - '.github/workflows/flutter-quality.yml'
+  pull_request:
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - '.github/workflows/flutter-quality.yml'
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Flutter version
+        run: flutter --version
+      - name: Core dependencies
+        working-directory: packages/factoryos_core
+        run: flutter pub get
+      - name: Core analyze
+        working-directory: packages/factoryos_core
+        run: flutter analyze
+      - name: Core tests
+        working-directory: packages/factoryos_core
+        run: flutter test
+      - name: Admin dependencies
+        working-directory: apps/admin_web
+        run: flutter pub get
+      - name: Admin analyze
+        working-directory: apps/admin_web
+        run: flutter analyze
+      - name: Admin web build
+        working-directory: apps/admin_web
+        run: flutter build web --release --dart-define=SUPABASE_URL=https://example.supabase.co --dart-define=SUPABASE_ANON_KEY=placeholder
+      - name: Mobile dependencies
+        working-directory: apps/mobile
+        run: flutter pub get
+      - name: Mobile analyze
+        working-directory: apps/mobile
+        run: flutter analyze
