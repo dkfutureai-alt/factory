@@ -42,6 +42,31 @@
 
 Core access workflow is complete and validated. Production SMTP/invite redirects and Android/iOS release configuration remain deployment/release configuration tasks.
 
+## 2026-10-15 — Phase 3 HR + Attendance + Leave
+
+- Created the Phase 3 HR design direction before implementation.
+- Added departments, designations, shifts, employees, leave types, leave requests, holidays and attendance records.
+- Added realistic fictional HR demo data for the Aarohan Solapur Plant.
+- Added tenant/factory RLS for HR records and factory-scoped shift/holiday visibility.
+- Added employee records that can exist without app accounts, plus optional secure FactoryOS-user linking.
+- Added same-organization manager integrity and designation/department + shift/factory validation.
+- Added admin HR workspace: live KPIs, employees, attendance, leave, masters, holidays and reports.
+- Added mobile HR self-service: employee profile, check-in/out, attendance history, leave requests/cancellation and holidays.
+- Added timezone-aware/night-shift-aware self attendance with grace handling.
+- Added atomic manager attendance correction and database attendance normalization.
+- Added employee leave request validation, overlap protection, manager decisions and approved-leave attendance marking.
+- Added HR dashboard, attendance, headcount and leave report database functions.
+- Added HR audit triggers into the shared audit log.
+- Added SQL smoke tests for schema/RLS/integrity/normalization/report surfaces.
+- Extended real Auth+RLS CI through employee HR isolation, self-profile, self check-in, leave requests, factory-manager attendance correction and cross-factory denial.
+- Added workflow concurrency so superseded Supabase validation runs are cancelled.
+- Flutter validation passed: shared tests, admin analysis, admin release web build and mobile analysis.
+- Supabase validation passed: Edge Function check, clean start/reset, all migrations, seed, all SQL tests and real JWT/RLS HR flow.
+
+### Phase 3 status
+
+Core HR, attendance, leave, holiday and report workflows are complete and validated.
+
 ### Next
 
-Start Phase 3: HR master data -> employees -> departments/designations -> shifts -> attendance/check-in/out -> leave -> holidays -> HR reports, following the design-image-first workflow.
+Start Phase 4: Inventory item master -> categories/units -> stock locations -> receive/issue/transfer -> QR/barcode scan -> stock ledger -> reorder alerts -> inventory reports.
