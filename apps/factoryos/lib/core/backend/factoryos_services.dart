@@ -5,8 +5,10 @@ import '../../features/dispatch/data/dispatch_repository.dart';
 import '../../features/dispatch/data/supabase_dispatch_repository.dart';
 import '../../features/inventory/data/inventory_item_detail_repository.dart';
 import '../../features/inventory/data/inventory_repository.dart';
+import '../../features/inventory/data/inventory_stock_entry_repository.dart';
 import '../../features/inventory/data/supabase_inventory_item_detail_repository.dart';
 import '../../features/inventory/data/supabase_inventory_repository.dart';
+import '../../features/inventory/data/supabase_inventory_stock_entry_repository.dart';
 import '../../features/production/data/production_order_detail_repository.dart';
 import '../../features/production/data/production_repository.dart';
 import '../../features/production/data/supabase_production_order_detail_repository.dart';
@@ -21,6 +23,7 @@ class FactoryOsServices {
     required this.authRepository,
     required this.inventoryRepository,
     required this.inventoryItemDetailRepository,
+    required this.inventoryStockEntryRepository,
     required this.productionRepository,
     required this.productionOrderDetailRepository,
     required this.warehouseRepository,
@@ -33,6 +36,7 @@ class FactoryOsServices {
       authRepository: const PreviewAuthRepository(),
       inventoryRepository: const PreviewInventoryRepository(),
       inventoryItemDetailRepository: const PreviewInventoryItemDetailRepository(),
+      inventoryStockEntryRepository: const PreviewInventoryStockEntryRepository(),
       productionRepository: const PreviewProductionRepository(),
       productionOrderDetailRepository: const PreviewProductionOrderDetailRepository(),
       warehouseRepository: const PreviewWarehouseRepository(),
@@ -49,6 +53,7 @@ class FactoryOsServices {
       authRepository: SupabaseAuthRepository(client),
       inventoryRepository: SupabaseInventoryRepository(client),
       inventoryItemDetailRepository: SupabaseInventoryItemDetailRepository(client),
+      inventoryStockEntryRepository: SupabaseInventoryStockEntryRepository(client),
       productionRepository: SupabaseProductionRepository(client),
       productionOrderDetailRepository: SupabaseProductionOrderDetailRepository(client),
       warehouseRepository: SupabaseWarehouseRepository(client),
@@ -60,6 +65,7 @@ class FactoryOsServices {
   final AuthRepository authRepository;
   final InventoryRepository inventoryRepository;
   final InventoryItemDetailRepository inventoryItemDetailRepository;
+  final InventoryStockEntryRepository inventoryStockEntryRepository;
   final ProductionRepository productionRepository;
   final ProductionOrderDetailRepository productionOrderDetailRepository;
   final WarehouseRepository warehouseRepository;
