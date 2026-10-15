@@ -3,11 +3,11 @@
 -- FactoryOS Purchase Order authoring + approval workflow regressions.
 -- Deterministic auth identities/role assignments are created by 01_rbac_scope_security.sql.
 
-select set_config('factoryos.po.f1',(select id::text from public.factories f join public.organizations o on o.id=f.organization_id where o.code='DKIM' and f.code='PLANT-01'),false);
-select set_config('factoryos.po.f2',(select id::text from public.factories f join public.organizations o on o.id=f.organization_id where o.code='DKIM' and f.code='PLANT-02'),false);
-select set_config('factoryos.po.supplier',(select id::text from public.suppliers s join public.organizations o on o.id=s.organization_id where o.code='DKIM' and s.code='SUP-METALS'),false);
-select set_config('factoryos.po.item1',(select id::text from public.items i join public.organizations o on o.id=i.organization_id where o.code='DKIM' and i.sku='RM-STL-304-02'),false);
-select set_config('factoryos.po.item2',(select id::text from public.items i join public.organizations o on o.id=i.organization_id where o.code='DKIM' and i.sku='PK-CARTON-014'),false);
+select set_config('factoryos.po.f1',(select f.id::text from public.factories f join public.organizations o on o.id=f.organization_id where o.code='DKIM' and f.code='PLANT-01'),false);
+select set_config('factoryos.po.f2',(select f.id::text from public.factories f join public.organizations o on o.id=f.organization_id where o.code='DKIM' and f.code='PLANT-02'),false);
+select set_config('factoryos.po.supplier',(select s.id::text from public.suppliers s join public.organizations o on o.id=s.organization_id where o.code='DKIM' and s.code='SUP-METALS'),false);
+select set_config('factoryos.po.item1',(select i.id::text from public.items i join public.organizations o on o.id=i.organization_id where o.code='DKIM' and i.sku='RM-STL-304-02'),false);
+select set_config('factoryos.po.item2',(select i.id::text from public.items i join public.organizations o on o.id=i.organization_id where o.code='DKIM' and i.sku='PK-CARTON-014'),false);
 
 -- Raw authenticated clients must not bypass workflow RPCs.
 select (not has_table_privilege('authenticated','public.purchase_orders','INSERT')
@@ -259,10 +259,11 @@ with x as (select public.create_purchase_order_draft(
   current_setting('factoryos.po.f1')::uuid,current_setting('factoryos.po.supplier')::uuid,current_date+9,
   '30 days','CI empty draft','[]'::jsonb,'ci-po-empty-create') po)
 select (po).id as po_id from x \gset empty_
+select set_config('factoryos.po.empty_id', :'empty_po_id', false);
 do $$
 declare denied boolean:=false;
 begin
-  begin perform public.submit_purchase_order(:'empty_po_id'::uuid,1,'ci-po-empty-submit');
+  begin perform public.submit_purchase_order(current_setting('factoryos.po.empty_id')::uuid,1,'ci-po-empty-submit');
   exception when others then denied := position('requires at least one line' in sqlerrm)>0; end;
   if not denied then raise exception 'PURCHASE PO TEST: empty draft submission was not denied'; end if;
 end
@@ -292,14 +293,15 @@ with x as (select public.create_purchase_order_draft(
   '30 days','CI cross-factory approval',jsonb_build_array(jsonb_build_object('item_id',current_setting('factoryos.po.item2'),'ordered_quantity',2,'unit_price',22,'tax_rate',18)),
   'ci-po-f2-create') po)
 select (po).id as po_id from x \gset f2_
-select public.submit_purchase_order(:'f2_po_id'::uuid,1,'ci-po-f2-submit');
+select set_config('factoryos.po.f2_po_id', :'f2_po_id', false);
+select public.submit_purchase_order(current_setting('factoryos.po.f2_po_id')::uuid,1,'ci-po-f2-submit');
 reset role;
 select set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000002',false);
 set role authenticated;
 do $$
 declare denied boolean:=false;
 begin
-  begin perform public.decide_purchase_order(:'f2_po_id'::uuid,'approve','known UUID','ci-po-f2-deny');
+  begin perform public.decide_purchase_order(current_setting('factoryos.po.f2_po_id')::uuid,'approve','known UUID','ci-po-f2-deny');
   exception when others then denied := position('approval permission denied' in sqlerrm)>0; end;
   if not denied then raise exception 'PURCHASE PO TEST: factory approver crossed factory boundary'; end if;
 end
