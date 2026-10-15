@@ -50,12 +50,12 @@ declare
   location_warehouse_id uuid;
   location_status public.entity_status;
   batch_id uuid;
-  batch_number text;
+  allocation_batch_number text;
   batch_item_id uuid;
   batch_org_id uuid;
   batch_status public.entity_status;
   serial_id uuid;
-  serial_number text;
+  allocation_serial_number text;
   serial_item_id uuid;
   serial_org_id uuid;
   serial_current_warehouse_id uuid;
@@ -236,18 +236,18 @@ begin
         end if;
 
         batch_id := nullif(allocation_json->>'batch_id','')::uuid;
-        batch_number := nullif(btrim(coalesce(allocation_json->>'batch_number','')),'');
+        allocation_batch_number := nullif(btrim(coalesce(allocation_json->>'batch_number','')),'');
         serial_id := nullif(allocation_json->>'serial_number_id','')::uuid;
-        serial_number := nullif(btrim(coalesce(allocation_json->>'serial_number','')),'');
+        allocation_serial_number := nullif(btrim(coalesce(allocation_json->>'serial_number','')),'');
 
         if item.batch_tracking then
-          if serial_id is not null or serial_number is not null then
+          if serial_id is not null or allocation_serial_number is not null then
             raise exception 'batch-tracked purchase item cannot use serial allocation';
           end if;
           if batch_id is null then
-            if batch_number is null then raise exception 'batch-tracked purchase item requires batch'; end if;
+            if allocation_batch_number is null then raise exception 'batch-tracked purchase item requires batch'; end if;
             insert into public.batches(organization_id,item_id,batch_number,supplier_batch_number,status)
-            values(target_org_id,item.id,batch_number,
+            values(target_org_id,item.id,allocation_batch_number,
                    nullif(btrim(coalesce(line_json->>'supplier_batch_number','')),''),'active')
             on conflict (organization_id,item_id,batch_number) do update
               set supplier_batch_number = coalesce(excluded.supplier_batch_number, public.batches.supplier_batch_number)
@@ -259,14 +259,14 @@ begin
             raise exception 'purchase receipt batch does not belong to selected item/organization or is inactive';
           end if;
         elsif item.serial_tracking then
-          if batch_id is not null or batch_number is not null then
+          if batch_id is not null or allocation_batch_number is not null then
             raise exception 'serial-tracked purchase item cannot use batch allocation';
           end if;
           if allocation_qty <> 1 then raise exception 'serial purchase allocation quantity must be exactly one'; end if;
           if serial_id is null then
-            if serial_number is null then raise exception 'serial-tracked purchase item requires serial number'; end if;
+            if allocation_serial_number is null then raise exception 'serial-tracked purchase item requires serial number'; end if;
             insert into public.serial_numbers(organization_id,item_id,serial_number,status)
-            values(target_org_id,item.id,serial_number,'available')
+            values(target_org_id,item.id,allocation_serial_number,'available')
             on conflict (organization_id,item_id,serial_number) do update set serial_number=excluded.serial_number
             returning id into serial_id;
           end if;
@@ -283,7 +283,7 @@ begin
             raise exception 'purchase receipt serial is already in stock';
           end if;
         else
-          if batch_id is not null or batch_number is not null or serial_id is not null or serial_number is not null then
+          if batch_id is not null or allocation_batch_number is not null or serial_id is not null or allocation_serial_number is not null then
             raise exception 'non-tracked purchase item cannot use batch or serial allocation';
           end if;
         end if;
