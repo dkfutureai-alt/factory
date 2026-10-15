@@ -43,6 +43,21 @@ where pb.batch_number='PB-CI-COMPLETE-001'
 on conflict (organization_id, check_number) do update set
   result='pass', inspected_quantity=5, rejected_quantity=0, inspected_at=excluded.inspected_at;
 
+-- FG-COMP-X is batch tracked. The ledger fixture must preserve the same tracking
+-- invariant production uses in the real system rather than bypassing it for CI.
+insert into public.batches (
+  organization_id, item_id, batch_number, manufactured_at, status, metadata
+)
+select o.id, i.id, 'FG-CI-COMPLETE-001', now(), 'active',
+       jsonb_build_object('source', 'production-command-ci')
+from public.organizations o
+join public.items i on i.organization_id=o.id and i.sku='FG-COMP-X'
+where o.code='DKIM'
+on conflict (organization_id, item_id, batch_number) do update set
+  manufactured_at=excluded.manufactured_at,
+  status=excluded.status,
+  metadata=excluded.metadata;
+
 insert into public.stock_transactions (
   organization_id, factory_id, transaction_number, transaction_type, status,
   reference_type, reference_id, occurred_at, reason, idempotency_key, posted_at
@@ -56,27 +71,34 @@ on conflict (organization_id, transaction_number) do update set
   status='posted', posted_at=coalesce(stock_transactions.posted_at, excluded.posted_at);
 
 insert into public.stock_transaction_lines (
-  organization_id, stock_transaction_id, item_id, warehouse_id, location_id,
+  organization_id, stock_transaction_id, item_id, batch_id, warehouse_id, location_id,
   quantity_delta, unit_cost, note
 )
-select st.organization_id, st.id, po.item_id, w.id, wl.id,
+select st.organization_id, st.id, po.item_id, ib.id, w.id, wl.id,
        5, i.cost, 'CI-only completed production output'
 from public.stock_transactions st
 join public.production_batches pb on pb.id=st.reference_id and st.reference_type='production_batch'
 join public.production_orders po on po.id=pb.production_order_id
 join public.items i on i.id=po.item_id
+join public.batches ib on ib.organization_id=st.organization_id
+  and ib.item_id=po.item_id
+  and ib.batch_number='FG-CI-COMPLETE-001'
 join public.warehouses w on w.organization_id=st.organization_id and w.code='FG-WH'
 join public.warehouse_locations wl on wl.warehouse_id=w.id and wl.code='FG-B-R02-B03'
 where st.transaction_number='STK-CI-FG-RECEIPT-001'
   and not exists (
     select 1 from public.stock_transaction_lines l
-    where l.stock_transaction_id=st.id and l.item_id=po.item_id and l.quantity_delta=5
+    where l.stock_transaction_id=st.id
+      and l.item_id=po.item_id
+      and l.batch_id=ib.id
+      and l.quantity_delta=5
   );
 
 insert into public.production_outputs (
-  organization_id, production_batch_id, item_id, quantity, output_type, stock_transaction_line_id
+  organization_id, production_batch_id, item_id, finished_batch_id,
+  quantity, output_type, stock_transaction_line_id
 )
-select pb.organization_id, pb.id, po.item_id, 5, 'good', l.id
+select pb.organization_id, pb.id, po.item_id, l.batch_id, 5, 'good', l.id
 from public.production_batches pb
 join public.production_orders po on po.id=pb.production_order_id
 join public.stock_transactions st on st.reference_type='production_batch' and st.reference_id=pb.id
@@ -156,3 +178,5 @@ where pb.id=current_setting('factoryos.test.target_batch_id')::uuid
   \echo 'PRODUCTION COMMAND TEST FAILED: completion did not reconcile batch/order state'
   select 1/0;
 \endif
+
+\echo 'Production completion command assertions passed.'
