@@ -57,13 +57,21 @@ on conflict (dispatch_order_id,sales_order_line_id) do update
 set batch_id=excluded.batch_id,source_location_id=excluded.source_location_id,
     planned_quantity=10,loaded_quantity=5,stock_transaction_line_id=null;
 
+-- Resolve the target outside authenticated RLS. The command itself still executes as the
+-- authenticated company owner and remains responsible for its own permission checks.
+select set_config(
+  'factoryos.test.partial_dispatch_id',
+  (select id::text from public.dispatch_orders where dispatch_number='DSP-CI-PARTIAL'),
+  false
+);
+
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
 set role authenticated;
 do $$
 declare failed_as_expected boolean:=false;
 begin
   begin
-    perform public.post_dispatch_stock((select id from public.dispatch_orders where dispatch_number='DSP-CI-PARTIAL'));
+    perform public.post_dispatch_stock(current_setting('factoryos.test.partial_dispatch_id')::uuid);
   exception when others then
     failed_as_expected:=position('fully loaded' in sqlerrm)>0;
   end;
@@ -92,4 +100,5 @@ where d.dispatch_number='DSP-CI-PARTIAL' \gset partial_guard_
 \endif
 
 select set_config('request.jwt.claim.sub','',false);
+select set_config('factoryos.test.partial_dispatch_id','',false);
 \echo 'Dispatch partial-load guard assertions passed.'
