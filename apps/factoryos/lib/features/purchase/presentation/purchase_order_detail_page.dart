@@ -31,7 +31,12 @@ class PurchaseOrderDetailPage extends StatelessWidget {
                       Text('Expected ${detail.expectedDateLabel}', style: const TextStyle(color: AppTheme.muted)),
                     ]),
                   ),
-                  FilledButton.icon(onPressed: () {}, icon: const Icon(Icons.inventory_2_outlined), label: const Text('Record receipt')),
+                  FilledButton.icon(
+                    key: const Key('record-purchase-receipt'),
+                    onPressed: detail.fullyReceived ? null : () => Navigator.of(context).pushNamed('/purchase/grn'),
+                    icon: const Icon(Icons.inventory_2_outlined),
+                    label: const Text('Record receipt'),
+                  ),
                 ],
               ),
               const SizedBox(height: 18),
