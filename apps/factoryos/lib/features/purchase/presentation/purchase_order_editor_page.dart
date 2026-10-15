@@ -341,7 +341,7 @@ class _EditorPanel extends StatelessWidget {
                   SizedBox(
                     width: 270,
                     child: DropdownButtonFormField<String>(
-                      value: factoryId,
+                      initialValue: factoryId,
                       decoration: const InputDecoration(labelText: 'Factory'),
                       items: data.factories.map((item) => DropdownMenuItem(value: item.id, child: Text('${item.code} • ${item.name}'))).toList(),
                       onChanged: editable ? onFactoryChanged : null,
@@ -350,7 +350,7 @@ class _EditorPanel extends StatelessWidget {
                   SizedBox(
                     width: 340,
                     child: DropdownButtonFormField<String>(
-                      value: supplierId,
+                      initialValue: supplierId,
                       decoration: const InputDecoration(labelText: 'Supplier'),
                       items: data.suppliers.map((item) => DropdownMenuItem(value: item.id, child: Text(item.name))).toList(),
                       onChanged: editable ? onSupplierChanged : null,
@@ -435,7 +435,7 @@ class _LineEditor extends StatelessWidget {
             SizedBox(
               width: 310,
               child: DropdownButtonFormField<String>(
-                value: line.itemId,
+                initialValue: line.itemId,
                 decoration: const InputDecoration(labelText: 'Item'),
                 items: items.map((value) => DropdownMenuItem(value: value.id, child: Text('${value.sku} • ${value.name}'))).toList(),
                 onChanged: enabled
