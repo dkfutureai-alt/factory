@@ -67,6 +67,32 @@ Core access workflow is complete and validated. Production SMTP/invite redirects
 
 Core HR, attendance, leave, holiday and report workflows are complete and validated.
 
+## 2026-10-15 — Phase 4 Inventory
+
+- Created the Phase 4 inventory workflow and screen specification before implementation.
+- Added organization category/unit/item masters with SKU, item type, barcode, QR code and batch-tracking metadata.
+- Added factory-scoped stock locations for warehouse/bin/production/quality/dispatch/vehicle/quarantine use cases.
+- Added immutable inventory transactions and signed stock-ledger entries as the only stock source of truth.
+- Added atomic receive, issue and transfer RPCs with role/factory validation.
+- Added transaction-scoped balance locking and insufficient-stock rejection for issue/transfer.
+- Added factory reorder rules plus dashboard, stock, movement and reorder report functions.
+- Added scan lookup by SKU/barcode/QR code with assigned-factory filtering.
+- Added inventory master/transaction audit logging and immutable transaction/ledger protection.
+- Added realistic fictional gas-factory inventory demo data: oxygen, CO2, cylinders, valves, PPE, warehouses, production/QC/dispatch locations and opening balances.
+- Added responsive Admin Inventory workspace with dashboard, items, locations, movements, reorder rules, masters and reports.
+- Added role-aware admin inventory actions: organization masters for Organization Admin/Platform Owner, factory operations for assigned Factory Managers and read-only supervisor access.
+- Added mobile camera barcode/QR scanning and manual code entry for industrial handheld scanners.
+- Connected inventory scanning to the mobile Inventory module and main Scan tab.
+- Added inventory schema/RLS/RPC/immutability SQL smoke coverage.
+- Added real authenticated inventory E2E validation chained to the existing employee/manager JWT flow.
+- Authenticated validation covers employee scan scope, manager receive/transfer/issue, ledger-derived balances, insufficient-stock rejection, cross-factory denial and employee write denial.
+- Flutter validation passed: shared analysis/tests, admin analysis, admin release web build, mobile dependencies and mobile analysis.
+- Supabase validation passed: Edge Function check, clean start/reset, all migrations/seed, all SQL smoke tests and the complete real Auth/RLS/inventory flow.
+
+### Phase 4 status
+
+Core Inventory is complete and validated.
+
 ### Next
 
-Start Phase 4: Inventory item master -> categories/units -> stock locations -> receive/issue/transfer -> QR/barcode scan -> stock ledger -> reorder alerts -> inventory reports.
+Start Phase 5: Production — product/BOM or recipe setup -> work centers/machines -> production orders -> material issue/consumption -> batch/shift execution -> WIP/output -> scrap/downtime -> finished-goods receipt -> production reports.
