@@ -1,72 +1,44 @@
 # FactoryOS Supabase Integration Readiness checkpoint (2026-10-15)
 
-## Scope
+FactoryOS is now **Supabase-integration-ready at repository level** for Authentication, Warehouse and Dispatch. No Supabase project was created or modified, and `janseva-production` remains untouched.
 
-This checkpoint prepares the FactoryOS Flutter application for a dedicated Supabase backend without creating, connecting to, or modifying any Supabase project. `janseva-production` remains untouched.
+## Implemented
 
-The milestone adds a replaceable live backend path for Authentication, Warehouse and Dispatch while preserving preview mode for deterministic development and CI.
+- Design #50: Supabase-ready connected Login.
+- `supabase_flutter: ^2.18.3`.
+- Explicit `preview` / `supabase` backend modes.
+- Environment inputs: `FACTORYOS_BACKEND`, `FACTORYOS_SUPABASE_URL`, `FACTORYOS_SUPABASE_PUBLISHABLE_KEY`.
+- Visible configuration failure instead of silent live→preview fallback.
+- No service-role key in the Flutter client.
+- Supabase Auth adapter with password sign-in, current-session restore and sign-out.
+- Supabase Warehouse adapter; transfer completion calls only `complete_warehouse_transfer`.
+- Supabase Dispatch adapter; mutations call only `post_dispatch_stock` and `finalize_dispatch`.
+- Preview Warehouse/Dispatch adapters remain mutation-disabled.
+- Dispatch lifecycle hardened so outbound stock cannot post until every planned unit is fully loaded.
+- Notifications security fixture teardown restored so security tests remain isolated.
 
-## Design-first surface
-
-Added `designs/50_supabase_ready_login.svg`. FactoryOS now has **50 design-first SVG specifications**.
-
-## Runtime configuration
-
-FactoryOS supports explicit `preview` and `supabase` backend modes through:
-
-- `FACTORYOS_BACKEND`
-- `FACTORYOS_SUPABASE_URL`
-- `FACTORYOS_SUPABASE_PUBLISHABLE_KEY`
-
-Preview remains the default. Requested Supabase mode fails visibly when configuration is missing or invalid; non-local URLs require HTTPS. No service-role key is read or stored by the Flutter client.
-
-## Live integration boundaries
-
-The Flutter app uses `supabase_flutter: ^2.18.3` and now includes:
-
-- `SupabaseAuthRepository`
-- `SupabaseWarehouseRepository`
-- `SupabaseDispatchRepository`
-- backend configuration/bootstrap/service composition
-- backend-aware route composition
-
-Login supports password sign-in, current-session restore and sign-out through the Auth repository boundary.
-
-Warehouse live completion calls only `complete_warehouse_transfer`; it never directly changes balances.
-
-Dispatch live mutations call only `post_dispatch_stock` and `finalize_dispatch` in this order:
-
-**Fully load → Post dispatch stock → Reconcile ledger → Complete checks/trip → Finalize → Delivery handoff**
-
-Preview repositories remain mutation-disabled.
-
-## Integrity hardening
-
-`11d_dispatch_full_load_guard.sql` prevents outbound stock posting while any dispatch line is only partially loaded. The executable PostgreSQL regression test proves planned 10 / loaded 5 is rejected without creating a stock transaction or ledger link.
-
-The Notifications suspension security test now restores its deterministic membership fixture after proving suspended-member denial. Dispatch fixtures are resolved without weakening authenticated RLS.
-
-## Verification
+## Verified runtime/code milestone
 
 Accepted runtime/code head: `d9af6e39909492298682740031f2be61a92535f4`.
 
-- Database CI `38688424899`: success across schema, seeds, RBAC/RLS, Notifications security, Warehouse/Dispatch commands and partial-load guard.
-- Flutter CI `38688424928`: analyzer clean and **66/66 tests passed**.
+- Database CI `38688424899`: **success**.
+- Flutter CI `38688424928`: analyzer clean, **66/66 tests passed**.
+- Dispatch partial-load regression: planned 10 / loaded 5 is rejected with no stock transaction or ledger link.
+- Live-command widget tests verify Warehouse completion and Dispatch stock-post → finalize sequencing through repository boundaries.
 
-Later commits in this checkpoint contain documentation only and do not change the accepted runtime/code contents.
+Documentation commits after the accepted runtime head do not modify runtime code.
 
-## Still pending
+## Production gates still open
 
-- dedicated FactoryOS Supabase project creation/connection
-- schema deployment and real Auth/JWT/Data API/RLS/RPC testing
-- Supabase security/performance advisors
-- real FactoryOS user/membership/role provisioning
-- live migration of remaining module repositories beyond Auth/Warehouse/Dispatch
-- deployed Dispatch → Trip → Delivery → Return → Warehouse E2E
-- trusted FCM dispatcher, live Reporting/export backends, POD storage and scanner/camera integration
+- Dedicated FactoryOS Supabase project is not yet created/connected.
+- Schemas are not deployed to Supabase.
+- Real Auth/JWT/Data API/RLS/RPC and Supabase advisor verification are pending.
+- Only Auth, Warehouse and Dispatch have live Flutter adapters so far.
+- Full deployed Dispatch → Trip → Delivery → Return → Warehouse E2E is pending.
+- FCM dispatcher, live Reporting/exports, POD storage and scanner/camera integration are pending.
 
 ## Next dependency
 
-A dedicated FactoryOS Supabase project is now the next dependency and must be created only after organization and estimated-cost confirmation. Never reuse `janseva-production`.
+Create/connect a dedicated FactoryOS Supabase project only after **organization + estimated-cost confirmation**. Never reuse `janseva-production`.
 
-**This is a repository-level Supabase integration-readiness milestone, not a deployed-Supabase or production-completion claim.**
+This checkpoint is a repository/local-PostgreSQL integration milestone, not a deployed-Supabase or production-completion claim.
