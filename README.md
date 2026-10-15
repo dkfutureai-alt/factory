@@ -13,7 +13,7 @@ and support HR, attendance, leave, maintenance, assets, fuel, documents, approva
 ## Applications
 
 - `apps/admin_web` — responsive Supabase-aware administration portal
-- `apps/mobile` — role-aware employee, supervisor and driver Flutter shell
+- `apps/mobile` — role-aware employee, supervisor and driver Flutter app
 - `packages/factoryos_core` — shared roles, module model and design primitives
 - `supabase` — PostgreSQL migrations, RLS policies, Edge Functions, demo seed and automated access tests
 - `docs` — architecture, workflows, product decisions, QA and release documentation
@@ -36,23 +36,25 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 
 - Phase 0: repository audit — complete.
 - Phase 1: architecture, tenancy, RBAC and database core — complete and CI validated.
-- Phase 2: authentication, invitation, onboarding, role assignment and factory assignment — complete at the core application/database level and CI validated.
-- Phase 3: HR, attendance, leave and holidays — next.
+- Phase 2: authentication, invitation, onboarding, role assignment and factory assignment — complete and CI validated.
+- Phase 3: HR, employees, departments/designations, shifts, attendance, leave, holidays and HR reporting — complete at the core application/database level and CI validated.
+- Phase 4: Inventory — next.
 
 Latest validated checks:
 
 - invitation Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations and fictional seed — pass;
-- foundation and access/RLS SQL smoke checks — pass;
-- invitation acceptance, role update, factory reassignment and escalation-denial tests — pass;
-- real local Supabase signup -> password login -> JWT -> PostgREST -> factory RLS test — pass;
-- shared Flutter core analysis and 5 permission tests — pass;
+- clean local Supabase start/reset, all migrations and fictional seed — pass;
+- foundation, access and HR SQL smoke/integrity tests — pass;
+- real local employee signup -> password login -> JWT -> PostgREST -> factory/HR RLS — pass;
+- employee self-profile, check-in and leave-request RPC flows — pass;
+- factory-manager attendance correction and cross-factory denial — pass;
+- shared Flutter core analysis and permission tests — pass;
 - admin web analysis and release web build — pass;
-- mobile Flutter analysis — pass.
+- mobile Flutter analysis including HR self-service — pass.
 
-Production deployment still needs project-specific SMTP/invite redirect configuration and mobile platform/release configuration; these are environment/release tasks rather than missing Phase 2 access logic.
+Production deployment still needs project-specific SMTP/invite redirect configuration and mobile platform/release configuration; these are environment/release tasks rather than missing Phase 2/3 business logic.
 
-See `docs/PHASE_1_FOUNDATION.md` and `docs/PHASE_2_AUTH_SHELLS.md`.
+See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md` and `docs/PHASE_3_HR.md`.
 
 ## Local Supabase
 
