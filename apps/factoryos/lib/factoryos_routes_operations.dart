@@ -5,10 +5,22 @@ class FactoryOsOperationsRoutes {
   static final Map<String, WidgetBuilder> routes = {
     '/': (_) => const LoginPage(),
     '/admin': (_) => const AdminDashboardPage(repository: PreviewDashboardRepository()),
-    '/inventory': (_) => const InventoryDashboardPage(repository: PreviewInventoryRepository()),
-    '/inventory/item': (_) => const InventoryItemDetailPage(repository: PreviewInventoryItemDetailRepository(), sku: 'RM-STL-304-02'),
-    '/production': (_) => const ProductionDashboardPage(repository: PreviewProductionRepository()),
-    '/production/order': (_) => const ProductionOrderDetailPage(repository: PreviewProductionOrderDetailRepository(), orderNumber: 'PRD-2026-01038'),
+    '/inventory': (_) => const InventoryDashboardPage(
+          repository: PreviewInventoryRepository(),
+          detailRepository: PreviewInventoryItemDetailRepository(),
+        ),
+    '/inventory/item': (_) => const InventoryItemDetailPage(
+          repository: PreviewInventoryItemDetailRepository(),
+          sku: 'RM-STL-304-02',
+        ),
+    '/production': (_) => const ProductionDashboardPage(
+          repository: PreviewProductionRepository(),
+          detailRepository: PreviewProductionOrderDetailRepository(),
+        ),
+    '/production/order': (_) => const ProductionOrderDetailPage(
+          repository: PreviewProductionOrderDetailRepository(),
+          orderNumber: 'PRD-2026-01038',
+        ),
     '/purchase': (_) => const PurchaseDashboardPage(repository: PreviewPurchaseRepository()),
     '/purchase/order': (_) => const PurchaseOrderDetailPage(repository: PreviewPurchaseRepository(), orderNumber: 'PO-2026-00481'),
     '/warehouse': (_) => const WarehouseDashboardPage(repository: PreviewWarehouseRepository()),
