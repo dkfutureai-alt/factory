@@ -18,7 +18,7 @@ END $$;
 
 DO $$
 DECLARE
-  qty numeric;
+  opening_qty numeric;
 BEGIN
   IF (SELECT count(*) FROM public.inventory_items WHERE organization_id='10000000-0000-4000-8000-000000000001') < 5 THEN
     RAISE EXCEPTION 'inventory item demo data incomplete';
@@ -26,11 +26,12 @@ BEGIN
   IF (SELECT count(*) FROM public.stock_locations WHERE factory_id='20000000-0000-4000-8000-000000000001') < 5 THEN
     RAISE EXCEPTION 'stock location demo data incomplete';
   END IF;
-  SELECT coalesce(sum(quantity_delta),0) INTO qty
+  SELECT quantity_delta INTO opening_qty
   FROM public.stock_ledger_entries
-  WHERE item_id='43000000-0000-4000-8000-000000000001'
+  WHERE transaction_id='46000000-0000-4000-8000-000000000001'
+    AND item_id='43000000-0000-4000-8000-000000000001'
     AND location_id='44000000-0000-4000-8000-000000000001';
-  IF qty <> 840 THEN RAISE EXCEPTION 'unexpected seeded oxygen balance: %', qty; END IF;
+  IF opening_qty <> 840 THEN RAISE EXCEPTION 'unexpected seeded oxygen opening ledger entry: %', opening_qty; END IF;
 END $$;
 
 DO $$
