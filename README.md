@@ -35,8 +35,16 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 ## Current Status
 
 - Phase 0: repository audit — complete.
-- Phase 1: architecture, tenancy, RBAC and database core — implemented; CI/local database validation required.
-- Phase 2: authentication + organization/factory app shells — in progress.
+- Phase 1: architecture, tenancy, RBAC and database core — implemented and CI validated.
+- Phase 2: authentication + organization/factory app shells — in progress; core tests, admin analysis/build and mobile analysis are passing.
+
+Latest validated checks:
+
+- clean local Supabase start/reset, migrations and fictional seed — pass;
+- foundation RLS/schema smoke checks — pass;
+- shared Flutter core analysis and tests — pass;
+- admin web analysis and release web build — pass;
+- mobile Flutter analysis — pass.
 
 See `docs/PHASE_1_FOUNDATION.md` and `docs/PHASE_2_AUTH_SHELLS.md`.
 
