@@ -5,6 +5,13 @@
 -- Commands run as authenticated scoped users. Structural assertions intentionally reset
 -- to the CI database owner so RLS does not hide rows that the command has already created.
 
+-- Capture forbidden sibling scope IDs before switching to an RLS-constrained actor.
+select id::text as fg_wh_id from public.warehouses where code='FG-WH' \gset ci_
+select wl.id::text as fg_loc_id
+from public.warehouse_locations wl
+join public.warehouses w on w.id=wl.warehouse_id
+where w.code='FG-WH' and wl.code='FG-A-R01-B08' \gset ci_
+
 -- CI-only serial-tracked fixture. Production/demo seed intentionally remains free of fake serial stock.
 insert into public.items(
   organization_id, category_id, unit_id, sku, name, cost, minimum_stock, reorder_level,
@@ -102,21 +109,21 @@ where st.idempotency_key='ci-stock-entry-in-pk-carton' \gset replay_line_
 select set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000003',false);
 set role authenticated;
 
--- A warehouse-scoped user cannot adjust a sibling warehouse even with the correct UUID.
+-- A warehouse-scoped user cannot adjust a sibling warehouse even when the UUID is already known.
 do $$
 declare denied boolean:=false;
 begin
   begin
     perform public.post_manual_stock_adjustment(
-      (select id from public.warehouses where code='FG-WH'),
-      (select wl.id from public.warehouse_locations wl join public.warehouses w on w.id=wl.warehouse_id where w.code='FG-WH' and wl.code='FG-A-R01-B08'),
+      :'ci_fg_wh_id'::uuid,
+      :'ci_fg_loc_id'::uuid,
       (select id from public.items where sku='PK-CARTON-014'),
       null,null,5,22,'CI cross warehouse attempt','ci-stock-entry-cross-wh'
     );
   exception when others then
     denied := position('stock adjustment permission denied' in sqlerrm)>0;
   end;
-  if not denied then raise exception 'INVENTORY STOCK ENTRY TEST: warehouse scope bypass was not denied'; end if;
+  if not denied then raise exception 'INVENTORY STOCK ENTRY TEST: known sibling warehouse UUID was not denied'; end if;
 end
 $$;
 
