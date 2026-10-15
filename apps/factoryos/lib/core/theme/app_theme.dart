@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static const brand = Color(0xFF1457D9);
+  static const primary = brand;
   static const navInk = Color(0xFF162033);
   static const page = Color(0xFFF6F8FB);
   static const border = Color(0xFFE4E9F1);
