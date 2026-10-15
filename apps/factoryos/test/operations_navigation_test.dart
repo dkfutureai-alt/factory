@@ -19,7 +19,7 @@ void main() {
 
     await tester.tap(find.text('Inventory').first);
     await tester.pumpAndSettle();
-    expect(find.text('Live stock position • 14 Oct 2026'), findsOneWidget);
+    expect(find.text('Current stock position'), findsOneWidget);
     expect(find.text('₹42.8L'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(TextButton, 'Scan item'));
