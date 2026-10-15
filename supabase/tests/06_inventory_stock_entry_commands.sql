@@ -5,7 +5,7 @@
 -- Commands run as authenticated scoped users. Structural assertions intentionally reset
 -- to the CI database owner so RLS does not hide rows that the command has already created.
 
--- Capture forbidden sibling scope IDs before switching to an RLS-constrained actor.
+-- Capture known target/sibling scope IDs before switching to an RLS-constrained actor.
 select set_config(
   'factoryos.test.fg_wh_id',
   (select id::text from public.warehouses where code='FG-WH'),
@@ -17,6 +17,24 @@ select set_config(
    from public.warehouse_locations wl
    join public.warehouses w on w.id=wl.warehouse_id
    where w.code='FG-WH' and wl.code='FG-A-R01-B08'),
+  false
+);
+select set_config(
+  'factoryos.test.rm_wh_id',
+  (select id::text from public.warehouses where code='RM-WH'),
+  false
+);
+select set_config(
+  'factoryos.test.rm_loc_id',
+  (select wl.id::text
+   from public.warehouse_locations wl
+   join public.warehouses w on w.id=wl.warehouse_id
+   where w.code='RM-WH' and wl.code='RM-A-R03-B02'),
+  false
+);
+select set_config(
+  'factoryos.test.pk_carton_id',
+  (select id::text from public.items where sku='PK-CARTON-014'),
   false
 );
 
@@ -259,7 +277,7 @@ where i.sku='CI-SERIAL-001' \gset serial_balance_
   select 1/0;
 \endif
 
--- Production-department user has inventory.post but no inventory.adjust and cannot use manual Stock Entry.
+-- Production-department user has no inventory.adjust and cannot use manual Stock Entry even with known valid UUIDs.
 select set_config('request.jwt.claim.sub','40000000-0000-0000-0000-000000000004',false);
 set role authenticated;
 do $$
@@ -267,9 +285,9 @@ declare denied boolean:=false;
 begin
   begin
     perform public.post_manual_stock_adjustment(
-      (select id from public.warehouses where code='RM-WH'),
-      (select wl.id from public.warehouse_locations wl join public.warehouses w on w.id=wl.warehouse_id where w.code='RM-WH' and wl.code='RM-A-R03-B02'),
-      (select id from public.items where sku='PK-CARTON-014'),
+      current_setting('factoryos.test.rm_wh_id')::uuid,
+      current_setting('factoryos.test.rm_loc_id')::uuid,
+      current_setting('factoryos.test.pk_carton_id')::uuid,
       null,null,1,22,'CI unauthorized role attempt','ci-stock-entry-unauthorized-role'
     );
   exception when others then
