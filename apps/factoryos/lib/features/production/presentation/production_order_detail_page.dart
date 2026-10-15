@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/production_order_detail_repository.dart';
 
-class ProductionOrderDetailPage extends StatelessWidget {
+class ProductionOrderDetailPage extends StatefulWidget {
   const ProductionOrderDetailPage({
     super.key,
     required this.repository,
@@ -14,25 +14,81 @@ class ProductionOrderDetailPage extends StatelessWidget {
   final String orderNumber;
 
   @override
+  State<ProductionOrderDetailPage> createState() => _ProductionOrderDetailPageState();
+}
+
+class _ProductionOrderDetailPageState extends State<ProductionOrderDetailPage> {
+  late Future<ProductionOrderDetail> _future;
+  bool _completing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = widget.repository.loadOrder(widget.orderNumber);
+  }
+
+  Future<void> _completeBatch() async {
+    if (_completing) return;
+    setState(() => _completing = true);
+    try {
+      final updated = await widget.repository.completeActiveBatch(widget.orderNumber);
+      if (!mounted) return;
+      setState(() => _future = Future.value(updated));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Production batch completed and order totals reconciled.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to complete batch: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _completing = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(orderNumber, style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(widget.orderNumber, style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: FutureBuilder<ProductionOrderDetail>(
-        future: repository.loadOrder(orderNumber),
+        future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData) {
+          if (snapshot.hasError || !snapshot.hasData) {
             return const Center(child: Text('Unable to load production order.'));
           }
           final detail = snapshot.requireData;
           return ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              Text('${detail.product} • ${detail.line}', style: const TextStyle(color: AppTheme.muted)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${detail.product} • ${detail.line}',
+                      style: const TextStyle(color: AppTheme.muted),
+                    ),
+                  ),
+                  if (widget.repository.supportsCompletion && detail.canAttemptCompletion)
+                    FilledButton.icon(
+                      onPressed: _completing ? null : _completeBatch,
+                      icon: _completing
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.task_alt),
+                      label: Text(_completing ? 'Completing…' : 'Complete batch'),
+                    ),
+                ],
+              ),
               const SizedBox(height: 16),
               Wrap(
                 spacing: 14,
@@ -71,6 +127,11 @@ class ProductionOrderDetailPage extends StatelessWidget {
                     children: [
                       const Text('Execution timeline', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                       const SizedBox(height: 10),
+                      if (detail.timeline.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Text('No execution events yet.', style: TextStyle(color: AppTheme.muted)),
+                        ),
                       ...detail.timeline.map(
                         (event) => ListTile(
                           contentPadding: EdgeInsets.zero,
@@ -138,6 +199,11 @@ class _Materials extends StatelessWidget {
           children: [
             const Text('Material requirement', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
+            if (detail.materials.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Text('No material requirements recorded.', style: TextStyle(color: AppTheme.muted)),
+              ),
             ...detail.materials.map(
               (material) => ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -167,6 +233,8 @@ class _BatchQc extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final qcPass = detail.qcStatus == 'Pass';
+    final qcProblem = detail.qcStatus == 'Hold' || detail.qcStatus == 'Fail';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -179,9 +247,21 @@ class _BatchQc extends StatelessWidget {
             Text(detail.batchNumber, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
             const SizedBox(height: 18),
             const Text('Quality', style: TextStyle(color: AppTheme.muted, fontSize: 12)),
-            Text(detail.qcStatus, style: const TextStyle(color: AppTheme.warning, fontWeight: FontWeight.w800)),
+            Text(
+              detail.qcStatus,
+              style: TextStyle(
+                color: qcPass ? AppTheme.success : qcProblem ? AppTheme.warning : AppTheme.muted,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 18),
-            Text('${detail.rejected} rejected units', style: const TextStyle(color: AppTheme.danger, fontWeight: FontWeight.w700)),
+            Text(
+              '${detail.rejected} rejected units',
+              style: TextStyle(
+                color: detail.rejected > 0 ? AppTheme.danger : AppTheme.muted,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
       ),
