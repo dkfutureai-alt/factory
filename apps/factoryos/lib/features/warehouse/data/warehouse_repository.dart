@@ -34,12 +34,17 @@ class WarehouseUtilization {
 }
 
 abstract interface class WarehouseRepository {
+  bool get supportsMutations;
   Future<WarehouseOverview> loadOverview();
   Future<WarehouseTransferDetail> loadTransfer(String transferNumber);
+  Future<WarehouseTransferDetail> completeTransfer(String transferNumber);
 }
 
 final class PreviewWarehouseRepository implements WarehouseRepository {
   const PreviewWarehouseRepository();
+
+  @override
+  bool get supportsMutations => false;
 
   @override
   Future<WarehouseOverview> loadOverview() async => const WarehouseOverview(
@@ -118,4 +123,9 @@ final class PreviewWarehouseRepository implements WarehouseRepository {
           ),
         ],
       );
+
+  @override
+  Future<WarehouseTransferDetail> completeTransfer(String transferNumber) {
+    throw UnsupportedError('Warehouse mutations are disabled in preview mode.');
+  }
 }
