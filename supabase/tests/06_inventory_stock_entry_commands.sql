@@ -2,6 +2,8 @@
 
 -- Inventory Stock Entry command regression tests.
 -- Depends on 01_rbac_scope_security.sql creating deterministic auth users/role assignments.
+-- Commands run as authenticated scoped users. Structural assertions intentionally reset
+-- to the CI database owner so RLS does not hide rows that the command has already created.
 
 -- CI-only serial-tracked fixture. Production/demo seed intentionally remains free of fake serial stock.
 insert into public.items(
@@ -49,6 +51,8 @@ select (
   select 1/0;
 \endif
 
+reset role;
+
 select (count(*)=1) as ok
 from public.stock_transactions st
 join public.stock_transaction_lines l on l.stock_transaction_id=st.id
@@ -68,12 +72,16 @@ where st.idempotency_key='ci-stock-entry-in-pk-carton'
 \endif
 
 -- Same idempotency key + same payload must be replay-safe and create no duplicate transaction/line.
+select set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000003',false);
+set role authenticated;
 select public.post_manual_stock_adjustment(
   (select id from public.warehouses where code='RM-WH'),
   (select wl.id from public.warehouse_locations wl join public.warehouses w on w.id=wl.warehouse_id where w.code='RM-WH' and wl.code='RM-A-R03-B02'),
   (select id from public.items where sku='PK-CARTON-014'),
   null,null,25,22,'CI approved physical count correction','ci-stock-entry-in-pk-carton'
 );
+reset role;
+
 select (count(*)=1) as ok from public.stock_transactions where idempotency_key='ci-stock-entry-in-pk-carton' \gset replay_tx_
 \if :replay_tx_ok
 \else
@@ -89,6 +97,10 @@ where st.idempotency_key='ci-stock-entry-in-pk-carton' \gset replay_line_
   \echo 'INVENTORY STOCK ENTRY TEST FAILED: idempotent replay duplicated ledger line'
   select 1/0;
 \endif
+
+-- Permission and validation failures run as the scoped warehouse manager.
+select set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000003',false);
+set role authenticated;
 
 -- A warehouse-scoped user cannot adjust a sibling warehouse even with the correct UUID.
 do $$
@@ -143,6 +155,8 @@ begin
   if not denied then raise exception 'INVENTORY STOCK ENTRY TEST: negative stock was not denied'; end if;
 end
 $$;
+reset role;
+
 select (count(*)=0) as ok from public.stock_transactions where idempotency_key='ci-stock-entry-negative-guard' \gset negative_rollback_
 \if :negative_rollback_ok
 \else
@@ -151,6 +165,8 @@ select (count(*)=0) as ok from public.stock_transactions where idempotency_key='
 \endif
 
 -- Serial Stock In: exactly +1, ledger-backed, then serial metadata follows warehouse/location.
+select set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000003',false);
+set role authenticated;
 select public.post_manual_stock_adjustment(
   (select id from public.warehouses where code='RM-WH'),
   (select wl.id from public.warehouse_locations wl join public.warehouses w on w.id=wl.warehouse_id where w.code='RM-WH' and wl.code='RM-A-R03-B02'),
@@ -159,6 +175,7 @@ select public.post_manual_stock_adjustment(
   (select sn.id from public.serial_numbers sn join public.items i on i.id=sn.item_id where i.sku='CI-SERIAL-001' and sn.serial_number='CI-SERIAL-0001'),
   1,100,'CI serial stock in','ci-stock-entry-serial-in'
 );
+reset role;
 
 select (
   sn.status='available'
@@ -177,6 +194,8 @@ where i.sku='CI-SERIAL-001' and sn.serial_number='CI-SERIAL-0001' \gset serial_i
 \endif
 
 -- Duplicate positive adjustment for a serial already in stock is forbidden.
+select set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000003',false);
+set role authenticated;
 do $$
 declare denied boolean:=false;
 begin
@@ -205,6 +224,7 @@ select public.post_manual_stock_adjustment(
   (select sn.id from public.serial_numbers sn join public.items i on i.id=sn.item_id where i.sku='CI-SERIAL-001' and sn.serial_number='CI-SERIAL-0001'),
   -1,100,'CI serial stock out','ci-stock-entry-serial-out'
 );
+reset role;
 
 select (sn.status='issued' and sn.current_warehouse_id is null and sn.current_location_id is null) as ok
 from public.serial_numbers sn join public.items i on i.id=sn.item_id
@@ -225,7 +245,6 @@ where i.sku='CI-SERIAL-001' \gset serial_balance_
 \endif
 
 -- Production-department user has inventory.post but no inventory.adjust and cannot use manual Stock Entry.
-reset role;
 select set_config('request.jwt.claim.sub','40000000-0000-0000-0000-000000000004',false);
 set role authenticated;
 do $$
