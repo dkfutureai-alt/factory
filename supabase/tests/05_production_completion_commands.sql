@@ -53,7 +53,7 @@ select pb.organization_id, pb.factory_id, 'STK-CI-FG-RECEIPT-001', 'finished_goo
 from public.production_batches pb
 where pb.batch_number='PB-CI-COMPLETE-001'
 on conflict (organization_id, transaction_number) do update set
-  status='posted', posted_at=coalesce(public.stock_transactions.posted_at, excluded.posted_at);
+  status='posted', posted_at=coalesce(stock_transactions.posted_at, excluded.posted_at);
 
 insert into public.stock_transaction_lines (
   organization_id, stock_transaction_id, item_id, warehouse_id, location_id,
@@ -89,13 +89,14 @@ where pb.batch_number='PB-CI-COMPLETE-001'
   );
 
 select id as target_batch_id from public.production_batches where batch_number='PB-CI-COMPLETE-001' \gset
+select set_config('factoryos.test.target_batch_id', :'target_batch_id', false);
 
 -- A warehouse-scoped manager has no production.complete permission and must be denied.
 select set_config('request.jwt.claim.sub','30000000-0000-0000-0000-000000000003',false);
 set role authenticated;
 do $$
 declare
-  target uuid := :'target_batch_id'::uuid;
+  target uuid := current_setting('factoryos.test.target_batch_id')::uuid;
   denied boolean := false;
 begin
   begin
@@ -112,11 +113,12 @@ reset role;
 
 -- Existing QC-hold demo batch must remain blocked even for an authorized factory manager.
 select id as hold_batch_id from public.production_batches where batch_number='PB-141026-A06' \gset
+select set_config('factoryos.test.hold_batch_id', :'hold_batch_id', false);
 select set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000002',false);
 set role authenticated;
 do $$
 declare
-  target uuid := :'hold_batch_id'::uuid;
+  target uuid := current_setting('factoryos.test.hold_batch_id')::uuid;
   denied boolean := false;
 begin
   begin
@@ -134,7 +136,7 @@ reset role;
 -- Factory-scoped manager is authorized and the verified fixture should complete.
 select set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000002',false);
 set role authenticated;
-select public.complete_production_batch(:'target_batch_id'::uuid);
+select public.complete_production_batch(current_setting('factoryos.test.target_batch_id')::uuid);
 reset role;
 
 select (
@@ -147,7 +149,7 @@ select (
 ) as ok
 from public.production_batches pb
 join public.production_orders po on po.id=pb.production_order_id
-where pb.id=:'target_batch_id'::uuid
+where pb.id=current_setting('factoryos.test.target_batch_id')::uuid
 \gset production_complete_
 \if :production_complete_ok
 \else
