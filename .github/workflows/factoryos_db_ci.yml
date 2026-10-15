@@ -71,6 +71,7 @@ jobs:
             supabase/schemas/04_purchase.sql
             supabase/schemas/04a_purchase_receipt_commands.sql
             supabase/schemas/04b_purchase_receipt_idempotency_fix.sql
+            supabase/schemas/04c_purchase_order_workflow_commands.sql
             supabase/schemas/05_hr.sql
             supabase/schemas/05a_hr_review_fixes.sql
             supabase/schemas/06_sales.sql
@@ -142,3 +143,6 @@ jobs:
 
       - name: Run Purchase GRN command assertions
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/07_purchase_receipt_commands.sql
+
+      - name: Run Purchase Order workflow assertions
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/08_purchase_order_workflow.sql
