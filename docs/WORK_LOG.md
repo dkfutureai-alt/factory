@@ -78,12 +78,13 @@ See [Maintenance checkpoint](MAINTENANCE_PROGRESS.md), [Reporting checkpoint](RE
 
 - GitHub repository/branch/PR writes are confirmed through the connected GitHub account.
 - `janseva-production` has not been modified for FactoryOS.
-- Flutter 3.47.7 CI passes `flutter analyze --fatal-infos` and the complete app regression suite is **66/66 passing tests** on Supabase-readiness code head `f54b647599a692361c75a95a619d401d7e7c760e`.
+- Accepted runtime/code head: `d9af6e39909492298682740031f2be61a92535f4`.
+- Flutter CI run `38688424928` passes `flutter analyze --fatal-infos` with no issues and the complete app regression suite at **66/66 tests**.
 - Backend config tests verify preview defaults, required Supabase URL/key inputs and HTTPS enforcement outside local development.
 - Preview Auth tests verify normalized preview sessions and validation failure behavior.
 - Live-command widget tests verify Warehouse completion and Dispatch full-load → stock-post → finalize sequencing through repository boundaries without external credentials.
 - Warehouse Dashboard → transfer detail and Dispatch Dashboard → load detail → Delivery detail regression journeys remain green.
-- PostgreSQL 16 Database CI run `38687917334` applies the complete current schema/review/command chain and all fictional demo seeds in dependency order.
+- PostgreSQL 16 Database CI run `38688424899` applies the complete current schema/review/command chain and all fictional demo seeds in dependency order.
 - Database security assertions execute as `authenticated` and verify organization/factory/warehouse/department scope semantics, no upward escalation, cross-scope/tenant denial, suspended-membership denial and malformed assignment rejection.
 - Notifications security assertions verify self-only recipient visibility/read mutation, foreign denial and suspended-member denial, then restore deterministic fixture state.
 - Warehouse command tests prove an RM-WH-scoped manager can complete the authorized transfer without factory-level escalation; the posted transfer pair is quantity-neutral and idempotent.
