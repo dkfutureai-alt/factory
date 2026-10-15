@@ -72,6 +72,7 @@ jobs:
             supabase/schemas/04a_purchase_receipt_commands.sql
             supabase/schemas/04b_purchase_receipt_idempotency_fix.sql
             supabase/schemas/04c_purchase_order_workflow_commands.sql
+            supabase/schemas/04d_purchase_order_audit_action_fix.sql
             supabase/schemas/05_hr.sql
             supabase/schemas/05a_hr_review_fixes.sql
             supabase/schemas/06_sales.sql
