@@ -14,10 +14,10 @@ Last updated: 2026-10-15
 | Admin Dashboard | DEVELOPING | DESIGNED | IMPLEMENTED | REPOSITORY INTERFACE | PREVIEW ADAPTER | ANALYZE + WIDGET TEST PASS | Real aggregate repository pending |
 | Employee Mobile Home | DEVELOPING | DESIGNED | IMPLEMENTED + NOTIFICATION ENTRY | NOT CONNECTED | PREVIEW UI | ANALYZE + MOBILE NAVIGATION PASS | Real auth/repository commands pending |
 | Driver Mobile Home | DEVELOPING | DRIVER + DELIVERY DESIGNED | TRIP/FUEL/DELIVERY/NOTIFICATION NAVIGATION IMPLEMENTED | FLEET + DELIVERY SELF-SERVICE FOUNDATION | PREVIEW UI | ANALYZE + MOBILE NAVIGATION PASS | Real auth/repository commands pending |
-| Inventory | DEVELOPING | DASHBOARD + SCANNER + ITEM DETAIL | DASHBOARD + ITEM DETAIL IMPLEMENTED | INVENTORY LEDGER + SCOPE-HARDENED CHILD RLS + WAREHOUSE-SCOPED POSTING | DEMO | FLUTTER DOMAIN/NAV + POSTGRES SCHEMA/SEED/SCOPE/POST PASS | General live Supabase repository/RPC verification pending |
+| Inventory | DEVELOPING | DASHBOARD + SCANNER + ITEM DETAIL | DASHBOARD + SELECTED-ITEM DETAIL + LIVE SUPABASE READ ADAPTERS | INVENTORY LEDGER + SCOPE-HARDENED CHILD RLS + WAREHOUSE-SCOPED POSTING + SUPABASE READ ADAPTERS | DEMO | SELECTED-RECORD NAV + FULL FLUTTER 67 PASS; POSTGRES LEDGER/SECURITY PASS | Deployed Supabase verification + real Stock Entry workflow pending |
 | Scanner | DEVELOPING | DESIGNED | MANUAL FLOW IMPLEMENTED | PORT ABSTRACTION | PREVIEW LOOKUP | UNIT + NAVIGATION PASS | Camera/barcode platform integration pending |
-| Production | DEVELOPING | DASHBOARD + ORDER DETAIL | IMPLEMENTED | PRODUCTION/QUALITY SCHEMA + PARENT-SCOPED CHILD RLS | DEMO | FLUTTER DOMAIN/NAV + POSTGRES SCHEMA/SEED/SCOPE PASS | Real Supabase repository/RPC tests pending |
-| Quality | DEVELOPING | INCLUDED IN PRODUCTION | QC STATE IMPLEMENTED | SCHEMA + PARENT-SCOPED PARAMETER RLS | DEMO | NAVIGATION + POSTGRES SCHEMA PASS | Deployed Supabase RLS/RPC tests pending |
+| Production | DEVELOPING | DASHBOARD + ORDER DETAIL | SELECTED-ORDER NAV + LIVE SUPABASE READ/DETAIL + COMPLETION COMMAND UI | PRODUCTION/QUALITY SCHEMA + PARENT-SCOPED CHILD RLS + `complete_production_batch` + SUPABASE ADAPTER | DEMO + CI COMPLETION FIXTURE | LIVE COMMAND UI + POSTGRES PERMISSION/QC/LEDGER/COMPLETION ASSERTIONS + FULL FLUTTER 67 PASS | Adapter/RPC still unverified against deployed Supabase |
+| Quality | DEVELOPING | INCLUDED IN PRODUCTION | QC STATE IMPLEMENTED + LIVE DETAIL READ | SCHEMA + PARENT-SCOPED PARAMETER RLS + COMPLETION QC GATE | DEMO | NAVIGATION + POSTGRES QC-HOLD COMPLETION DENIAL PASS | Deployed Supabase RLS/RPC tests pending |
 | Warehouse | DEVELOPING | DASHBOARD + TRANSFER DETAIL | DASHBOARD + TRANSFER DETAIL + LIVE COMMAND STATE | TRANSFER/LINES SCHEMA + WAREHOUSE RLS + ATOMIC TRANSFER RPC + SUPABASE REPOSITORY ADAPTER | FICTIONAL STAGING + TRF-2026-00218 | FLUTTER LIVE-COMMAND UI + POSTGRES COMMAND/IDEMPOTENCY PASS | Adapter still unverified against deployed Supabase |
 | Dispatch | DEVELOPING | DASHBOARD + LOAD DETAIL | DASHBOARD + LOAD DETAIL + LIVE STOCK/FINALIZE COMMAND STATE + DELIVERY HANDOFF | DISPATCH SCHEMA + SALES_DISPATCH LEDGER + FINALIZE/HANDOFF RPCs + SUPABASE REPOSITORY ADAPTER + FULL-LOAD GUARD | FICTIONAL DSP-2026-00417 + POSTED LEDGER | FLUTTER LIVE-COMMAND UI + POSTGRES CHECK/LEDGER/HANDOFF/IDEMPOTENCY/PARTIAL-LOAD PASS | Adapter still unverified against deployed Supabase |
 | Purchase | DEVELOPING | DASHBOARD + ORDER DETAIL | IMPLEMENTED | PURCHASE + GRN SCHEMA + FACTORY-SCOPED CHILD RLS | DEMO SEEDED | FLUTTER DOMAIN/NAV + POSTGRES SCHEMA/SEED/SCOPE PASS | Live receipt repository/RPC verification pending |
@@ -28,11 +28,11 @@ Last updated: 2026-10-15
 | Delivery | DEVELOPING | DASHBOARD + DETAIL/POD + DRIVER + EXCEPTION/RETURN | IMPLEMENTED | DELIVERY/POD/EXCEPTION/EVENT SCHEMA + DRIVER RPCs + PARENT-SCOPED RLS + TABLE-SAFE TRIGGERS + DISPATCH CREATE/REUSE HANDOFF | DEMO SEEDED | FLUTTER DOMAIN/NAV + POSTGRES DISPATCH→DELIVERY HANDOFF PASS | Real Supabase RPC/POD storage and return E2E tests pending |
 | Maintenance | DEVELOPING | 6 SVG DESIGNS | DASHBOARD + ASSET + WORK ORDER + PM + BREAKDOWN/SPARES + REPORTS IMPLEMENTED | SCHEMA + RLS + LIFECYCLE COMMAND RPCs | FICTIONAL ASSET/ORDER/SPARE SEED | FLUTTER DOMAIN/NAV + POSTGRES SCHEMA/SEED PASS | Real Supabase RPC tests and live repositories pending |
 | Reporting / Analytics | DEVELOPING | 6 SVG DESIGNS | REPORTS CENTER + EXECUTIVE + OPERATIONS + COMMERCIAL + WORKFORCE/FLEET + BUILDER IMPLEMENTED | TYPED REPOSITORY/DOMAIN FOUNDATION; EXISTING `report.read` ACCESS MODEL | FICTIONAL CROSS-MODULE PREVIEW | ANALYZE + REGRESSION PASS | Live Supabase aggregates/views and real PDF/CSV/Excel generation pending |
-| Notifications | DEVELOPING | 4 SVG DESIGNS | ADMIN CENTER + RULES + EMPLOYEE/DRIVER INBOX + PREFERENCES IMPLEMENTED | NOTIFICATION/RULE/TOKEN/PREFERENCE/RECIPIENT/DELIVERY-ATTEMPT SCHEMA + MARK-READ RPC + PUSH PORT + READ-MEMBERSHIP GUARD | FICTIONAL RULES/EVENTS | NOTIFICATION SECURITY + FULL FLUTTER 66 PASS; POSTGRES SCHEMA/SEED PASS | Real Supabase execution, trusted dispatcher and Firebase/FCM platform setup pending |
-| Audit / Security | DEVELOPING | N/A | N/A | EXPLICIT SCOPE HELPERS + ROLE-SCOPE VALIDATION + MODULE RLS HARDENING + FAIL-FAST/ISOLATED DB CI | N/A | POSTGRES RBAC-RLS + NOTIFICATIONS + WAREHOUSE/DISPATCH/PARTIAL-LOAD GATES PASS | Dedicated Supabase advisors, Auth/RLS/RPC and storage-policy validation pending |
+| Notifications | DEVELOPING | 4 SVG DESIGNS | ADMIN CENTER + RULES + EMPLOYEE/DRIVER INBOX + PREFERENCES IMPLEMENTED | NOTIFICATION/RULE/TOKEN/PREFERENCE/RECIPIENT/DELIVERY-ATTEMPT SCHEMA + MARK-READ RPC + PUSH PORT + READ-MEMBERSHIP GUARD | FICTIONAL RULES/EVENTS | NOTIFICATION SECURITY + FULL FLUTTER 67 PASS; POSTGRES SCHEMA/SEED PASS | Real Supabase execution, trusted dispatcher and Firebase/FCM platform setup pending |
+| Audit / Security | DEVELOPING | N/A | N/A | EXPLICIT SCOPE HELPERS + ROLE-SCOPE VALIDATION + MODULE RLS HARDENING + FAIL-FAST/ISOLATED DB CI | N/A | POSTGRES RBAC-RLS + NOTIFICATIONS + WAREHOUSE/DISPATCH + PRODUCTION COMMAND GATES PASS | Dedicated Supabase advisors, Auth/RLS/RPC and storage-policy validation pending |
 | Full E2E QA | NOT STARTED | N/A | N/A | N/A | N/A | NOT STARTED | Requires deployed workflows |
 
-See [Maintenance checkpoint](MAINTENANCE_PROGRESS.md), [Reporting checkpoint](REPORTING_PROGRESS.md), [Notifications checkpoint](NOTIFICATIONS_PROGRESS.md), [Security checkpoint](SECURITY_PROGRESS.md), [Warehouse/Dispatch checkpoint](WAREHOUSE_DISPATCH_PROGRESS.md) and [Supabase integration readiness checkpoint](SUPABASE_INTEGRATION_READINESS.md) for verified repository milestones and remaining production gates.
+See [Maintenance checkpoint](MAINTENANCE_PROGRESS.md), [Reporting checkpoint](REPORTING_PROGRESS.md), [Notifications checkpoint](NOTIFICATIONS_PROGRESS.md), [Security checkpoint](SECURITY_PROGRESS.md), [Warehouse/Dispatch checkpoint](WAREHOUSE_DISPATCH_PROGRESS.md), [Supabase integration readiness checkpoint](SUPABASE_INTEGRATION_READINESS.md) and [Inventory/Production live checkpoint](INVENTORY_PRODUCTION_LIVE_PROGRESS.md) for verified repository milestones and remaining production gates.
 
 ## Landed in repository
 
@@ -66,11 +66,17 @@ See [Maintenance checkpoint](MAINTENANCE_PROGRESS.md), [Reporting checkpoint](RE
 - Added explicit backend configuration and preview/Supabase service composition using `FACTORYOS_BACKEND`, `FACTORYOS_SUPABASE_URL` and `FACTORYOS_SUPABASE_PUBLISHABLE_KEY`.
 - Added `supabase_flutter` client dependency, Supabase Auth repository and safe startup/session bootstrap with no service-role key in the client.
 - Added Supabase Warehouse and Dispatch repository adapters. Live stock-changing UI calls only verified RPCs; preview repositories remain mutation-disabled.
+- Added Supabase Inventory overview/item-detail adapters backed by RLS-visible normalized tables and ledger-derived balances.
+- Added Supabase Production overview/order-detail adapters and a live completion boundary that calls only `complete_production_batch`.
+- Fixed Inventory and Production selected-record navigation in preview and live modes; preview detail repositories now honor the selected SKU/order.
+- Removed misleading non-functional Inventory Stock Entry and Production create-order actions instead of presenting fake controls.
+- Added `supabase/tests/05_production_completion_commands.sql` and Database CI coverage for unauthorized completion denial, QC-hold denial, batch-tracked finished-goods ledger evidence and successful parent-order reconciliation.
 - Added connected-backend Login design and **50 design-first SVG specifications** total.
 - Flutter application includes Login, Admin, Employee/Driver Home, Inventory, Production, Warehouse, Dispatch, Purchase, HR, Sales, Fleet, Delivery, Maintenance, Reporting and Notifications surfaces.
-- `.github/workflows/factoryos_db_ci.yml` applies the complete schema chain, all fictional seeds, RBAC/RLS, Notifications security, Warehouse/Dispatch command and Dispatch partial-load assertions.
+- `.github/workflows/factoryos_db_ci.yml` applies the complete schema chain, all fictional seeds, RBAC/RLS, Notifications security, Warehouse/Dispatch command, Dispatch partial-load and Production completion assertions.
 - Added CI-only Supabase `auth.uid()` compatibility bootstrap and executable scope-security assertions; this is test infrastructure, not a production Auth replacement.
 - Database CI exposed and fixed earlier Fleet/Delivery SQL defects plus Warehouse/Dispatch idempotency/PLpgSQL issues during real execution.
+- Production completion CI also proved the batch-tracking invariant: a batch-tracked finished good requires a real finished-goods `batch_id`; the fixture was fixed instead of weakening the rule.
 - Hardened the PostgreSQL assertion harness so boolean failures produce SQL errors under `ON_ERROR_STOP=1`.
 - Isolated the Notifications suspension test so it restores RBAC fixture state instead of contaminating later command suites.
 
@@ -78,19 +84,21 @@ See [Maintenance checkpoint](MAINTENANCE_PROGRESS.md), [Reporting checkpoint](RE
 
 - GitHub repository/branch/PR writes are confirmed through the connected GitHub account.
 - `janseva-production` has not been modified for FactoryOS.
-- Accepted runtime/code head: `d9af6e39909492298682740031f2be61a92535f4`.
-- Flutter CI run `38688424928` passes `flutter analyze --fatal-infos` with no issues and the complete app regression suite at **66/66 tests**.
+- Accepted Inventory/Production runtime/code head: `b0753d85d98281e3ff81aba63bc8e4cc4486452c`.
+- Flutter CI run `38691655283` passes `flutter analyze --fatal-infos` with no issues and the complete app regression suite at **67/67 tests**.
 - Backend config tests verify preview defaults, required Supabase URL/key inputs and HTTPS enforcement outside local development.
 - Preview Auth tests verify normalized preview sessions and validation failure behavior.
-- Live-command widget tests verify Warehouse completion and Dispatch full-load → stock-post → finalize sequencing through repository boundaries without external credentials.
+- Live-command widget tests verify Warehouse completion, Dispatch full-load → stock-post → finalize sequencing, and Production completion through repository boundaries without external credentials.
+- Inventory navigation regression opens a non-default selected SKU; Production navigation regression opens a non-default selected order rather than fixed demo details.
 - Warehouse Dashboard → transfer detail and Dispatch Dashboard → load detail → Delivery detail regression journeys remain green.
-- PostgreSQL 16 Database CI run `38688424899` applies the complete current schema/review/command chain and all fictional demo seeds in dependency order.
+- PostgreSQL 16 Database CI run `38691655274` applies the complete current schema/review/command chain and all fictional demo seeds in dependency order.
 - Database security assertions execute as `authenticated` and verify organization/factory/warehouse/department scope semantics, no upward escalation, cross-scope/tenant denial, suspended-membership denial and malformed assignment rejection.
 - Notifications security assertions verify self-only recipient visibility/read mutation, foreign denial and suspended-member denial, then restore deterministic fixture state.
 - Warehouse command tests prove an RM-WH-scoped manager can complete the authorized transfer without factory-level escalation; the posted transfer pair is quantity-neutral and idempotent.
 - Dispatch command tests prove `sales_dispatch` posting, required-check blocking, exact ledger linkage, Trip/Delivery/Sales handoff and replay idempotency.
 - Dispatch partial-load guard tests prove planned 10 / loaded 5 cannot post stock and leave no stock transaction or ledger linkage.
-- Notifications, Reporting, Maintenance, Delivery, Fleet, Sales, HR, Purchase, Production and Inventory previously accepted regression coverage remains green.
+- Production completion command tests prove unauthorized warehouse scope denial, QC-hold blocking, required batch-tracked finished-goods ledger evidence and authorized completion with parent Production-order reconciliation.
+- Notifications, Reporting, Maintenance, Delivery, Fleet, Sales, HR, Purchase and all previously accepted regression coverage remains green.
 
 ## Not yet verified / production blockers
 
@@ -99,8 +107,9 @@ See [Maintenance checkpoint](MAINTENANCE_PROGRESS.md), [Reporting checkpoint](RE
 - Supabase security/performance advisors have not been run for FactoryOS.
 - Storage/object policies for POD/media are not deployed or tested.
 - The Supabase Auth adapter and startup session path are implemented, but no dedicated FactoryOS project/users are connected yet.
-- Warehouse and Dispatch Supabase adapters are implemented but not yet exercised against deployed FactoryOS RLS/RPCs.
-- Other operational, Reporting and Notification repositories remain replaceable preview adapters until their live migrations are implemented.
+- Warehouse, Dispatch, Inventory and Production Supabase adapters are implemented but not yet exercised against deployed FactoryOS RLS/RPCs.
+- Inventory has no real Stock Entry transaction screen/workflow yet. The removed button was non-functional; the replacement must be designed image-first and use validated ledger posting.
+- Purchase, HR, Sales, Fleet, Delivery, Maintenance, Reporting and Notification repositories still require live Supabase migration/verification.
 - Inventory posting, Production completion, Fleet, Delivery, Maintenance and Notification command functions still require deployed Supabase execution tests under real role/JWT contexts.
 - Reporting does not yet use live SQL views/query functions/materialized aggregates; real PDF/CSV/Excel files are not generated yet.
 - Notifications have no connected Firebase project, no real FCM token lifecycle, no Android/iOS/web configuration and no trusted server-side dispatcher/retry worker.
@@ -112,14 +121,15 @@ See [Maintenance checkpoint](MAINTENANCE_PROGRESS.md), [Reporting checkpoint](RE
 ## Pending dependency order
 
 1. Create/connect a dedicated FactoryOS Supabase project **only after organization/cost confirmation**; never reuse `janseva-production`.
-2. Apply the PostgreSQL-verified schema chain in dependency order through Notifications and Warehouse/Dispatch review guards, then apply fictional demo data only where appropriate for the dedicated test environment.
+2. Apply the PostgreSQL-verified schema chain in dependency order through Notifications, Warehouse/Dispatch guards and the verified Production command contract, then apply fictional demo data only where appropriate for the dedicated test environment.
 3. Provision controlled FactoryOS test users/memberships/roles and run deployed Auth/JWT/Data API/RLS/RPC/cross-tenant tests plus Supabase security/performance advisors.
-4. Exercise the implemented Supabase Auth, Warehouse and Dispatch adapters against the deployed environment and fix any API/RLS mismatch.
-5. Migrate remaining preview operational repositories module-by-module to Supabase, preserving existing command/RBAC/ledger rules.
-6. Verify the complete deployed Dispatch → Trip → Delivery → Return → Warehouse flow.
-7. Add trusted notification dispatch plus real FCM Android/iOS/web registration, foreground/background handling, retry and delivery auditing.
-8. Add authorized Reporting SQL views/query functions/repositories and real server-side PDF/CSV/Excel generation/audit rules.
-9. Add Android/iOS camera/barcode/POD capture setup and permissions, then run full production E2E QA.
+4. Exercise the implemented Supabase Auth, Inventory, Production, Warehouse and Dispatch adapters against the deployed environment and fix any API/RLS mismatch.
+5. If deployment approval is still pending, build the missing Inventory Stock Entry workflow using the mandatory design-image-first process and a validated ledger/RPC command path.
+6. Migrate remaining preview operational repositories module-by-module to Supabase, preserving existing command/RBAC/ledger rules.
+7. Verify the complete deployed Dispatch → Trip → Delivery → Return → Warehouse flow.
+8. Add trusted notification dispatch plus real FCM Android/iOS/web registration, foreground/background handling, retry and delivery auditing.
+9. Add authorized Reporting SQL views/query functions/repositories and real server-side PDF/CSV/Excel generation/audit rules.
+10. Add Android/iOS camera/barcode/POD capture setup and permissions, then run full production E2E QA.
 
 ## Rule
 
