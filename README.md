@@ -27,7 +27,8 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Repository and connected database are the source of truth.
 - No permanent hardcoded dashboard statistics.
 - Inventory changes must be ledger-backed.
-- Production material consumption, finished-goods receipt, Quality quarantine and Quality release must use that same Inventory ledger.
+- Production material consumption, finished-goods receipt, Quality quarantine/release and Purchase goods receipt/release must use that same Inventory ledger.
+- Sales allocation reserves ledger-derived stock without issuing stock before dispatch.
 - Critical multi-step business operations must be atomic.
 - Every client organization is isolated using organization context plus RLS.
 - Major UI screens are designed before implementation and compared with the approved visual specification.
@@ -42,13 +43,14 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 4: Inventory, item/category/unit masters, locations, ledger movements, scanning, reorder and reports — complete at the core application/database level and CI validated.
 - Phase 5: Production, BOM/recipes, work centers, orders, batch/shift execution, material consumption, WIP, output, scrap/downtime, finished-goods receipt and reports — complete at the core application/database level and CI validated.
 - Phase 6: Quality, plans/checklists, incoming/in-process/final inspection, results, NCR, quarantine/release, certificates and reports — complete at the core application/database level and CI validated.
-- Phase 7: Purchase & Sales — next.
+- Phase 7: Purchase & Sales, suppliers/customers, requisitions, PO/GRN, incoming Quality, supplier billing, quotation/SO, stock allocation, dispatch readiness, customer billing and reports — complete at the core application/database level and CI validated.
+- Phase 8: Warehouse — next.
 
 Latest validated checks:
 
 - invitation Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations `0001`–`0013`, base seed + Phase 5 seed + Phase 6 seed — pass;
-- Foundation, Access, HR, Inventory, Production and Quality SQL smoke/integrity tests — pass;
+- clean local Supabase start/reset, migrations `0001`–`0014`, base seed + Phase 5 + Phase 6 + Phase 7 seeds — pass;
+- Foundation, Access, HR, Inventory, Production, Quality and Purchase/Sales SQL smoke/integrity tests — pass;
 - real signup -> password login -> JWT -> PostgREST factory/HR RLS — pass;
 - employee self-profile, check-in and leave-request flows — pass;
 - Inventory scan, receive/transfer/issue, negative-stock denial, cross-factory denial and employee-write denial — pass;
@@ -61,13 +63,18 @@ Latest validated checks:
 - employee quarantine-release denial and manager NCR closure/release — pass;
 - Quality quarantine/release Inventory balance verification — pass;
 - Factory Manager cross-factory Quality denial — pass;
+- Purchase requisition create/approve and Purchase Order manager enforcement — pass;
+- ledger-backed Goods Receipt, automatic incoming Quality creation, Quality-to-GRN status sync and Inventory release — pass;
+- supplier invoice/payment and over-scope permission protections — pass;
+- quotation -> Sales Order conversion, stock allocation and dispatch readiness — pass;
+- customer invoice/payment and cross-factory commercial denial — pass;
 - shared Flutter core analysis and permission tests — pass;
-- admin web analysis and release web build including Inventory + Production + Quality — pass;
-- mobile Flutter analysis including HR, Inventory scan, Production and Quality execution — pass.
+- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales — pass;
+- mobile Flutter analysis including HR, Inventory scan, Production, Quality and commercial operations — pass.
 
-Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–6 business logic.
+Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–7 business logic.
 
-See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md` and `docs/PHASE_6_QUALITY.md`.
+See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md` and `docs/PHASE_7_PURCHASE_SALES.md`.
 
 ## Local Supabase
 
@@ -83,6 +90,7 @@ source supabase/tests/auth_login_e2e.sh
 source supabase/tests/inventory_auth_e2e.sh
 bash supabase/tests/production_auth_e2e.sh
 bash supabase/tests/quality_auth_e2e.sh
+bash supabase/tests/purchase_sales_auth_e2e.sh
 ```
 
 ## Development Sequence
