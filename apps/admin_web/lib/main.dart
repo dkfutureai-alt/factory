@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'access_management.dart';
+import 'dispatch_management.dart';
 import 'fleet_management.dart';
 import 'hr_management.dart';
 import 'inventory_management.dart';
@@ -496,6 +497,7 @@ class _AdminShellState extends State<AdminShell> {
       (module) => module.key == 'warehouse',
     );
     final fleetEnabled = w.modules.any((module) => module.key == 'vehicles');
+    final deliveryEnabled = w.modules.any((module) => module.key == 'delivery');
     final commercialEnabled = purchaseEnabled || salesEnabled;
     final tabs = <_Tab>[
       _Tab('Overview', Icons.dashboard_outlined, Overview(workspace: w)),
@@ -569,6 +571,16 @@ class _AdminShellState extends State<AdminShell> {
           'Fleet',
           Icons.local_shipping_outlined,
           FleetManagementPage(
+            organizationId: w.orgId,
+            actorRole: w.role,
+            factories: w.factories,
+          ),
+        ),
+      if (deliveryEnabled && warehouseEnabled && fleetEnabled && salesEnabled)
+        _Tab(
+          'Dispatch',
+          Icons.route_outlined,
+          DispatchManagementPage(
             organizationId: w.orgId,
             actorRole: w.role,
             factories: w.factories,
