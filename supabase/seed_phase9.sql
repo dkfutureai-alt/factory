@@ -45,9 +45,10 @@ insert into public.fleet_vehicle_driver_assignments(
 on conflict (id) do nothing;
 
 insert into public.fleet_trips(
- id,organization_id,factory_id,trip_no,vehicle_id,driver_id,origin,destination,status,planned_start_at,planned_end_at,notes,created_at
+ id,organization_id,factory_id,trip_no,vehicle_id,driver_id,origin,destination,status,
+ planned_start_at,planned_end_at,started_at,arrived_at,completed_at,start_odometer_km,arrival_odometer_km,end_odometer_km,notes,created_at
 ) values
- ('97400000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','TRIP-DEMO-P9-001','97100000-0000-4000-8000-000000000001','97200000-0000-4000-8000-000000000001','Aarohan Solapur Plant','Demo City Hospital','assigned',now()+interval '2 hours',now()+interval '6 hours','Planned cylinder delivery route',now()-interval '1 hour'),
+ ('97400000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','TRIP-DEMO-P9-001','97100000-0000-4000-8000-000000000001','97200000-0000-4000-8000-000000000001','Aarohan Solapur Plant','Demo City Hospital','assigned',now()+interval '2 hours',now()+interval '6 hours',null,null,null,null,null,null,'Planned cylinder delivery route',now()-interval '1 hour'),
  ('97400000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','TRIP-DEMO-P9-000','97100000-0000-4000-8000-000000000002','97200000-0000-4000-8000-000000000002','Aarohan Solapur Plant','Demo Industrial Estate','completed',now()-interval '3 days',now()-interval '3 days'+interval '5 hours',now()-interval '3 days',now()-interval '3 days'+interval '4 hours 35 minutes',now()-interval '3 days'+interval '4 hours 40 minutes',42620,42750,42780,'Historical demo tanker trip',now()-interval '4 days')
 on conflict (id) do nothing;
 
