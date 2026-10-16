@@ -51,7 +51,7 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 Latest validated checks through Phase 9:
 
 - invitation Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations `0001`–`0020`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 seeds — pass;
+- clean local Supabase start/reset, migrations `0001`–`0019`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 seeds — pass;
 - Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse and Fleet SQL smoke/integrity tests — pass;
 - factory metadata visibility is restricted to assigned factories for factory-scoped roles while organization admins retain organization-wide visibility — pass;
 - real signup -> password login -> JWT -> PostgREST factory/HR RLS — pass;
