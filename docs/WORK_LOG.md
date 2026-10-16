@@ -190,3 +190,30 @@ Core Purchase & Sales is complete and validated through **Dispatch Readiness**. 
 ### Next
 
 Start Phase 8: Warehouse — warehouse/zone/bin structure -> put-away -> stock availability/reservation -> pick list -> staging -> dispatch handoff -> cycle count -> stock adjustment -> warehouse reports, while preserving the Inventory ledger as stock truth.
+## 2026-10-16 — Phase 8 Warehouse
+
+- Created the Warehouse design direction before implementation and preserved the existing FactoryOS visual system.
+- Reused `stock_locations` as the canonical warehouse/location hierarchy and added warehouse, zone, bin, receiving and staging semantics plus capacity/aisle/rack/level metadata.
+- Added put-away tasks linked to optional Goods Receipts with operational source-stock reservation and ledger-backed source → bin completion.
+- Added warehouse pick lists generated from existing Sales allocations instead of introducing a second reservation system.
+- Added employee pick confirmation that physically transfers stock into staging and synchronizes the Sales allocation location.
+- Added fully-picked staging and supervisor Dispatch handoff while intentionally leaving physical dispatch/Inventory issue for the Dispatch & Delivery phase.
+- Added location cycle counts with ledger snapshots, employee count entry/submission, manager approval and stale-snapshot rejection.
+- Added manager-only manual stock adjustments with reason validation, negative-stock protection and immutable adjustment history.
+- Added Warehouse dashboard, bin stock/on-hand/reserved/available, put-away, pick and cycle-count report RPCs.
+- Added Warehouse RLS, factory visibility, employee/supervisor operational permissions, manager approval controls and audit logging.
+- Added fictional warehouse zones, bins, receiving/staging, put-away, pick-list and historical cycle-count seed data.
+- Added responsive Admin Warehouse workspace with dashboard, locations, put-away, picking/staging/handoff, cycle counts, adjustments and reports.
+- Added mobile Warehouse operations for employee put-away, picking, staging and cycle counts plus supervisor Dispatch handoff.
+- Added Phase 8 SQL smoke coverage and authenticated Warehouse E2E validation chained after Purchase/Sales.
+- Run/compare/fix corrected the missing Phase 8 seed registration in local Supabase configuration.
+- Supabase validation passed: clean start/reset, migrations `0001`–`0015`, all five seed layers, every SQL smoke test and full authenticated HR/Inventory/Production/Quality/Purchase/Sales/Warehouse chain.
+- Flutter validation passed: shared analysis/tests, Admin Analyze, Admin release web build and Mobile Analyze with Warehouse navigation connected.
+
+### Phase 8 status
+
+Core Warehouse is complete and validated through **Dispatch Handoff**. Physical dispatch/Inventory issue remains intentionally reserved for the Dispatch & Delivery phase.
+
+### Next
+
+Start Phase 9: Vehicles, Drivers, Trips & Fuel — vehicle/driver masters -> assignments -> trip lifecycle -> odometer/fuel controls -> driver mobile workflow -> route/dispatch linkage -> service reminders -> fleet reports.
