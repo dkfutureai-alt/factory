@@ -15,66 +15,64 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Record validated Phase 8 status
+      - name: Update README status
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
-          readme = Path('README.md')
-          text = readme.read_text()
-          replacements = {
-              "- Phase 8: Warehouse — next.\n": "- Phase 8: Warehouse, zones/bins, put-away, availability/reservation, picking, staging, dispatch handoff, cycle counts, adjustments and reports — complete at the core application/database level and CI validated.\n- Phase 9: Vehicles, Drivers, Trips & Fuel — next.\n",
-              "- clean local Supabase start/reset, migrations `0001`–`0014`, base seed + Phase 5 + Phase 6 + Phase 7 seeds — pass;\n": "- clean local Supabase start/reset, migrations `0001`–`0015`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 seeds — pass;\n",
-              "- Foundation, Access, HR, Inventory, Production, Quality and Purchase/Sales SQL smoke/integrity tests — pass;\n": "- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales and Warehouse SQL smoke/integrity tests — pass;\n",
-              "- customer invoice/payment and cross-factory commercial denial — pass;\n": "- customer invoice/payment and cross-factory commercial denial — pass;\n- Warehouse zone/bin/staging hierarchy, put-away, pick/stage/handoff, cycle count and stock-adjustment flows — pass;\n- Warehouse employee/manager permissions, ledger movement, reservation-location sync and cross-factory denial — pass;\n",
-              "- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales — pass;\n": "- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse — pass;\n",
-              "- mobile Flutter analysis including HR, Inventory scan, Production, Quality and commercial operations — pass.\n": "- mobile Flutter analysis including HR, Inventory scan, Production, Quality, commercial and Warehouse operations — pass.\n",
-              "Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–7 business logic.\n": "Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–8 business logic.\n",
-              "See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md` and `docs/PHASE_7_PURCHASE_SALES.md`.\n": "See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md` and `docs/PHASE_8_WAREHOUSE.md`.\n",
-              "bash supabase/tests/purchase_sales_auth_e2e.sh\n": "bash supabase/tests/purchase_sales_auth_e2e.sh\nbash supabase/tests/warehouse_auth_e2e.sh\n",
-          }
-          for old, new in replacements.items():
+          path = Path('README.md')
+          text = path.read_text()
+          pairs = [
+              ("- Phase 8: Warehouse — next.\n", "- Phase 8: Warehouse, zones/bins, put-away, availability/reservation, picking, staging, dispatch handoff, cycle counts, adjustments and reports — complete at the core application/database level and CI validated.\n- Phase 9: Vehicles, Drivers, Trips & Fuel — next.\n"),
+              ("- clean local Supabase start/reset, migrations `0001`–`0014`, base seed + Phase 5 + Phase 6 + Phase 7 seeds — pass;\n", "- clean local Supabase start/reset, migrations `0001`–`0015`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 seeds — pass;\n"),
+              ("- Foundation, Access, HR, Inventory, Production, Quality and Purchase/Sales SQL smoke/integrity tests — pass;\n", "- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales and Warehouse SQL smoke/integrity tests — pass;\n"),
+              ("- customer invoice/payment and cross-factory commercial denial — pass;\n", "- customer invoice/payment and cross-factory commercial denial — pass;\n- Warehouse zone/bin/staging hierarchy, put-away, pick/stage/handoff, cycle count and stock-adjustment flows — pass;\n- Warehouse employee/manager permissions, ledger movement, reservation-location sync and cross-factory denial — pass;\n"),
+              ("- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales — pass;\n", "- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse — pass;\n"),
+              ("- mobile Flutter analysis including HR, Inventory scan, Production, Quality and commercial operations — pass.\n", "- mobile Flutter analysis including HR, Inventory scan, Production, Quality, commercial and Warehouse operations — pass.\n"),
+              ("Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–7 business logic.\n", "Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–8 business logic.\n"),
+              ("See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md` and `docs/PHASE_7_PURCHASE_SALES.md`.\n", "See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md` and `docs/PHASE_8_WAREHOUSE.md`.\n"),
+              ("bash supabase/tests/purchase_sales_auth_e2e.sh\n", "bash supabase/tests/purchase_sales_auth_e2e.sh\nbash supabase/tests/warehouse_auth_e2e.sh\n"),
+          ]
+          for old, new in pairs:
               if old not in text:
                   raise SystemExit(f'Missing README anchor: {old!r}')
               text = text.replace(old, new, 1)
-          readme.write_text(text)
-
-          log = Path('docs/WORK_LOG.md')
-          text = log.read_text()
-          if '## 2026-10-16 — Phase 8 Warehouse' not in text:
-              text += """
-
-## 2026-10-16 — Phase 8 Warehouse
-
-- Created the Warehouse design direction before implementation and preserved the existing FactoryOS visual system.
-- Reused `stock_locations` as the canonical warehouse/location hierarchy and added warehouse, zone, bin, receiving and staging semantics plus capacity/aisle/rack/level metadata.
-- Added put-away tasks linked to optional Goods Receipts with operational source-stock reservation and ledger-backed source → bin completion.
-- Added warehouse pick lists generated from existing Sales allocations instead of introducing a second reservation system.
-- Added employee pick confirmation that physically transfers stock into staging and synchronizes the Sales allocation location.
-- Added fully-picked staging and supervisor Dispatch handoff while intentionally leaving physical dispatch/Inventory issue for the Dispatch & Delivery phase.
-- Added location cycle counts with ledger snapshots, employee count entry/submission, manager approval and stale-snapshot rejection.
-- Added manager-only manual stock adjustments with reason validation, negative-stock protection and immutable adjustment history.
-- Added Warehouse dashboard, bin stock/on-hand/reserved/available, put-away, pick and cycle-count report RPCs.
-- Added Warehouse RLS, factory visibility, employee/supervisor operational permissions, manager approval controls and audit logging.
-- Added fictional warehouse zones, bins, receiving/staging, put-away, pick-list and historical cycle-count seed data.
-- Added responsive Admin Warehouse workspace with dashboard, locations, put-away, picking/staging/handoff, cycle counts, adjustments and reports.
-- Added mobile Warehouse operations for employee put-away, picking, staging and cycle counts plus supervisor Dispatch handoff.
-- Added Phase 8 SQL smoke coverage and authenticated Warehouse E2E validation chained after Purchase/Sales.
-- Run/compare/fix corrected the missing Phase 8 seed registration in local Supabase configuration.
-- Supabase validation passed: clean start/reset, migrations `0001`–`0015`, all five seed layers, every SQL smoke test and full authenticated HR/Inventory/Production/Quality/Purchase/Sales/Warehouse chain.
-- Flutter validation passed: shared analysis/tests, Admin Analyze, Admin release web build and Mobile Analyze with Warehouse navigation connected.
-
-### Phase 8 status
-
-Core Warehouse is complete and validated through **Dispatch Handoff**. Physical dispatch/Inventory issue remains intentionally reserved for the Dispatch & Delivery phase.
-
-### Next
-
-Start Phase 9: Vehicles, Drivers, Trips & Fuel — vehicle/driver masters -> assignments -> trip lifecycle -> odometer/fuel controls -> driver mobile workflow -> route/dispatch linkage -> service reminders -> fleet reports.
-"""
-          log.write_text(text)
+          path.write_text(text)
           PY
-      - name: Remove temporary workflow and commit docs
+      - name: Append Phase 8 work log
+        run: |
+          if ! grep -q '## 2026-10-16 — Phase 8 Warehouse' docs/WORK_LOG.md; then
+            cat >> docs/WORK_LOG.md <<'EOF'
+
+          ## 2026-10-16 — Phase 8 Warehouse
+
+          - Created the Warehouse design direction before implementation and preserved the existing FactoryOS visual system.
+          - Reused `stock_locations` as the canonical warehouse/location hierarchy and added warehouse, zone, bin, receiving and staging semantics plus capacity/aisle/rack/level metadata.
+          - Added put-away tasks linked to optional Goods Receipts with operational source-stock reservation and ledger-backed source → bin completion.
+          - Added warehouse pick lists generated from existing Sales allocations instead of introducing a second reservation system.
+          - Added employee pick confirmation that physically transfers stock into staging and synchronizes the Sales allocation location.
+          - Added fully-picked staging and supervisor Dispatch handoff while intentionally leaving physical dispatch/Inventory issue for the Dispatch & Delivery phase.
+          - Added location cycle counts with ledger snapshots, employee count entry/submission, manager approval and stale-snapshot rejection.
+          - Added manager-only manual stock adjustments with reason validation, negative-stock protection and immutable adjustment history.
+          - Added Warehouse dashboard, bin stock/on-hand/reserved/available, put-away, pick and cycle-count report RPCs.
+          - Added Warehouse RLS, factory visibility, employee/supervisor operational permissions, manager approval controls and audit logging.
+          - Added fictional warehouse zones, bins, receiving/staging, put-away, pick-list and historical cycle-count seed data.
+          - Added responsive Admin Warehouse workspace with dashboard, locations, put-away, picking/staging/handoff, cycle counts, adjustments and reports.
+          - Added mobile Warehouse operations for employee put-away, picking, staging and cycle counts plus supervisor Dispatch handoff.
+          - Added Phase 8 SQL smoke coverage and authenticated Warehouse E2E validation chained after Purchase/Sales.
+          - Run/compare/fix corrected the missing Phase 8 seed registration in local Supabase configuration.
+          - Supabase validation passed: clean start/reset, migrations `0001`–`0015`, all five seed layers, every SQL smoke test and full authenticated HR/Inventory/Production/Quality/Purchase/Sales/Warehouse chain.
+          - Flutter validation passed: shared analysis/tests, Admin Analyze, Admin release web build and Mobile Analyze with Warehouse navigation connected.
+
+          ### Phase 8 status
+
+          Core Warehouse is complete and validated through **Dispatch Handoff**. Physical dispatch/Inventory issue remains intentionally reserved for the Dispatch & Delivery phase.
+
+          ### Next
+
+          Start Phase 9: Vehicles, Drivers, Trips & Fuel — vehicle/driver masters -> assignments -> trip lifecycle -> odometer/fuel controls -> driver mobile workflow -> route/dispatch linkage -> service reminders -> fleet reports.
+          EOF
+          fi
+      - name: Commit docs and remove temporary workflow
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
