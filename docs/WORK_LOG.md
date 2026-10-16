@@ -152,6 +152,41 @@ Core Production is complete and validated.
 
 Core Quality is complete and validated.
 
+## 2026-10-16 — Phase 7 Purchase & Sales
+
+- Created the Phase 7 Purchase & Sales design before implementation and preserved the existing FactoryOS visual language.
+- Added organization business-partner masters for suppliers, customers and dual-role partners.
+- Added factory-scoped Purchase Requisitions with multi-line item requests and supervisor/manager creation scope.
+- Added manager-only requisition decisions and Purchase Order creation with supplier, ETA, currency, price and tax lines.
+- Added Goods Receipt with remaining-quantity validation and atomic Inventory `receive` transaction + stock-ledger entries.
+- Added automatic incoming Quality inspection creation when a receipt line requires inspection; an active incoming plan is mandatory.
+- Added Quality-to-GRN synchronization for pending/pass/hold results.
+- Added Goods Receipt release as an atomic Inventory transfer from Incoming QC/receiving location to available warehouse stock.
+- Added Supplier Invoice and immutable Supplier Payment history with overpayment protection.
+- Added Quotations with customer, validity, multi-line item pricing and tax.
+- Added atomic Quotation-to-Sales-Order conversion.
+- Added ledger-derived Sales stock availability and reservation without prematurely issuing Inventory.
+- Added transaction-scoped allocation locking and active-reservation subtraction.
+- Added Dispatch Readiness requiring every Sales Order line to be fully allocated.
+- Added Customer Invoice and immutable Customer Payment history with overpayment protection.
+- Added commercial dashboard, Purchase Order report, Sales Order report and partner-ledger database functions.
+- Added commercial RLS, server permission helpers and audit logging across partner/purchase/sales/financial records.
+- Added fictional Phase 7 data including suppliers/customers, a PPE PR/PO, Incoming QC location, passed gloves inspection, ledger-backed GRN release, supplier billing, quotation, allocated dispatch-ready Sales Order and customer billing.
+- Added responsive Admin Purchase & Sales workspace with Dashboard, Partners, Purchase, Goods Receipt, Supplier Billing, Sales, Allocation, Customer Billing and Reports sections.
+- Connected Purchase & Sales to existing Admin navigation when either commercial module is enabled.
+- Added mobile commercial operations for supervisor/manager goods receipt, incoming-QC release, Sales allocation and Dispatch Readiness.
+- Connected both Purchase and Sales module cards to the mobile commercial workspace.
+- Added Phase 7 SQL smoke coverage for schema/RLS/seed integrity, ledger movements, RPC surfaces and payment immutability.
+- Added real authenticated Phase 7 E2E coverage for employee denial, supervisor PR/GRN/allocation actions, manager approval/PO/financial actions, automatic incoming Quality, GRN status sync, ledger release, dispatch readiness and Factory Manager cross-factory denial.
+- Run/compare/fix moved authenticated report-result assumptions out of unauthenticated SQL smoke context.
+- Run/compare/fix corrected generated Admin Flutter analyzer errors before release build.
+- Supabase validation passed: clean start/reset, migrations `0001`–`0014`, all four seed layers, every SQL smoke test and the full authenticated HR/Inventory/Production/Quality/Purchase/Sales chain.
+- Flutter validation passed: shared analyze/tests, Admin Analyze, Admin release web build, Mobile dependencies and Mobile Analyze with commercial navigation connected.
+
+### Phase 7 status
+
+Core Purchase & Sales is complete and validated through **Dispatch Readiness**. Physical dispatch/Inventory issue remains intentionally reserved for the Dispatch/Delivery phase.
+
 ### Next
 
-Start Phase 7: Purchase & Sales — suppliers/customers -> requisition/PO -> goods receipt -> incoming quality -> supplier invoice/payment status -> quotation/sales order -> stock allocation -> dispatch readiness -> customer invoice/payment status -> purchase/sales reports.
+Start Phase 8: Warehouse — warehouse/zone/bin structure -> put-away -> stock availability/reservation -> pick list -> staging -> dispatch handoff -> cycle count -> stock adjustment -> warehouse reports, while preserving the Inventory ledger as stock truth.
