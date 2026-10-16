@@ -122,6 +122,36 @@ Core Inventory is complete and validated.
 
 Core Production is complete and validated.
 
+## 2026-10-16 — Phase 6 Quality
+
+- Created the Quality dashboard design before implementation and preserved the existing FactoryOS visual system.
+- Added versioned incoming, in-process and final inspection plans linked to Inventory Item Master.
+- Added visual, numeric, boolean and text checklist parameters with required state, tolerance ranges, units and acceptance criteria.
+- Added factory-scoped inspection execution with optional Production Order/Batch and HR inspector links.
+- Added server-derived numeric/boolean pass/fail logic and required-check completion validation.
+- Added pass/fail/hold inspection completion state.
+- Added NCR/deviation records with severity, category, assignee, root cause, corrective action, status and disposition.
+- Added Quality quarantine as an atomic Inventory transfer into quarantine-type stock locations.
+- Added supervisor/manager-only quarantine release with linked-NCR closure requirement and Inventory ledger transfer back to released stock.
+- Added immutable quality certificates for passed completed inspections with inspection/item/plan/result snapshot data.
+- Added Quality dashboard, inspection and NCR reporting functions.
+- Added Quality RLS and server permission helpers for view, operate and approve scopes.
+- Employees can execute inspections, raise NCRs and quarantine assigned-factory stock without receiving unrestricted Inventory write access.
+- Employees cannot release quarantine or issue certificates; supervisor/manager approval is enforced server-side.
+- Added fictional Aarohan Quality demo data: final oxygen inspection, incoming valve inspection, in-process oxygen plan, checklist results, failed valve NCR, QC-HOLD quarantine stock and quality certificate.
+- Added responsive Admin Quality workspace with dashboard, plans/checklists, inspections, NCR, quarantine/release, certificates and reports.
+- Added mobile Quality execution workflow and connected it to the role-aware module grid.
+- Added Phase 6 SQL smoke coverage for schema/RPCs, fictional seed integrity, quarantine ledger balance and certificate immutability.
+- Added real authenticated Quality E2E validation for employee inspection start, checklist capture, numeric auto-fail, pass/fail completion, employee certificate denial, manager certificate issue, NCR creation, quarantine movement, employee release denial, manager NCR closure/release, ledger balances and cross-factory denial.
+- Run/compare/fix found and corrected Admin Flutter analyzer issues.
+- Run/compare/fix also corrected an older Production smoke-test assumption so post-Quality valve stock is validated by total stock plus Raw Material/QC-HOLD split.
+- Flutter validation passed: shared analysis/tests, Admin Analyze, release web build and Mobile Analyze with Quality linked.
+- Supabase validation passed: clean start/reset, migrations `0001`–`0013`, all three seed layers, all SQL smoke tests and the full authenticated HR/Inventory/Production/Quality chain.
+
+### Phase 6 status
+
+Core Quality is complete and validated.
+
 ### Next
 
-Start Phase 6: Quality — inspection plans/checklists -> incoming/in-process/final inspection -> sample/results -> pass/fail/hold -> NCR/deviation -> quarantine/release -> certificate/quality reports.
+Start Phase 7: Purchase & Sales — suppliers/customers -> requisition/PO -> goods receipt -> incoming quality -> supplier invoice/payment status -> quotation/sales order -> stock allocation -> dispatch readiness -> customer invoice/payment status -> purchase/sales reports.
