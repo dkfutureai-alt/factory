@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'access_management.dart';
+import 'fleet_management.dart';
 import 'hr_management.dart';
 import 'inventory_management.dart';
 import 'production_management.dart';
@@ -316,6 +317,7 @@ class _AdminShellState extends State<AdminShell> {
     final purchaseEnabled = w.modules.any((module) => module.key == 'purchase');
     final salesEnabled = w.modules.any((module) => module.key == 'sales');
     final warehouseEnabled = w.modules.any((module) => module.key == 'warehouse');
+    final fleetEnabled = w.modules.any((module) => module.key == 'vehicles');
     final commercialEnabled = purchaseEnabled || salesEnabled;
     final tabs = <_Tab>[
       _Tab('Overview', Icons.dashboard_outlined, Overview(workspace: w)),
@@ -326,6 +328,7 @@ class _AdminShellState extends State<AdminShell> {
       if (qualityEnabled) _Tab('Quality', Icons.verified_user_outlined, QualityManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (commercialEnabled) _Tab('Purchase & Sales', Icons.sync_alt, PurchaseSalesManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (warehouseEnabled) _Tab('Warehouse', Icons.warehouse_outlined, WarehouseManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
+      if (fleetEnabled) _Tab('Fleet', Icons.local_shipping_outlined, FleetManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (w.role.canManageAccess) _Tab('Users', Icons.groups_outlined, AccessManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       _Tab('Modules', Icons.widgets_outlined, ModuleList(modules: w.modules)),
       _Tab('Organization', Icons.settings_outlined, Organization(workspace: w, onChanged: widget.onRefresh)),
