@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <rect width="1200" height="900" fill="#EEF3F8"/>
+  <text x="70" y="70" font-family="Arial" font-size="30" font-weight="800" fill="#10243E">Phase 10 — Driver Delivery Mobile</text>
+  <text x="70" y="105" font-family="Arial" font-size="15" fill="#64788F">Assigned load → customer delivery → proof → returnables → close</text>
+
+  <g transform="translate(70,145)">
+    <rect width="300" height="680" rx="34" fill="#0C1C30"/>
+    <rect x="14" y="14" width="272" height="652" rx="26" fill="#F7F9FC"/>
+    <rect x="14" y="14" width="272" height="120" rx="26" fill="#173C6B"/>
+    <text x="36" y="52" font-family="Arial" font-size="12" fill="#BFD0E5">DRIVER WORKSPACE</text>
+    <text x="36" y="82" font-family="Arial" font-size="22" font-weight="800" fill="#FFFFFF">Today's Delivery</text>
+    <text x="36" y="108" font-family="Arial" font-size="13" fill="#D6E4F4">MH 13 AB 4210 • DEL-10428</text>
+    <rect x="34" y="155" width="232" height="104" rx="16" fill="#FFFFFF" stroke="#DCE5EF"/>
+    <text x="52" y="182" font-family="Arial" font-size="12" fill="#75879A">CUSTOMER</text><text x="52" y="208" font-family="Arial" font-size="17" font-weight="800" fill="#263D55">Shree Industrial Gas</text><text x="52" y="234" font-family="Arial" font-size="13" fill="#65798F">MIDC, Solapur • 18 km</text>
+    <rect x="34" y="280" width="232" height="122" rx="16" fill="#FFFFFF" stroke="#DCE5EF"/>
+    <text x="52" y="307" font-family="Arial" font-size="12" fill="#75879A">LOADED ITEMS</text><text x="52" y="336" font-family="Arial" font-size="16" font-weight="800" fill="#263D55">48 Oxygen Cylinders</text><text x="52" y="364" font-family="Arial" font-size="13" fill="#65798F">Load confirmed at 4:12 PM</text><text x="52" y="387" font-family="Arial" font-size="13" fill="#1F8F5F">Inventory on vehicle ✓</text>
+    <rect x="34" y="432" width="232" height="54" rx="13" fill="#1E5BA8"/><text x="98" y="465" font-family="Arial" font-size="15" font-weight="800" fill="#FFFFFF">START DELIVERY</text>
+    <text x="34" y="530" font-family="Arial" font-size="12" fill="#75879A">CHECKLIST</text><text x="50" y="558" font-family="Arial" font-size="13" fill="#263D55">✓ Vehicle loaded</text><text x="50" y="584" font-family="Arial" font-size="13" fill="#263D55">✓ Trip assigned</text><text x="50" y="610" font-family="Arial" font-size="13" fill="#263D55">✓ Driver licence valid</text>
+  </g>
+
+  <g transform="translate(450,145)">
+    <rect width="300" height="680" rx="34" fill="#0C1C30"/><rect x="14" y="14" width="272" height="652" rx="26" fill="#F7F9FC"/>
+    <rect x="14" y="14" width="272" height="104" rx="26" fill="#173C6B"/>
+    <text x="36" y="52" font-family="Arial" font-size="12" fill="#BFD0E5">AT CUSTOMER</text><text x="36" y="82" font-family="Arial" font-size="22" font-weight="800" fill="#FFFFFF">Complete Delivery</text>
+    <rect x="34" y="140" width="232" height="84" rx="15" fill="#FFFFFF" stroke="#DCE5EF"/><text x="50" y="169" font-family="Arial" font-size="12" fill="#75879A">DELIVERED QUANTITY</text><text x="50" y="199" font-family="Arial" font-size="24" font-weight="800" fill="#173C6B">48 / 48</text>
+    <text x="34" y="260" font-family="Arial" font-size="12" fill="#75879A">PROOF OF DELIVERY</text>
+    <rect x="34" y="278" width="108" height="82" rx="12" fill="#EAF1F8" stroke="#CFDAE7"/><text x="60" y="323" font-family="Arial" font-size="13" font-weight="700" fill="#35516E">PHOTO</text>
+    <rect x="158" y="278" width="108" height="82" rx="12" fill="#EAF1F8" stroke="#CFDAE7"/><text x="181" y="323" font-family="Arial" font-size="13" font-weight="700" fill="#35516E">SIGNATURE</text>
+    <text x="34" y="397" font-family="Arial" font-size="12" fill="#75879A">RECEIVER</text><rect x="34" y="412" width="232" height="46" rx="10" fill="#FFFFFF" stroke="#CFDAE7"/><text x="50" y="441" font-family="Arial" font-size="13" fill="#8392A3">Name / contact</text>
+    <text x="34" y="492" font-family="Arial" font-size="12" fill="#75879A">DELIVERY NOTE</text><rect x="34" y="507" width="232" height="70" rx="10" fill="#FFFFFF" stroke="#CFDAE7"/><text x="50" y="536" font-family="Arial" font-size="13" fill="#8392A3">Optional note...</text>
+    <rect x="34" y="598" width="232" height="54" rx="13" fill="#1E5BA8"/><text x="84" y="631" font-family="Arial" font-size="15" font-weight="800" fill="#FFFFFF">CONFIRM DELIVERY</text>
+  </g>
+
+  <g transform="translate(830,145)">
+    <rect width="300" height="680" rx="34" fill="#0C1C30"/><rect x="14" y="14" width="272" height="652" rx="26" fill="#F7F9FC"/>
+    <rect x="14" y="14" width="272" height="104" rx="26" fill="#173C6B"/>
+    <text x="36" y="52" font-family="Arial" font-size="12" fill="#BFD0E5">RETURNABLES</text><text x="36" y="82" font-family="Arial" font-size="22" font-weight="800" fill="#FFFFFF">Pickup Empty Stock</text>
+    <rect x="34" y="140" width="232" height="98" rx="15" fill="#FFFFFF" stroke="#DCE5EF"/><text x="50" y="168" font-family="Arial" font-size="12" fill="#75879A">EXPECTED RETURN</text><text x="50" y="199" font-family="Arial" font-size="22" font-weight="800" fill="#D17A00">32 Cylinders</text><text x="50" y="222" font-family="Arial" font-size="12" fill="#65798F">Customer outstanding: 46</text>
+    <text x="34" y="280" font-family="Arial" font-size="12" fill="#75879A">PICKED UP</text><rect x="34" y="296" width="232" height="52" rx="10" fill="#FFFFFF" stroke="#CFDAE7"/><text x="50" y="328" font-family="Arial" font-size="17" font-weight="800" fill="#263D55">32</text>
+    <text x="34" y="384" font-family="Arial" font-size="12" fill="#75879A">CONDITION</text><rect x="34" y="401" width="108" height="42" rx="10" fill="#E7F7EF"/><text x="63" y="427" font-family="Arial" font-size="13" font-weight="700" fill="#17764D">GOOD 30</text><rect x="158" y="401" width="108" height="42" rx="10" fill="#FFF0EA"/><text x="180" y="427" font-family="Arial" font-size="13" font-weight="700" fill="#B54A1B">DAMAGED 2</text>
+    <text x="34" y="486" font-family="Arial" font-size="12" fill="#75879A">EXCEPTION</text><rect x="34" y="502" width="232" height="68" rx="10" fill="#FFFFFF" stroke="#CFDAE7"/><text x="50" y="530" font-family="Arial" font-size="13" fill="#8392A3">Damage note / photo reference</text>
+    <rect x="34" y="598" width="232" height="54" rx="13" fill="#1E5BA8"/><text x="83" y="631" font-family="Arial" font-size="15" font-weight="800" fill="#FFFFFF">SAVE &amp; CLOSE STOP</text>
+  </g>
+</svg>
