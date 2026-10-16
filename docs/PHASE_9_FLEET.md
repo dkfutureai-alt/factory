@@ -98,6 +98,8 @@ Coverage includes manager planning permissions, Driver-role execution, factory i
 
 Flutter CI analyzes the shared core, Admin web including Fleet and Driver mobile including Fleet, and builds the Admin release web target.
 
+The final Phase 9 checkpoint requires both database and Flutter workflows to pass on the same branch head before Phase 10 begins.
+
 ## Next
 
 After Phase 9 CI is green, Phase 10 is **Dispatch, Delivery & Returnables**: consume Warehouse handoff + Fleet trip, perform ledger-backed staging/vehicle/customer movements, proof of delivery, empty-cylinder/returnable pickup, delivery exceptions and delivery reports.
