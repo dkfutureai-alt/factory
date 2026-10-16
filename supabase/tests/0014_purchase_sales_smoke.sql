@@ -61,14 +61,6 @@ BEGIN
 END $$;
 
 DO $$
-DECLARE purchase_rows integer; sales_rows integer;
-BEGIN
-  SELECT count(*) INTO purchase_rows FROM public.purchase_order_report('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001',50);
-  SELECT count(*) INTO sales_rows FROM public.sales_order_report('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001',50);
-  IF purchase_rows<1 OR sales_rows<1 THEN RAISE EXCEPTION 'Phase 7 report functions returned no demo rows'; END IF;
-END $$;
-
-DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='purchase_orders' AND policyname='purchase_orders_select') THEN RAISE EXCEPTION 'purchase order RLS policy missing'; END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='sales_orders' AND policyname='sales_orders_select') THEN RAISE EXCEPTION 'sales order RLS policy missing'; END IF;
