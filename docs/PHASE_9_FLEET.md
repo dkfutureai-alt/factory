@@ -1,6 +1,6 @@
 # Phase 9 — Vehicles, Drivers, Trips & Fuel
 
-Status: **implementation complete; CI validation in progress**.
+Status: **complete and CI validated**.
 
 ## Workflow
 
@@ -17,6 +17,7 @@ Migrations:
 - `supabase/migrations/0016_fleet_operations.sql`
 - `supabase/migrations/0017_fleet_scope_hardening.sql`
 - `supabase/migrations/0018_fleet_integrity_hardening.sql`
+- `supabase/migrations/0019_fleet_trigger_hardening.sql`
 
 Operational tables:
 
@@ -41,6 +42,7 @@ Each vehicle owns an Inventory `stock_locations` record with `location_type='veh
 - Driver fuel entries are limited to the driver's assigned vehicle/trip scope.
 - Fuel history and odometer history are audit-oriented operational records.
 - Organization-wide management reports remain restricted to authorized admin roles.
+- Fleet organization/factory scope, vehicle Inventory-location links and driver employee links are immutable through the hardened shared trigger.
 
 ## Admin Web
 
@@ -98,8 +100,11 @@ Coverage includes manager planning permissions, Driver-role execution, factory i
 
 Flutter CI analyzes the shared core, Admin web including Fleet and Driver mobile including Fleet, and builds the Admin release web target.
 
-The final Phase 9 checkpoint requires both database and Flutter workflows to pass on the same branch head before Phase 10 begins.
+Validated together on Phase 9 branch head `634fe97b2283d716146a52c20e5e7a6f7bdfe546`:
+
+- Flutter Application Quality — pass;
+- Supabase Foundation Checks — pass.
 
 ## Next
 
-After Phase 9 CI is green, Phase 10 is **Dispatch, Delivery & Returnables**: consume Warehouse handoff + Fleet trip, perform ledger-backed staging/vehicle/customer movements, proof of delivery, empty-cylinder/returnable pickup, delivery exceptions and delivery reports.
+Phase 10 is **Dispatch, Delivery & Returnables**: consume Warehouse handoff + Fleet trip, perform ledger-backed staging/vehicle/customer movements, proof of delivery, empty-cylinder/returnable pickup, delivery exceptions and delivery reports.
