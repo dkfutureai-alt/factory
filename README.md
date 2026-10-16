@@ -45,14 +45,14 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 6: Quality, plans/checklists, incoming/in-process/final inspection, results, NCR, quarantine/release, certificates and reports — complete at the core application/database level and CI validated.
 - Phase 7: Purchase & Sales, suppliers/customers, requisitions, PO/GRN, incoming Quality, supplier billing, quotation/SO, stock allocation, dispatch readiness, customer billing and reports — complete at the core application/database level and CI validated.
 - Phase 8: Warehouse, zones/bins, put-away, availability/reservation, picking, staging, dispatch handoff, cycle counts, adjustments and reports — complete at the core application/database level and CI validated.
-- Phase 9: Vehicles, Drivers, Trips & Fuel — backend, Admin Fleet UI and Driver mobile workspace implemented; CI validation in progress.
-- Phase 10: Dispatch, Delivery & Returnables — next after Phase 9 validation.
+- Phase 9: Vehicles, Drivers, Trips & Fuel — backend, Admin Fleet UI and Driver mobile workspace complete and CI validated.
+- Phase 10: Dispatch, Delivery & Returnables — next development phase.
 
-Latest validated checks through Phase 8:
+Latest validated checks through Phase 9:
 
 - invitation Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations `0001`–`0015`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 seeds — pass;
-- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales and Warehouse SQL smoke/integrity tests — pass;
+- clean local Supabase start/reset, migrations `0001`–`0019`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 seeds — pass;
+- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse and Fleet SQL smoke/integrity tests — pass;
 - real signup -> password login -> JWT -> PostgREST factory/HR RLS — pass;
 - employee self-profile, check-in and leave-request flows — pass;
 - Inventory scan, receive/transfer/issue, negative-stock denial, cross-factory denial and employee-write denial — pass;
@@ -72,9 +72,12 @@ Latest validated checks through Phase 8:
 - customer invoice/payment and cross-factory commercial denial — pass;
 - Warehouse zone/bin/staging hierarchy, put-away, pick/stage/handoff, cycle count and stock-adjustment flows — pass;
 - Warehouse employee/manager permissions, ledger movement, reservation-location sync and cross-factory denial — pass;
+- Fleet manager vehicle/driver/trip planning permissions and Driver-role execution — pass;
+- Fleet odometer monotonicity, assignment checks, licence-expiry start protection and handoff uniqueness — pass;
+- Fleet driver fuel scope, service reminder lifecycle, report authorization and cross-factory isolation — pass;
 - shared Flutter core analysis and permission tests — pass;
-- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse — pass;
-- mobile Flutter analysis including HR, Inventory scan, Production, Quality, commercial and Warehouse operations — pass.
+- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse + Fleet — pass;
+- mobile Flutter analysis including HR, Inventory scan, Production, Quality, commercial, Warehouse and Driver Fleet operations — pass.
 
 Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–9 business logic.
 
