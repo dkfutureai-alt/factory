@@ -6,6 +6,11 @@ begin;
 alter table public.inventory_items
   add column if not exists is_returnable boolean not null default false;
 
+-- Phase 8 handoffs are organization-scoped. Dispatch also needs an immutable
+-- factory-scoped composite key so a handoff can never be attached cross-factory.
+create unique index if not exists warehouse_dispatch_handoffs_id_factory_unique
+  on public.warehouse_dispatch_handoffs(id, factory_id);
+
 create table public.dispatch_deliveries (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete restrict,
