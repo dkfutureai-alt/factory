@@ -45,7 +45,10 @@ class _HrManagementPageState extends State<HrManagementPage> {
     );
   }
 
-  Future<void> editEmployee(HrSnapshot data, [Map<String, dynamic>? initial]) async {
+  Future<void> editEmployee(
+    HrSnapshot data, [
+    Map<String, dynamic>? initial,
+  ]) async {
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => EmployeeEditor(
@@ -75,10 +78,9 @@ class _HrManagementPageState extends State<HrManagementPage> {
   Future<void> toggleEmployee(Map<String, dynamic> employee) async {
     final active = employee['status'] == 'active';
     try {
-      await repository.updateEmployee(
-        employee['id'] as String,
-        {'status': active ? 'inactive' : 'active'},
-      );
+      await repository.updateEmployee(employee['id'] as String, {
+        'status': active ? 'inactive' : 'active',
+      });
       if (!mounted) return;
       message(active ? 'Employee deactivated.' : 'Employee activated.');
       reload();
@@ -87,7 +89,10 @@ class _HrManagementPageState extends State<HrManagementPage> {
     }
   }
 
-  Future<void> markAttendance(Map<String, dynamic> employee, String status) async {
+  Future<void> markAttendance(
+    Map<String, dynamic> employee,
+    String status,
+  ) async {
     try {
       await repository.markAttendance(widget.organizationId, employee, status);
       if (!mounted) return;
@@ -98,7 +103,10 @@ class _HrManagementPageState extends State<HrManagementPage> {
     }
   }
 
-  Future<void> decideLeave(Map<String, dynamic> request, String decision) async {
+  Future<void> decideLeave(
+    Map<String, dynamic> request,
+    String decision,
+  ) async {
     try {
       await repository.decideLeave(request['id'] as String, decision);
       if (!mounted) return;
@@ -130,13 +138,14 @@ class _HrManagementPageState extends State<HrManagementPage> {
     }
   }
 
-  Future<void> editDesignation(HrSnapshot data, [Map<String, dynamic>? initial]) async {
+  Future<void> editDesignation(
+    HrSnapshot data, [
+    Map<String, dynamic>? initial,
+  ]) async {
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (_) => DesignationEditor(
-        departments: data.departments,
-        initial: initial,
-      ),
+      builder: (_) =>
+          DesignationEditor(departments: data.departments, initial: initial),
     );
     if (draft == null) return;
     try {
@@ -154,7 +163,8 @@ class _HrManagementPageState extends State<HrManagementPage> {
   Future<void> editShift([Map<String, dynamic>? initial]) async {
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (_) => ShiftEditor(factories: widget.factories, initial: initial),
+      builder: (_) =>
+          ShiftEditor(factories: widget.factories, initial: initial),
     );
     if (draft == null) return;
     try {
@@ -190,7 +200,8 @@ class _HrManagementPageState extends State<HrManagementPage> {
   Future<void> editHoliday([Map<String, dynamic>? initial]) async {
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (_) => HolidayEditor(factories: widget.factories, initial: initial),
+      builder: (_) =>
+          HolidayEditor(factories: widget.factories, initial: initial),
     );
     if (draft == null) return;
     try {
@@ -219,7 +230,11 @@ class _HrManagementPageState extends State<HrManagementPage> {
 
         final data = snapshot.requireData;
         final sections = <_HrSection>[
-          _HrSection('Dashboard', Icons.dashboard_outlined, _Dashboard(snapshot: data)),
+          _HrSection(
+            'Dashboard',
+            Icons.dashboard_outlined,
+            _Dashboard(snapshot: data),
+          ),
           _HrSection(
             'Employees',
             Icons.badge_outlined,
@@ -245,7 +260,8 @@ class _HrManagementPageState extends State<HrManagementPage> {
             Icons.account_tree_outlined,
             _Masters(
               snapshot: data,
-              canEditOrganizationMasters: widget.actorRole.canManageOrganizationSetup,
+              canEditOrganizationMasters:
+                  widget.actorRole.canManageOrganizationSetup,
               onDepartment: editDepartment,
               onDesignation: (row) => editDesignation(data, row),
               onShift: editShift,
@@ -283,14 +299,15 @@ class _HrManagementPageState extends State<HrManagementPage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.groups_2_outlined, color: FactoryColors.blue),
+                  const Icon(
+                    Icons.groups_2_outlined,
+                    color: FactoryColors.blue,
+                  ),
                   const SizedBox(width: FactorySpacing.sm),
                   Expanded(
                     child: Text(
                       'HR & Employees',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
+                      style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                   ),
@@ -427,10 +444,7 @@ class HrRepository {
     });
   }
 
-  Future<void> updateEmployee(
-    String id,
-    Map<String, dynamic> values,
-  ) async {
+  Future<void> updateEmployee(String id, Map<String, dynamic> values) async {
     await client.from('employees').update(values).eq('id', id);
   }
 
@@ -461,11 +475,7 @@ class HrRepository {
   Future<void> decideLeave(String id, String decision) async {
     await client.rpc(
       'decide_leave_request',
-      params: {
-        'p_request_id': id,
-        'p_decision': decision,
-        'p_note': null,
-      },
+      params: {'p_request_id': id, 'p_decision': decision, 'p_note': null},
     );
   }
 
@@ -570,11 +580,14 @@ class HrSnapshot {
   final List<Map<String, dynamic>> attendance;
   final List<Map<String, dynamic>> members;
 
-  String employeeName(String? id) => _nameById(employees, id, 'full_name', 'Unknown employee');
+  String employeeName(String? id) =>
+      _nameById(employees, id, 'full_name', 'Unknown employee');
   String departmentName(String? id) => _nameById(departments, id, 'name', '—');
-  String designationName(String? id) => _nameById(designations, id, 'name', '—');
+  String designationName(String? id) =>
+      _nameById(designations, id, 'name', '—');
   String shiftName(String? id) => _nameById(shifts, id, 'name', '—');
-  String leaveTypeName(String? id) => _nameById(leaveTypes, id, 'name', 'Leave');
+  String leaveTypeName(String? id) =>
+      _nameById(leaveTypes, id, 'name', 'Leave');
 }
 
 class _Dashboard extends StatelessWidget {
@@ -591,26 +604,60 @@ class _Dashboard extends StatelessWidget {
           spacing: FactorySpacing.md,
           runSpacing: FactorySpacing.md,
           children: [
-            _Metric('Employees', '${summary['employees'] ?? 0}', Icons.groups_outlined),
-            _Metric('Present today', '${summary['present'] ?? 0}', Icons.check_circle_outline),
-            _Metric('Absent', '${summary['absent'] ?? 0}', Icons.person_off_outlined),
-            _Metric('On leave', '${summary['on_leave'] ?? 0}', Icons.event_busy_outlined),
-            _Metric('Pending leave', '${summary['pending_leave'] ?? 0}', Icons.pending_actions_outlined),
-            _Metric('Late today', '${summary['late'] ?? 0}', Icons.schedule_outlined),
+            _Metric(
+              'Employees',
+              '${summary['employees'] ?? 0}',
+              Icons.groups_outlined,
+            ),
+            _Metric(
+              'Present today',
+              '${summary['present'] ?? 0}',
+              Icons.check_circle_outline,
+            ),
+            _Metric(
+              'Absent',
+              '${summary['absent'] ?? 0}',
+              Icons.person_off_outlined,
+            ),
+            _Metric(
+              'On leave',
+              '${summary['on_leave'] ?? 0}',
+              Icons.event_busy_outlined,
+            ),
+            _Metric(
+              'Pending leave',
+              '${summary['pending_leave'] ?? 0}',
+              Icons.pending_actions_outlined,
+            ),
+            _Metric(
+              'Late today',
+              '${summary['late'] ?? 0}',
+              Icons.schedule_outlined,
+            ),
           ],
         ),
         const SizedBox(height: FactorySpacing.xl),
         Text(
           'Recent attendance',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: FactorySpacing.sm),
-        ...snapshot.attendance.take(8).map(
+        ...snapshot.attendance
+            .take(8)
+            .map(
               (row) => Card(
                 child: ListTile(
-                  leading: Icon(_attendanceIcon(row['status'] as String? ?? 'absent')),
-                  title: Text(snapshot.employeeName(row['employee_id'] as String?)),
-                  subtitle: Text('${row['work_date']} · ${hrTitle(row['status'] as String? ?? '')}'),
+                  leading: Icon(
+                    _attendanceIcon(row['status'] as String? ?? 'absent'),
+                  ),
+                  title: Text(
+                    snapshot.employeeName(row['employee_id'] as String?),
+                  ),
+                  subtitle: Text(
+                    '${row['work_date']} · ${hrTitle(row['status'] as String? ?? '')}',
+                  ),
                   trailing: (row['late_minutes'] as int? ?? 0) > 0
                       ? Text('${row['late_minutes']} min late')
                       : null,
@@ -645,7 +692,9 @@ class _Employees extends StatelessWidget {
             Expanded(
               child: Text(
                 'Employees',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
             ),
             FilledButton.icon(
@@ -664,13 +713,17 @@ class _Employees extends StatelessWidget {
                 child: Text(_initials(employee['full_name'] as String? ?? 'E')),
               ),
               title: Text(employee['full_name'] as String),
-              subtitle: Text([
-                employee['employee_code'],
-                snapshot.departmentName(employee['department_id'] as String?),
-                snapshot.designationName(employee['designation_id'] as String?),
-                snapshot.shiftName(employee['shift_id'] as String?),
-                hrTitle(employee['status'] as String? ?? ''),
-              ].whereType<String>().join(' · ')),
+              subtitle: Text(
+                [
+                  employee['employee_code'],
+                  snapshot.departmentName(employee['department_id'] as String?),
+                  snapshot.designationName(
+                    employee['designation_id'] as String?,
+                  ),
+                  snapshot.shiftName(employee['shift_id'] as String?),
+                  hrTitle(employee['status'] as String? ?? ''),
+                ].whereType<String>().join(' · '),
+              ),
               trailing: PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'edit') {
@@ -680,7 +733,10 @@ class _Employees extends StatelessWidget {
                   }
                 },
                 itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Edit employee')),
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Text('Edit employee'),
+                  ),
                   PopupMenuItem(
                     value: 'status',
                     child: Text(active ? 'Deactivate' : 'Activate'),
@@ -713,10 +769,14 @@ class _Attendance extends StatelessWidget {
       children: [
         Text(
           'Attendance · $today',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: FactorySpacing.md),
-        ...snapshot.employees.where((row) => row['status'] == 'active').map((employee) {
+        ...snapshot.employees.where((row) => row['status'] == 'active').map((
+          employee,
+        ) {
           final attendance = todayRows[employee['id']];
           final status = attendance?['status'] as String? ?? 'not_marked';
           return Card(
@@ -765,7 +825,9 @@ class _Leave extends StatelessWidget {
       children: [
         Text(
           'Leave requests',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: FactorySpacing.md),
         if (snapshot.leaveRequests.isEmpty)
@@ -780,8 +842,12 @@ class _Leave extends StatelessWidget {
           final reason = request['reason'] as String?;
           return Card(
             child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.event_note_outlined)),
-              title: Text(snapshot.employeeName(request['employee_id'] as String?)),
+              leading: const CircleAvatar(
+                child: Icon(Icons.event_note_outlined),
+              ),
+              title: Text(
+                snapshot.employeeName(request['employee_id'] as String?),
+              ),
               subtitle: Text(
                 '${snapshot.leaveTypeName(request['leave_type_id'] as String?)} · '
                 '${request['start_date']} → ${request['end_date']} · '
@@ -842,14 +908,18 @@ class _Masters extends StatelessWidget {
           rows: snapshot.departments,
           canAdd: canEditOrganizationMasters,
           onAdd: () => onDepartment(null),
-          onEdit: canEditOrganizationMasters ? (row) => onDepartment(row) : null,
+          onEdit: canEditOrganizationMasters
+              ? (row) => onDepartment(row)
+              : null,
         ),
         _MasterCard(
           title: 'Designations',
           rows: snapshot.designations,
           canAdd: canEditOrganizationMasters,
           onAdd: () => onDesignation(null),
-          onEdit: canEditOrganizationMasters ? (row) => onDesignation(row) : null,
+          onEdit: canEditOrganizationMasters
+              ? (row) => onDesignation(row)
+              : null,
         ),
         _MasterCard(
           title: 'Shifts',
@@ -857,7 +927,8 @@ class _Masters extends StatelessWidget {
           canAdd: true,
           onAdd: () => onShift(null),
           onEdit: (row) => onShift(row),
-          subtitle: (row) => '${row['code']} · ${row['start_time']}–${row['end_time']}',
+          subtitle: (row) =>
+              '${row['code']} · ${row['start_time']}–${row['end_time']}',
         ),
         _MasterCard(
           title: 'Leave types',
@@ -865,7 +936,8 @@ class _Masters extends StatelessWidget {
           canAdd: canEditOrganizationMasters,
           onAdd: () => onLeaveType(null),
           onEdit: canEditOrganizationMasters ? (row) => onLeaveType(row) : null,
-          subtitle: (row) => '${row['code']} · ${row['is_paid'] == true ? 'Paid' : 'Unpaid'}',
+          subtitle: (row) =>
+              '${row['code']} · ${row['is_paid'] == true ? 'Paid' : 'Unpaid'}',
         ),
       ],
     );
@@ -902,7 +974,9 @@ class _MasterCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
                 if (canAdd)
@@ -922,7 +996,9 @@ class _MasterCard extends StatelessWidget {
               (row) => ListTile(
                 dense: true,
                 title: Text(row['name'] as String? ?? ''),
-                subtitle: Text(subtitle?.call(row) ?? (row['code'] as String? ?? '')),
+                subtitle: Text(
+                  subtitle?.call(row) ?? (row['code'] as String? ?? ''),
+                ),
                 trailing: onEdit == null
                     ? null
                     : IconButton(
@@ -959,7 +1035,9 @@ class _Holidays extends StatelessWidget {
             Expanded(
               child: Text(
                 'Holidays',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
             ),
             FilledButton.icon(
@@ -971,7 +1049,9 @@ class _Holidays extends StatelessWidget {
         ),
         const SizedBox(height: FactorySpacing.md),
         ...snapshot.holidays.map((row) {
-          final scope = row['factory_id'] == null ? 'All factories' : 'Factory holiday';
+          final scope = row['factory_id'] == null
+              ? 'All factories'
+              : 'Factory holiday';
           return Card(
             child: ListTile(
               leading: const Icon(Icons.calendar_month_outlined),
@@ -1158,9 +1238,7 @@ class _Metric extends StatelessWidget {
                   children: [
                     Text(
                       value,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
+                      style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                     Text(label),
@@ -1221,7 +1299,11 @@ String _nameById(
 }
 
 String _initials(String value) {
-  final parts = value.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
+  final parts = value
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList();
   if (parts.isEmpty) return 'E';
   return parts.take(2).map((part) => part[0].toUpperCase()).join();
 }

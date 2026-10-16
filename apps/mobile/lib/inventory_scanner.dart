@@ -36,7 +36,8 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
         .eq('is_active', true)
         .limit(1)
         .maybeSingle();
-    if (membership == null) throw StateError('No active organization membership.');
+    if (membership == null)
+      throw StateError('No active organization membership.');
     return membership['organization_id'] as String;
   }
 
@@ -96,7 +97,11 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
           IconButton(
             tooltip: cameraEnabled ? 'Pause camera' : 'Start camera',
             onPressed: toggleCamera,
-            icon: Icon(cameraEnabled ? Icons.pause_circle_outline : Icons.play_circle_outline),
+            icon: Icon(
+              cameraEnabled
+                  ? Icons.pause_circle_outline
+                  : Icons.play_circle_outline,
+            ),
           ),
         ],
       ),
@@ -112,13 +117,19 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
                     ? Stack(
                         fit: StackFit.expand,
                         children: [
-                          MobileScanner(controller: scanner, onDetect: onDetect),
+                          MobileScanner(
+                            controller: scanner,
+                            onDetect: onDetect,
+                          ),
                           Center(
                             child: Container(
                               width: 250,
                               height: 130,
                               decoration: BoxDecoration(
-                                border: Border.all(color: Colors.white, width: 2),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
                                 borderRadius: BorderRadius.circular(18),
                               ),
                             ),
@@ -139,22 +150,37 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
               decoration: InputDecoration(
                 labelText: 'Barcode, QR code or SKU',
                 prefixIcon: const Icon(Icons.qr_code_scanner),
-                suffixIcon: IconButton(onPressed: busy ? null : () => lookup(manual.text), icon: const Icon(Icons.search)),
+                suffixIcon: IconButton(
+                  onPressed: busy ? null : () => lookup(manual.text),
+                  icon: const Icon(Icons.search),
+                ),
               ),
             ),
             const SizedBox(height: FactorySpacing.xs),
-            const Text('You can also use a connected handheld scanner; scanned keyboard input works in the field above.'),
+            const Text(
+              'You can also use a connected handheld scanner; scanned keyboard input works in the field above.',
+            ),
             if (busy) ...[
               const SizedBox(height: FactorySpacing.md),
               const LinearProgressIndicator(),
             ],
             if (error != null) ...[
               const SizedBox(height: FactorySpacing.md),
-              Card(child: ListTile(leading: const Icon(Icons.info_outline), title: Text(error!))),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: Text(error!),
+                ),
+              ),
             ],
             if (item != null) ...[
               const SizedBox(height: FactorySpacing.lg),
-              Text('Item found', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+              Text(
+                'Item found',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: FactorySpacing.sm),
               Card(
                 child: Padding(
@@ -162,16 +188,30 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item['item_name'] as String, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
-                      Text('${item['sku']} · ${_title(item['item_type'] as String)} · ${item['unit_code']}'),
-                      if (item['barcode'] != null) Text('Barcode: ${item['barcode']}'),
-                      if (item['qr_code'] != null) Text('QR: ${item['qr_code']}'),
+                      Text(
+                        item['item_name'] as String,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        '${item['sku']} · ${_title(item['item_type'] as String)} · ${item['unit_code']}',
+                      ),
+                      if (item['barcode'] != null)
+                        Text('Barcode: ${item['barcode']}'),
+                      if (item['qr_code'] != null)
+                        Text('QR: ${item['qr_code']}'),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: FactorySpacing.md),
-              Text('Accessible stock', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+              Text(
+                'Accessible stock',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: FactorySpacing.sm),
               for (final row in rows)
                 Card(
@@ -179,7 +219,10 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
                     leading: const Icon(Icons.warehouse_outlined),
                     title: Text(row['location_name'] as String),
                     subtitle: Text(row['factory_name'] as String),
-                    trailing: Text('${_number(row['quantity'])} ${row['unit_code']}', style: const TextStyle(fontWeight: FontWeight.w900)),
+                    trailing: Text(
+                      '${_number(row['quantity'])} ${row['unit_code']}',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
                   ),
                 ),
             ],
@@ -191,9 +234,20 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
 }
 
 String _number(dynamic value) {
-  final parsed = value is num ? value.toDouble() : double.tryParse('$value') ?? 0;
-  return parsed == parsed.roundToDouble() ? parsed.toStringAsFixed(0) : parsed.toStringAsFixed(2);
+  final parsed = value is num
+      ? value.toDouble()
+      : double.tryParse('$value') ?? 0;
+  return parsed == parsed.roundToDouble()
+      ? parsed.toStringAsFixed(0)
+      : parsed.toStringAsFixed(2);
 }
 
-String _title(String value) => value.split('_').map((part) => part.isEmpty ? part : '${part[0].toUpperCase()}${part.substring(1)}').join(' ');
-String _errorText(Object error) => error is PostgrestException ? error.message : '$error';
+String _title(String value) => value
+    .split('_')
+    .map(
+      (part) =>
+          part.isEmpty ? part : '${part[0].toUpperCase()}${part.substring(1)}',
+    )
+    .join(' ');
+String _errorText(Object error) =>
+    error is PostgrestException ? error.message : '$error';
