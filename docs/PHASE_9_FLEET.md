@@ -18,7 +18,6 @@ Migrations:
 - `supabase/migrations/0017_fleet_scope_hardening.sql`
 - `supabase/migrations/0018_fleet_integrity_hardening.sql`
 - `supabase/migrations/0019_fleet_trigger_hardening.sql`
-- `supabase/migrations/0020_factory_visibility_hardening.sql`
 
 Operational tables:
 
@@ -44,7 +43,7 @@ Each vehicle owns an Inventory `stock_locations` record with `location_type='veh
 - Fuel history and odometer history are audit-oriented operational records.
 - Organization-wide management reports remain restricted to authorized admin roles.
 - Fleet organization/factory scope, vehicle Inventory-location links and driver employee links are immutable through the hardened shared trigger.
-- Factory-scoped roles can read only factories assigned through `factory_members`; organization admins retain organization-wide factory visibility. This also keeps Fleet and other factory selectors within the signed-in user's scope.
+- The existing Phase 2 tenant-hardening policy limits factory-scoped roles to assigned factories, which also keeps Fleet factory selection inside the signed-in user's scope.
 
 ## Admin Web
 
@@ -93,13 +92,12 @@ The fictional Aarohan demo includes vehicle locations, truck/tanker examples, fi
 Database schema/integrity smoke coverage:
 
 - `supabase/tests/0016_fleet_smoke.sql`
-- `supabase/tests/0017_factory_visibility_smoke.sql`
 
 Authenticated Fleet E2E:
 
 - `supabase/tests/fleet_auth_e2e.sh`
 
-Coverage includes manager planning permissions, Driver-role execution, factory isolation, odometer/fuel controls, service reminder lifecycle, cross-factory denial, report authorization, Fleet integrity hardening and assigned-factory visibility policy validation.
+Coverage includes manager planning permissions, Driver-role execution, factory isolation, odometer/fuel controls, service reminder lifecycle, cross-factory denial, report authorization and Fleet integrity hardening. Existing authentication E2E coverage also validates assigned-factory metadata visibility.
 
 Flutter CI analyzes the shared core, Admin web including Fleet and Driver mobile including Fleet, and builds the Admin release web target.
 
