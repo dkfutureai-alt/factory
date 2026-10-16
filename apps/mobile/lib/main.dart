@@ -2,11 +2,12 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'commercial_operations.dart';
+import 'fleet_driver.dart';
 import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
 import 'production_execution.dart';
 import 'quality_execution.dart';
-import 'commercial_operations.dart';
 import 'warehouse_operations.dart';
 
 Future<void> main() async {
@@ -397,6 +398,14 @@ class HomeTab extends StatelessWidget {
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const WarehouseOperationsPage()));
       return;
     }
+    if (module.key == 'vehicles') {
+      if (data.role == AppRole.driver) {
+        Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const FleetDriverPage()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Driver Fleet operations are available to the Driver role. Fleet planning is available in FactoryOS Admin.')));
+      }
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${module.name} activates in its module phase.')));
   }
 
@@ -426,6 +435,7 @@ class HomeTab extends StatelessWidget {
                 'production' => Icons.precision_manufacturing_outlined,
                 'quality' => Icons.verified_user_outlined,
                 'warehouse' => Icons.warehouse_outlined,
+                'vehicles' => Icons.local_shipping_outlined,
                 _ => Icons.widgets_outlined,
               };
               return Card(
