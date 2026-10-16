@@ -15,21 +15,24 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Harden Phase 7 admin code
+      - name: Fix Phase 7 admin analyzer issues
         run: |
           python3 - <<'PY'
           from pathlib import Path
           path = Path('apps/admin_web/lib/purchase_sales_management.dart')
           text = path.read_text()
-          old = "locationId=(preferred.isNotEmpty?preferred.first:widget.locations.firstOrNull)?['id'] as String?;"
-          new = "if(preferred.isNotEmpty){locationId=preferred.first['id'] as String;}else if(widget.locations.isNotEmpty){locationId=widget.locations.first['id'] as String;}"
+          old = 'Wrap(mainAxisSize: MainAxisSize.min, children:'
+          assert text.count(old) == 3, text.count(old)
+          text = text.replace(old, 'Row(mainAxisSize: MainAxisSize.min, children:')
+          old = 'separatorBuilder: (_, __) =>'
           assert old in text
-          path.write_text(text.replace(old, new, 1))
+          text = text.replace(old, 'separatorBuilder: (_, _) =>', 1)
+          path.write_text(text)
           PY
-      - name: Commit hardening fix
+      - name: Commit analyzer fixes
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add apps/admin_web/lib/purchase_sales_management.dart
-          git commit -m 'fix: harden Phase 7 receipt location selection'
+          git commit -m 'fix: clean Phase 7 admin analysis'
           git push origin HEAD:main
