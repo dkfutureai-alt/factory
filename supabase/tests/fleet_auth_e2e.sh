@@ -28,6 +28,19 @@ login() {
 rpc() {
   curl -fsS -X POST "$API_URL/rest/v1/rpc/$2" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $1" -H 'Content-Type: application/json' -d "$3"
 }
+rpc_checked() {
+  local token="$1" name="$2" payload="$3" file status
+  file="$(mktemp)"
+  status="$(curl -sS -o "$file" -w '%{http_code}' -X POST "$API_URL/rest/v1/rpc/$name" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $token" -H 'Content-Type: application/json' -d "$payload")"
+  if [[ "$status" != 2* ]]; then
+    echo "$name failed with HTTP $status" >&2
+    cat "$file" >&2
+    rm -f "$file"
+    return 1
+  fi
+  cat "$file"
+  rm -f "$file"
+}
 expect_denied() {
   local token="$1" name="$2" payload="$3" label="$4" file status
   file="$(mktemp)"
@@ -75,14 +88,15 @@ OTHER_VEHICLE_ID="$(rpc "$MANAGER_TOKEN" fleet_create_vehicle "{\"p_factory_id\"
 [[ -n "$OTHER_VEHICLE_ID" ]]
 DRIVER_ID="$(rpc "$MANAGER_TOKEN" fleet_create_driver "{\"p_factory_id\":\"$FACTORY_ID\",\"p_employee_id\":\"$DRIVER_EMPLOYEE_ID\",\"p_license_no\":\"E2E-LIC-HMV-01\",\"p_license_type\":\"HMV\",\"p_license_expiry\":\"2099-12-31\"}" | python3 -c 'import json,sys; print(json.load(sys.stdin))')"
 [[ -n "$DRIVER_ID" ]]
-ASSIGNMENT_ID="$(rpc "$MANAGER_TOKEN" fleet_assign_driver "{\"p_vehicle_id\":\"$VEHICLE_ID\",\"p_driver_id\":\"$DRIVER_ID\",\"p_notes\":\"E2E active assignment\"}" | python3 -c 'import json,sys; print(json.load(sys.stdin))')"
+ASSIGNMENT_ID="$(rpc "$MANAGER_TOKEN" fleet_assign_driver "{\"p_vehicle_id\":\"$VEHICLE_ID\",\"p_driver_id\":\"$DRIVER_ID\",\"p_effective_from\":\"2026-01-01T00:00:00Z\",\"p_notes\":\"E2E active assignment\"}" | python3 -c 'import json,sys; print(json.load(sys.stdin))')"
 [[ -n "$ASSIGNMENT_ID" ]]
 echo 'manager vehicle + driver + active assignment passed'
 
 expect_denied "$DRIVER_TOKEN" fleet_record_fuel "{\"p_vehicle_id\":\"$OTHER_VEHICLE_ID\",\"p_driver_id\":\"$DRIVER_ID\",\"p_trip_id\":null,\"p_quantity_liters\":5,\"p_price_per_liter\":95,\"p_odometer_km\":510}" 'driver fuel entry for unassigned vehicle'
 expect_denied "$DRIVER_TOKEN" fleet_create_trip "{\"p_factory_id\":\"$FACTORY_ID\",\"p_vehicle_id\":\"$VEHICLE_ID\",\"p_driver_id\":\"$DRIVER_ID\",\"p_origin\":\"Allowed Plant\",\"p_destination\":\"E2E Customer\",\"p_planned_start_at\":\"2099-01-01T08:00:00Z\"}" 'driver trip planning'
 
-TRIP_ID="$(rpc "$MANAGER_TOKEN" fleet_create_trip "{\"p_factory_id\":\"$FACTORY_ID\",\"p_vehicle_id\":\"$VEHICLE_ID\",\"p_driver_id\":\"$DRIVER_ID\",\"p_origin\":\"Allowed Plant\",\"p_destination\":\"E2E Customer\",\"p_planned_start_at\":\"2099-01-01T08:00:00Z\",\"p_planned_end_at\":\"2099-01-01T12:00:00Z\",\"p_notes\":\"Fleet E2E trip\"}" | python3 -c 'import json,sys; print(json.load(sys.stdin))')"
+TRIP_RESPONSE="$(rpc_checked "$MANAGER_TOKEN" fleet_create_trip "{\"p_factory_id\":\"$FACTORY_ID\",\"p_vehicle_id\":\"$VEHICLE_ID\",\"p_driver_id\":\"$DRIVER_ID\",\"p_origin\":\"Allowed Plant\",\"p_destination\":\"E2E Customer\",\"p_planned_start_at\":\"2099-01-01T08:00:00Z\",\"p_planned_end_at\":\"2099-01-01T12:00:00Z\",\"p_sales_order_id\":null,\"p_warehouse_handoff_id\":null,\"p_notes\":\"Fleet E2E trip\"}")"
+TRIP_ID="$(python3 -c 'import json,sys; print(json.load(sys.stdin))' <<<"$TRIP_RESPONSE")"
 [[ -n "$TRIP_ID" ]]
 
 rpc "$DRIVER_TOKEN" fleet_start_trip "{\"p_trip_id\":\"$TRIP_ID\",\"p_odometer_km\":1010,\"p_notes\":\"Driver started\"}" >/dev/null
