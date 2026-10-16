@@ -1,0 +1,57 @@
+name: Phase 7 Navigation Connect
+
+on:
+  push:
+    paths:
+      - '.github/workflows/phase7-navigation-connect.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  connect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Connect admin and mobile navigation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          admin = Path('apps/admin_web/lib/main.dart')
+          text = admin.read_text()
+          old = "import 'quality_management.dart';\n"
+          new = "import 'quality_management.dart';\nimport 'purchase_sales_management.dart';\n"
+          assert old in text
+          text = text.replace(old, new, 1)
+          old = "    final qualityEnabled = w.modules.any((module) => module.key == 'quality');\n    final tabs = <_Tab>["
+          new = "    final qualityEnabled = w.modules.any((module) => module.key == 'quality');\n    final purchaseEnabled = w.modules.any((module) => module.key == 'purchase');\n    final salesEnabled = w.modules.any((module) => module.key == 'sales');\n    final commercialEnabled = purchaseEnabled || salesEnabled;\n    final tabs = <_Tab>["
+          assert old in text
+          text = text.replace(old, new, 1)
+          old = "      if (qualityEnabled) _Tab('Quality', Icons.verified_user_outlined, QualityManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),\n"
+          new = old + "      if (commercialEnabled) _Tab('Purchase & Sales', Icons.sync_alt, PurchaseSalesManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),\n"
+          assert old in text
+          text = text.replace(old, new, 1)
+          admin.write_text(text)
+
+          mobile = Path('apps/mobile/lib/main.dart')
+          text = mobile.read_text()
+          old = "import 'quality_execution.dart';\n"
+          new = "import 'quality_execution.dart';\nimport 'commercial_operations.dart';\n"
+          assert old in text
+          text = text.replace(old, new, 1)
+          old = "    if (module.key == 'quality') {\n      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const QualityExecutionPage()));\n      return;\n    }\n"
+          new = old + "    if (module.key == 'purchase' || module.key == 'sales') {\n      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CommercialOperationsPage()));\n      return;\n    }\n"
+          assert old in text
+          text = text.replace(old, new, 1)
+          mobile.write_text(text)
+          PY
+      - name: Commit connected navigation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/admin_web/lib/main.dart apps/mobile/lib/main.dart
+          git commit -m 'feat: connect Phase 7 purchase sales navigation'
+          git push origin HEAD:main
