@@ -29,7 +29,8 @@ class _AccessManagementPageState extends State<AccessManagementPage> {
     future = repository.load(widget.organizationId);
   }
 
-  void reload() => setState(() => future = repository.load(widget.organizationId));
+  void reload() =>
+      setState(() => future = repository.load(widget.organizationId));
 
   Future<void> inviteUser() async {
     final draft = await showDialog<InviteDraft>(
@@ -61,7 +62,11 @@ class _AccessManagementPageState extends State<AccessManagementPage> {
     if (draft == null || !mounted) return;
 
     try {
-      await repository.updateMember(widget.organizationId, member.userId, draft);
+      await repository.updateMember(
+        widget.organizationId,
+        member.userId,
+        draft,
+      );
       if (!mounted) return;
       _message('Access updated.');
       reload();
@@ -76,10 +81,18 @@ class _AccessManagementPageState extends State<AccessManagementPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Deactivate user access?'),
-        content: Text('${member.displayName} will lose organization and factory access.'),
+        content: Text(
+          '${member.displayName} will lose organization and factory access.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Deactivate')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Deactivate'),
+          ),
         ],
       ),
     );
@@ -110,7 +123,10 @@ class _AccessManagementPageState extends State<AccessManagementPage> {
 
   void _message(String text, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text), backgroundColor: isError ? Theme.of(context).colorScheme.error : null),
+      SnackBar(
+        content: Text(text),
+        backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
+      ),
     );
   }
 
@@ -135,38 +151,68 @@ class _AccessManagementPageState extends State<AccessManagementPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Users & Access', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
+                      Text(
+                        'Users & Access',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
                       const SizedBox(height: FactorySpacing.xs),
-                      const Text('Invite users, assign roles and control factory access.'),
+                      const Text(
+                        'Invite users, assign roles and control factory access.',
+                      ),
                     ],
                   ),
                 ),
-                FilledButton.icon(onPressed: inviteUser, icon: const Icon(Icons.person_add_alt_1), label: const Text('Invite user')),
+                FilledButton.icon(
+                  onPressed: inviteUser,
+                  icon: const Icon(Icons.person_add_alt_1),
+                  label: const Text('Invite user'),
+                ),
               ],
             ),
             const SizedBox(height: FactorySpacing.lg),
             _Section(
               title: 'Active users',
               child: data.members.isEmpty
-                  ? const Padding(padding: EdgeInsets.all(FactorySpacing.md), child: Text('No users found.'))
+                  ? const Padding(
+                      padding: EdgeInsets.all(FactorySpacing.md),
+                      child: Text('No users found.'),
+                    )
                   : Column(
                       children: data.members.map((member) {
-                        final names = _factoryNames(member.factoryIds, widget.factories);
+                        final names = _factoryNames(
+                          member.factoryIds,
+                          widget.factories,
+                        );
                         return ListTile(
-                          leading: CircleAvatar(child: Text(_initials(member.displayName))),
+                          leading: CircleAvatar(
+                            child: Text(_initials(member.displayName)),
+                          ),
                           title: Text(member.displayName),
-                          subtitle: Text([
-                            member.email,
-                            member.role.label,
-                            if (names.isNotEmpty) names.join(', '),
-                            if (!member.isActive) 'Inactive',
-                          ].join(' · ')),
+                          subtitle: Text(
+                            [
+                              member.email,
+                              member.role.label,
+                              if (names.isNotEmpty) names.join(', '),
+                              if (!member.isActive) 'Inactive',
+                            ].join(' · '),
+                          ),
                           trailing: Wrap(
                             spacing: FactorySpacing.xs,
                             children: [
-                              IconButton(tooltip: 'Edit access', onPressed: () => editMember(member), icon: const Icon(Icons.manage_accounts_outlined)),
+                              IconButton(
+                                tooltip: 'Edit access',
+                                onPressed: () => editMember(member),
+                                icon: const Icon(
+                                  Icons.manage_accounts_outlined,
+                                ),
+                              ),
                               if (member.isActive)
-                                IconButton(tooltip: 'Deactivate', onPressed: () => deactivateMember(member), icon: const Icon(Icons.person_off_outlined)),
+                                IconButton(
+                                  tooltip: 'Deactivate',
+                                  onPressed: () => deactivateMember(member),
+                                  icon: const Icon(Icons.person_off_outlined),
+                                ),
                             ],
                           ),
                         );
@@ -177,16 +223,32 @@ class _AccessManagementPageState extends State<AccessManagementPage> {
             _Section(
               title: 'Invitations',
               child: data.invitations.isEmpty
-                  ? const Padding(padding: EdgeInsets.all(FactorySpacing.md), child: Text('No invitations yet.'))
+                  ? const Padding(
+                      padding: EdgeInsets.all(FactorySpacing.md),
+                      child: Text('No invitations yet.'),
+                    )
                   : Column(
                       children: data.invitations.map((invitation) {
-                        final active = invitation.status == 'pending' || invitation.status == 'sent';
+                        final active =
+                            invitation.status == 'pending' ||
+                            invitation.status == 'sent';
                         return ListTile(
-                          leading: const CircleAvatar(child: Icon(Icons.mail_outline)),
-                          title: Text(invitation.fullName.isEmpty ? invitation.email : invitation.fullName),
-                          subtitle: Text('${invitation.email} · ${invitation.role.label} · ${invitation.status} · expires ${_shortDate(invitation.expiresAt)}'),
+                          leading: const CircleAvatar(
+                            child: Icon(Icons.mail_outline),
+                          ),
+                          title: Text(
+                            invitation.fullName.isEmpty
+                                ? invitation.email
+                                : invitation.fullName,
+                          ),
+                          subtitle: Text(
+                            '${invitation.email} · ${invitation.role.label} · ${invitation.status} · expires ${_shortDate(invitation.expiresAt)}',
+                          ),
                           trailing: active
-                              ? TextButton(onPressed: () => revokeInvitation(invitation), child: const Text('Revoke'))
+                              ? TextButton(
+                                  onPressed: () => revokeInvitation(invitation),
+                                  child: const Text('Revoke'),
+                                )
                               : null,
                         );
                       }).toList(),
@@ -204,7 +266,10 @@ class AccessRepository {
   final SupabaseClient client;
 
   Future<AccessSnapshot> load(String organizationId) async {
-    final memberData = await client.rpc('list_organization_members', params: {'p_organization_id': organizationId});
+    final memberData = await client.rpc(
+      'list_organization_members',
+      params: {'p_organization_id': organizationId},
+    );
     final invitationData = await client
         .from('user_invitations')
         .select('id,email,full_name,role,status,expires_at,created_at')
@@ -213,7 +278,9 @@ class AccessRepository {
         .limit(30);
 
     final members = (memberData as List<dynamic>)
-        .map((row) => AccessMember.fromMap(Map<String, dynamic>.from(row as Map)))
+        .map(
+          (row) => AccessMember.fromMap(Map<String, dynamic>.from(row as Map)),
+        )
         .toList();
     final invitations = invitationData
         .map((row) => InvitationRow.fromMap(Map<String, dynamic>.from(row)))
@@ -235,29 +302,41 @@ class AccessRepository {
     );
     if (response.status < 200 || response.status >= 300) {
       final data = response.data;
-      if (data is Map && data['error'] != null) throw StateError('${data['error']}');
+      if (data is Map && data['error'] != null) {
+        throw StateError('${data['error']}');
+      }
       throw StateError('Invitation failed with status ${response.status}.');
     }
   }
 
-  Future<void> updateMember(String organizationId, String userId, MemberAccessDraft draft) async {
-    await client.rpc('update_member_access', params: {
-      'p_organization_id': organizationId,
-      'p_user_id': userId,
-      'p_role': draft.role.wireName,
-      'p_factory_ids': draft.factoryIds,
-    });
+  Future<void> updateMember(
+    String organizationId,
+    String userId,
+    MemberAccessDraft draft,
+  ) async {
+    await client.rpc(
+      'update_member_access',
+      params: {
+        'p_organization_id': organizationId,
+        'p_user_id': userId,
+        'p_role': draft.role.wireName,
+        'p_factory_ids': draft.factoryIds,
+      },
+    );
   }
 
   Future<void> deactivateMember(String organizationId, String userId) async {
-    await client.rpc('deactivate_organization_member', params: {
-      'p_organization_id': organizationId,
-      'p_user_id': userId,
-    });
+    await client.rpc(
+      'deactivate_organization_member',
+      params: {'p_organization_id': organizationId, 'p_user_id': userId},
+    );
   }
 
   Future<void> revokeInvitation(String invitationId) async {
-    await client.from('user_invitations').update({'status': 'revoked'}).eq('id', invitationId);
+    await client
+        .from('user_invitations')
+        .update({'status': 'revoked'})
+        .eq('id', invitationId);
   }
 }
 
@@ -286,7 +365,9 @@ class AccessMember {
       phone: map['phone'] as String? ?? '',
       role: AppRole.fromWireName(map['role'] as String? ?? 'viewer'),
       isActive: map['is_active'] as bool? ?? false,
-      factoryIds: (map['factory_ids'] as List<dynamic>? ?? const []).map((value) => '$value').toList(),
+      factoryIds: (map['factory_ids'] as List<dynamic>? ?? const [])
+          .map((value) => '$value')
+          .toList(),
     );
   }
 
@@ -302,16 +383,23 @@ class AccessMember {
 }
 
 class InvitationRow {
-  const InvitationRow({required this.id, required this.email, required this.fullName, required this.role, required this.status, required this.expiresAt});
+  const InvitationRow({
+    required this.id,
+    required this.email,
+    required this.fullName,
+    required this.role,
+    required this.status,
+    required this.expiresAt,
+  });
 
   factory InvitationRow.fromMap(Map<String, dynamic> map) => InvitationRow(
-        id: map['id'] as String,
-        email: map['email'] as String,
-        fullName: map['full_name'] as String? ?? '',
-        role: AppRole.fromWireName(map['role'] as String? ?? 'viewer'),
-        status: map['status'] as String? ?? 'pending',
-        expiresAt: DateTime.parse(map['expires_at'] as String),
-      );
+    id: map['id'] as String,
+    email: map['email'] as String,
+    fullName: map['full_name'] as String? ?? '',
+    role: AppRole.fromWireName(map['role'] as String? ?? 'viewer'),
+    status: map['status'] as String? ?? 'pending',
+    expiresAt: DateTime.parse(map['expires_at'] as String),
+  );
 
   final String id;
   final String email;
@@ -322,7 +410,13 @@ class InvitationRow {
 }
 
 class InviteDraft {
-  const InviteDraft({required this.fullName, required this.email, required this.phone, required this.role, required this.factoryIds});
+  const InviteDraft({
+    required this.fullName,
+    required this.email,
+    required this.phone,
+    required this.role,
+    required this.factoryIds,
+  });
   final String fullName;
   final String email;
   final String phone;
@@ -362,7 +456,9 @@ class _InviteUserDialogState extends State<InviteUserDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final roles = AppRole.values.where((item) => item != AppRole.platformOwner).toList();
+    final roles = AppRole.values
+        .where((item) => item != AppRole.platformOwner)
+        .toList();
     return AlertDialog(
       title: const Text('Invite new user'),
       content: SizedBox(
@@ -373,24 +469,54 @@ class _InviteUserDialogState extends State<InviteUserDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextFormField(controller: fullName, decoration: const InputDecoration(labelText: 'Full name'), validator: _nameValidator),
+                TextFormField(
+                  controller: fullName,
+                  decoration: const InputDecoration(labelText: 'Full name'),
+                  validator: _nameValidator,
+                ),
                 const SizedBox(height: FactorySpacing.sm),
-                TextFormField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email'), validator: _emailValidator),
+                TextFormField(
+                  controller: email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  validator: _emailValidator,
+                ),
                 const SizedBox(height: FactorySpacing.sm),
-                TextFormField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone (optional)')),
+                TextFormField(
+                  controller: phone,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone (optional)',
+                  ),
+                ),
                 const SizedBox(height: FactorySpacing.sm),
                 DropdownButtonFormField<AppRole>(
                   initialValue: role,
                   decoration: const InputDecoration(labelText: 'Role'),
-                  items: roles.map((item) => DropdownMenuItem(value: item, child: Text(item.label))).toList(),
+                  items: roles
+                      .map(
+                        (item) => DropdownMenuItem(
+                          value: item,
+                          child: Text(item.label),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (value) => setState(() {
                     role = value ?? AppRole.employee;
-                    if (!role.requiresFactoryAssignment) selectedFactories.clear();
+                    if (!role.requiresFactoryAssignment) {
+                      selectedFactories.clear();
+                    }
                   }),
                 ),
                 if (role.requiresFactoryAssignment) ...[
                   const SizedBox(height: FactorySpacing.md),
-                  Align(alignment: Alignment.centerLeft, child: Text('Assign factories', style: Theme.of(context).textTheme.titleSmall)),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Assign factories',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
                   for (final factory in widget.factories)
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
@@ -413,17 +539,30 @@ class _InviteUserDialogState extends State<InviteUserDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
         FilledButton(
           onPressed: () {
             if (!(formKey.currentState?.validate() ?? false)) return;
             if (role.requiresFactoryAssignment && selectedFactories.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select at least one factory for this role.')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Select at least one factory for this role.'),
+                ),
+              );
               return;
             }
             Navigator.pop(
               context,
-              InviteDraft(fullName: fullName.text, email: email.text, phone: phone.text, role: role, factoryIds: selectedFactories.toList()),
+              InviteDraft(
+                fullName: fullName.text,
+                email: email.text,
+                phone: phone.text,
+                role: role,
+                factoryIds: selectedFactories.toList(),
+              ),
             );
           },
           child: const Text('Send invitation'),
@@ -434,7 +573,12 @@ class _InviteUserDialogState extends State<InviteUserDialog> {
 }
 
 class MemberAccessDialog extends StatefulWidget {
-  const MemberAccessDialog({required this.member, required this.actorRole, required this.factories, super.key});
+  const MemberAccessDialog({
+    required this.member,
+    required this.actorRole,
+    required this.factories,
+    super.key,
+  });
   final AccessMember member;
   final AppRole actorRole;
   final List<Map<String, dynamic>> factories;
@@ -456,7 +600,13 @@ class _MemberAccessDialogState extends State<MemberAccessDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final roles = AppRole.values.where((item) => item != AppRole.platformOwner || widget.actorRole == AppRole.platformOwner).toList();
+    final roles = AppRole.values
+        .where(
+          (item) =>
+              item != AppRole.platformOwner ||
+              widget.actorRole == AppRole.platformOwner,
+        )
+        .toList();
     return AlertDialog(
       title: Text('Access · ${widget.member.displayName}'),
       content: SizedBox(
@@ -468,10 +618,19 @@ class _MemberAccessDialogState extends State<MemberAccessDialog> {
               DropdownButtonFormField<AppRole>(
                 initialValue: role,
                 decoration: const InputDecoration(labelText: 'Role'),
-                items: roles.map((item) => DropdownMenuItem(value: item, child: Text(item.label))).toList(),
+                items: roles
+                    .map(
+                      (item) => DropdownMenuItem(
+                        value: item,
+                        child: Text(item.label),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (value) => setState(() {
                   role = value ?? role;
-                  if (!role.requiresFactoryAssignment) selectedFactories.clear();
+                  if (!role.requiresFactoryAssignment) {
+                    selectedFactories.clear();
+                  }
                 }),
               ),
               if (role.requiresFactoryAssignment) ...[
@@ -497,14 +656,27 @@ class _MemberAccessDialogState extends State<MemberAccessDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
         FilledButton(
           onPressed: () {
             if (role.requiresFactoryAssignment && selectedFactories.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select at least one factory for this role.')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Select at least one factory for this role.'),
+                ),
+              );
               return;
             }
-            Navigator.pop(context, MemberAccessDraft(role: role, factoryIds: selectedFactories.toList()));
+            Navigator.pop(
+              context,
+              MemberAccessDraft(
+                role: role,
+                factoryIds: selectedFactories.toList(),
+              ),
+            );
           },
           child: const Text('Save access'),
         ),
@@ -520,15 +692,23 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(FactorySpacing.md),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
-            const Divider(),
-            child,
-          ]),
-        ),
-      );
+    child: Padding(
+      padding: const EdgeInsets.all(FactorySpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const Divider(),
+          child,
+        ],
+      ),
+    ),
+  );
 }
 
 class _ErrorState extends StatelessWidget {
@@ -538,28 +718,39 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(FactorySpacing.lg),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: FactorySpacing.md),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: FactorySpacing.md),
-            FilledButton(onPressed: onRetry, child: const Text('Retry')),
-          ]),
-        ),
-      );
+    child: Padding(
+      padding: const EdgeInsets.all(FactorySpacing.lg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, size: 48),
+          const SizedBox(height: FactorySpacing.md),
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: FactorySpacing.md),
+          FilledButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    ),
+  );
 }
 
 String _initials(String value) {
-  final parts = value.trim().split(RegExp(r'\s+')).where((item) => item.isNotEmpty).toList();
+  final parts = value
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((item) => item.isNotEmpty)
+      .toList();
   if (parts.isEmpty) return '?';
   return parts.take(2).map((item) => item[0].toUpperCase()).join();
 }
 
-String _shortDate(DateTime value) => value.toLocal().toString().split('.').first;
+String _shortDate(DateTime value) =>
+    value.toLocal().toString().split('.').first;
 
-List<String> _factoryNames(List<String> ids, List<Map<String, dynamic>> factories) {
+List<String> _factoryNames(
+  List<String> ids,
+  List<Map<String, dynamic>> factories,
+) {
   final names = <String>[];
   for (final id in ids) {
     for (final factory in factories) {
@@ -569,6 +760,9 @@ List<String> _factoryNames(List<String> ids, List<Map<String, dynamic>> factorie
   return names;
 }
 
-String? _nameValidator(String? value) => (value?.trim().length ?? 0) < 2 ? 'Enter a full name.' : null;
-String? _emailValidator(String? value) => !(value?.contains('@') ?? false) ? 'Enter a valid email.' : null;
-String _errorText(Object error) => error is PostgrestException ? error.message : '$error';
+String? _nameValidator(String? value) =>
+    (value?.trim().length ?? 0) < 2 ? 'Enter a full name.' : null;
+String? _emailValidator(String? value) =>
+    !(value?.contains('@') ?? false) ? 'Enter a valid email.' : null;
+String _errorText(Object error) =>
+    error is PostgrestException ? error.message : '$error';
