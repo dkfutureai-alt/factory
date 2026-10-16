@@ -6,6 +6,7 @@ import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
 import 'production_execution.dart';
 import 'quality_execution.dart';
+import 'commercial_operations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -385,6 +386,10 @@ class HomeTab extends StatelessWidget {
     }
     if (module.key == 'quality') {
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const QualityExecutionPage()));
+      return;
+    }
+    if (module.key == 'purchase' || module.key == 'sales') {
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CommercialOperationsPage()));
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${module.name} activates in its module phase.')));
