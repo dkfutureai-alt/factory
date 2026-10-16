@@ -21,7 +21,9 @@ DO $$
 DECLARE
   oxygen_balance numeric;
   cylinder_balance numeric;
-  valve_balance numeric;
+  valve_raw_balance numeric;
+  valve_quarantine_balance numeric;
+  valve_total_balance numeric;
   finished_balance numeric;
 BEGIN
   IF (SELECT count(*) FROM public.production_recipes WHERE organization_id='10000000-0000-4000-8000-000000000001') < 1 THEN
@@ -41,14 +43,20 @@ BEGIN
   WHERE item_id='43000000-0000-4000-8000-000000000001' AND location_id='44000000-0000-4000-8000-000000000001';
   SELECT coalesce(sum(quantity_delta),0) INTO cylinder_balance FROM public.stock_ledger_entries
   WHERE item_id='43000000-0000-4000-8000-000000000003' AND location_id='44000000-0000-4000-8000-000000000003';
-  SELECT coalesce(sum(quantity_delta),0) INTO valve_balance FROM public.stock_ledger_entries
+  SELECT coalesce(sum(quantity_delta),0) INTO valve_raw_balance FROM public.stock_ledger_entries
   WHERE item_id='43000000-0000-4000-8000-000000000004' AND location_id='44000000-0000-4000-8000-000000000001';
+  SELECT coalesce(sum(quantity_delta),0) INTO valve_quarantine_balance FROM public.stock_ledger_entries
+  WHERE item_id='43000000-0000-4000-8000-000000000004' AND location_id='44000000-0000-4000-8000-000000000004';
+  SELECT coalesce(sum(quantity_delta),0) INTO valve_total_balance FROM public.stock_ledger_entries
+  WHERE item_id='43000000-0000-4000-8000-000000000004';
   SELECT coalesce(sum(quantity_delta),0) INTO finished_balance FROM public.stock_ledger_entries
   WHERE item_id='43000000-0000-4000-8000-000000000006' AND location_id='44000000-0000-4000-8000-000000000003';
 
   IF oxygen_balance<>770 THEN RAISE EXCEPTION 'unexpected production-consumed oxygen balance: %',oxygen_balance; END IF;
   IF cylinder_balance<>82 THEN RAISE EXCEPTION 'unexpected cylinder balance: %',cylinder_balance; END IF;
-  IF valve_balance<>8 THEN RAISE EXCEPTION 'unexpected valve balance: %',valve_balance; END IF;
+  IF valve_raw_balance<>6 THEN RAISE EXCEPTION 'unexpected post-quality raw-store valve balance: %',valve_raw_balance; END IF;
+  IF valve_quarantine_balance<>2 THEN RAISE EXCEPTION 'unexpected quality-quarantine valve balance: %',valve_quarantine_balance; END IF;
+  IF valve_total_balance<>8 THEN RAISE EXCEPTION 'unexpected total valve stock after production and quality movement: %',valve_total_balance; END IF;
   IF finished_balance<>8 THEN RAISE EXCEPTION 'unexpected finished-goods balance: %',finished_balance; END IF;
 END $$;
 
