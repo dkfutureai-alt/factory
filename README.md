@@ -27,7 +27,7 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Repository and connected database are the source of truth.
 - No permanent hardcoded dashboard statistics.
 - Inventory changes must be ledger-backed.
-- Production material consumption and finished-goods receipt must use that same Inventory ledger.
+- Production material consumption, finished-goods receipt, Quality quarantine and Quality release must use that same Inventory ledger.
 - Critical multi-step business operations must be atomic.
 - Every client organization is isolated using organization context plus RLS.
 - Major UI screens are designed before implementation and compared with the approved visual specification.
@@ -41,27 +41,33 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 3: HR, employees, departments/designations, shifts, attendance, leave, holidays and HR reporting — complete at the core application/database level and CI validated.
 - Phase 4: Inventory, item/category/unit masters, locations, ledger movements, scanning, reorder and reports — complete at the core application/database level and CI validated.
 - Phase 5: Production, BOM/recipes, work centers, orders, batch/shift execution, material consumption, WIP, output, scrap/downtime, finished-goods receipt and reports — complete at the core application/database level and CI validated.
-- Phase 6: Quality — next.
+- Phase 6: Quality, plans/checklists, incoming/in-process/final inspection, results, NCR, quarantine/release, certificates and reports — complete at the core application/database level and CI validated.
+- Phase 7: Purchase & Sales — next.
 
 Latest validated checks:
 
 - invitation Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations `0001`–`0012`, base seed and Phase 5 seed — pass;
-- foundation, access, HR, inventory and production SQL smoke/integrity tests — pass;
+- clean local Supabase start/reset, migrations `0001`–`0013`, base seed + Phase 5 seed + Phase 6 seed — pass;
+- Foundation, Access, HR, Inventory, Production and Quality SQL smoke/integrity tests — pass;
 - real signup -> password login -> JWT -> PostgREST factory/HR RLS — pass;
 - employee self-profile, check-in and leave-request flows — pass;
 - Inventory scan, receive/transfer/issue, negative-stock denial, cross-factory denial and employee-write denial — pass;
 - Production manager order creation and employee order-creation denial — pass;
 - Production employee batch start, BOM consumption, finished-goods receipt and completion — pass;
 - Production negative-stock, output-over-plan and cross-factory denial — pass;
-- production/inventory ledger balance verification — pass;
+- Quality inspection start, checklist capture, pass/fail/hold completion and numeric tolerance auto-fail — pass;
+- employee Quality certificate issue denial and manager certificate issue — pass;
+- employee NCR creation and Quality quarantine ledger transfer — pass;
+- employee quarantine-release denial and manager NCR closure/release — pass;
+- Quality quarantine/release Inventory balance verification — pass;
+- Factory Manager cross-factory Quality denial — pass;
 - shared Flutter core analysis and permission tests — pass;
-- admin web analysis and release web build including Inventory + Production — pass;
-- mobile Flutter analysis including HR, Inventory scan and Production execution — pass.
+- admin web analysis and release web build including Inventory + Production + Quality — pass;
+- mobile Flutter analysis including HR, Inventory scan, Production and Quality execution — pass.
 
-Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–5 business logic.
+Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–6 business logic.
 
-See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md` and `docs/PHASE_5_PRODUCTION.md`.
+See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md` and `docs/PHASE_6_QUALITY.md`.
 
 ## Local Supabase
 
@@ -73,8 +79,10 @@ for test_file in supabase/tests/*.sql; do
     -v ON_ERROR_STOP=1 \
     -f "$test_file"
 done
-bash -c 'source supabase/tests/auth_login_e2e.sh && source supabase/tests/inventory_auth_e2e.sh'
+source supabase/tests/auth_login_e2e.sh
+source supabase/tests/inventory_auth_e2e.sh
 bash supabase/tests/production_auth_e2e.sh
+bash supabase/tests/quality_auth_e2e.sh
 ```
 
 ## Development Sequence
@@ -86,7 +94,7 @@ bash supabase/tests/production_auth_e2e.sh
 5. Inventory
 6. Production
 7. Quality
-8. Purchase and sales
+8. Purchase and Sales
 9. Warehouse
 10. Vehicles, drivers, trips and fuel
 11. Dispatch, delivery and returnables
