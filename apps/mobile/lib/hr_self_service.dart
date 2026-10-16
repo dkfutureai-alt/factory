@@ -102,10 +102,12 @@ class _HrSelfServicePageState extends State<HrSelfServicePage> {
     body: FutureBuilder<SelfHrSnapshot>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return _ErrorState(message: '${snapshot.error}', onRetry: reload);
+        }
         final data = snapshot.requireData;
         if (data.employee == null) {
           return _NoEmployee(onRetry: reload);

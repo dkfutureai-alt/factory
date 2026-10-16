@@ -65,8 +65,9 @@ class _FleetDriverPageState extends State<FleetDriverPage> {
           FilledButton(
             onPressed: () {
               final value = double.tryParse(controller.text.trim());
-              if (value != null && value >= minimum)
+              if (value != null && value >= minimum) {
                 Navigator.pop(context, value);
+              }
             },
             child: const Text('Continue'),
           ),
@@ -125,13 +126,15 @@ class _FleetDriverPageState extends State<FleetDriverPage> {
   Future<void> addFuel(DriverFleetSnapshot data) async {
     final vehicle = data.vehicle;
     final driver = data.driver;
-    if (vehicle == null || driver == null)
+    if (vehicle == null || driver == null) {
       return message('No active vehicle assignment found.', error: true);
-    if (vehicle['fuel_type'] == 'electric')
+    }
+    if (vehicle['fuel_type'] == 'electric') {
       return message(
         'This vehicle does not accept liquid fuel entries.',
         error: true,
       );
+    }
     final activeTrip = data.trips
         .where(
           (row) =>
@@ -164,16 +167,19 @@ class _FleetDriverPageState extends State<FleetDriverPage> {
     body: FutureBuilder<DriverFleetSnapshot>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return _DriverError(message: '${snapshot.error}', onRetry: reload);
+        }
         final data = snapshot.requireData;
-        if (data.driver == null)
+        if (data.driver == null) {
           return const _DriverEmpty(
             message:
                 'Your account is not linked to an active fleet driver record.',
           );
+        }
         return RefreshIndicator(
           onRefresh: () async => reload(),
           child: ListView(
@@ -308,7 +314,7 @@ class DriverFleetRepository {
 
   Future<DriverFleetSnapshot> load() async {
     final mine = await client.rpc('my_employee_record') as List<dynamic>;
-    if (mine.isEmpty)
+    if (mine.isEmpty) {
       return const DriverFleetSnapshot(
         employee: null,
         driver: null,
@@ -317,6 +323,7 @@ class DriverFleetRepository {
         trips: [],
         fuel: [],
       );
+    }
     final employee = Map<String, dynamic>.from(mine.first as Map);
     final employeeId = employee['employee_id'] as String;
     final drivers = await client
@@ -327,7 +334,7 @@ class DriverFleetRepository {
         .eq('employee_id', employeeId)
         .eq('status', 'active')
         .limit(1);
-    if (drivers.isEmpty)
+    if (drivers.isEmpty) {
       return DriverFleetSnapshot(
         employee: employee,
         driver: null,
@@ -336,6 +343,7 @@ class DriverFleetRepository {
         trips: const [],
         fuel: const [],
       );
+    }
     final driver = Map<String, dynamic>.from(drivers.first);
     final driverId = driver['id'] as String;
     final assignments = await client
@@ -355,8 +363,9 @@ class DriverFleetRepository {
           )
           .eq('id', assignment['vehicle_id'])
           .limit(1);
-      if (vehicles.isNotEmpty)
+      if (vehicles.isNotEmpty) {
         vehicle = Map<String, dynamic>.from(vehicles.first);
+      }
     }
     final trips = await client
         .from('fleet_trips')
@@ -741,8 +750,9 @@ class _DriverFuelEditorState extends State<DriverFuelEditor> {
                 quantityValue == null ||
                 quantityValue <= 0 ||
                 rateValue == null ||
-                rateValue < 0)
+                rateValue < 0) {
               return;
+            }
             Navigator.pop(context, {
               'odometer_km': odo,
               'quantity_liters': quantityValue,
@@ -765,8 +775,9 @@ class _VehicleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vehicle = data.vehicle;
-    if (vehicle == null)
+    if (vehicle == null) {
       return const _DriverEmpty(message: 'No active vehicle assignment.');
+    }
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(FactorySpacing.md),

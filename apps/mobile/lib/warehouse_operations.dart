@@ -29,8 +29,9 @@ class _WarehouseOperationsPageState extends State<WarehouseOperationsPage> {
         .eq('is_active', true)
         .limit(1)
         .maybeSingle();
-    if (membership == null)
+    if (membership == null) {
       throw Exception('No active organization membership.');
+    }
     final orgId = membership['organization_id'] as String;
     final role = AppRole.fromWireName(membership['role'] as String);
     final factories = _rows(
@@ -43,8 +44,9 @@ class _WarehouseOperationsPageState extends State<WarehouseOperationsPage> {
     final factoryIds = factories.map((e) => e['factory_id'] as String).toList();
     if (factoryIds.isEmpty &&
         role != AppRole.orgAdmin &&
-        role != AppRole.platformOwner)
+        role != AppRole.platformOwner) {
       throw Exception('No factory assigned.');
+    }
     final putaway = _rows(
       await client
           .from('warehouse_putaway_tasks')
@@ -107,13 +109,14 @@ class _WarehouseOperationsPageState extends State<WarehouseOperationsPage> {
       ).showSnackBar(SnackBar(content: Text(success)));
       reload();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$e'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
+      }
     }
   }
 
@@ -168,15 +171,17 @@ class _WarehouseOperationsPageState extends State<WarehouseOperationsPage> {
     body: FutureBuilder<_WarehouseMobileData>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(FactorySpacing.lg),
               child: Text('${snapshot.error}', textAlign: TextAlign.center),
             ),
           );
+        }
         final data = snapshot.requireData;
         return DefaultTabController(
           length: 3,

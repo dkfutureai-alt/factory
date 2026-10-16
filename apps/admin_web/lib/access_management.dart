@@ -302,8 +302,9 @@ class AccessRepository {
     );
     if (response.status < 200 || response.status >= 300) {
       final data = response.data;
-      if (data is Map && data['error'] != null)
+      if (data is Map && data['error'] != null) {
         throw StateError('${data['error']}');
+      }
       throw StateError('Invitation failed with status ${response.status}.');
     }
   }
@@ -502,8 +503,9 @@ class _InviteUserDialogState extends State<InviteUserDialog> {
                       .toList(),
                   onChanged: (value) => setState(() {
                     role = value ?? AppRole.employee;
-                    if (!role.requiresFactoryAssignment)
+                    if (!role.requiresFactoryAssignment) {
                       selectedFactories.clear();
+                    }
                   }),
                 ),
                 if (role.requiresFactoryAssignment) ...[
@@ -626,8 +628,9 @@ class _MemberAccessDialogState extends State<MemberAccessDialog> {
                     .toList(),
                 onChanged: (value) => setState(() {
                   role = value ?? role;
-                  if (!role.requiresFactoryAssignment)
+                  if (!role.requiresFactoryAssignment) {
                     selectedFactories.clear();
+                  }
                 }),
               ),
               if (role.requiresFactoryAssignment) ...[

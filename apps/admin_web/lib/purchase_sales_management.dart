@@ -103,8 +103,9 @@ class _PurchaseSalesManagementPageState
               const {'supplier', 'both'}.contains(p['partner_type']),
         )
         .toList();
-    if (suppliers.isEmpty)
+    if (suppliers.isEmpty) {
       return message('Create an active supplier first.', error: true);
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => PurchaseOrderEditor(
@@ -132,11 +133,12 @@ class _PurchaseSalesManagementPageState
               (l['received_quantity'] as num) < (l['ordered_quantity'] as num),
         )
         .toList();
-    if (lines.isEmpty)
+    if (lines.isEmpty) {
       return message(
         'This purchase order has no quantity left to receive.',
         error: true,
       );
+    }
     final locations = data.locations
         .where((l) => l['factory_id'] == po['factory_id'])
         .toList();
@@ -210,8 +212,9 @@ class _PurchaseSalesManagementPageState
               const {'customer', 'both'}.contains(p['partner_type']),
         )
         .toList();
-    if (customers.isEmpty)
+    if (customers.isEmpty) {
       return message('Create an active customer first.', error: true);
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => QuotationEditor(
@@ -310,10 +313,12 @@ class _PurchaseSalesManagementPageState
   Widget build(BuildContext context) => FutureBuilder<CommercialSnapshot>(
     future: future,
     builder: (context, snapshot) {
-      if (snapshot.connectionState != ConnectionState.done)
+      if (snapshot.connectionState != ConnectionState.done) {
         return const Center(child: CircularProgressIndicator());
-      if (snapshot.hasError)
+      }
+      if (snapshot.hasError) {
         return _ErrorPanel(message: '${snapshot.error}', onRetry: reload);
+      }
       final data = snapshot.requireData;
       final canManage = const {
         AppRole.platformOwner,
@@ -1613,8 +1618,9 @@ class _PartnerEditorState extends State<PartnerEditor> {
           final days = int.tryParse(credit.text.trim());
           if (code.text.trim().length < 2 ||
               name.text.trim().length < 2 ||
-              days == null)
+              days == null) {
             return;
+          }
           Navigator.pop(context, {
             'partner_code': code.text.trim().toUpperCase(),
             'name': name.text.trim(),
@@ -2316,8 +2322,9 @@ class _CommercialLineEditorState extends State<CommercialLineEditor> {
                       p == null ||
                       p < 0 ||
                       t < 0 ||
-                      t > 100)
+                      t > 100) {
                     return;
+                  }
                   Navigator.pop(
                     context,
                     requisition

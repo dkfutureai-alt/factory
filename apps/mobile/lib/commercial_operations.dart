@@ -35,8 +35,9 @@ class _CommercialOperationsPageState extends State<CommercialOperationsPage> {
         .eq('user_id', client.auth.currentUser!.id)
         .eq('is_active', true)
         .limit(1);
-    if (membershipRows.isEmpty)
+    if (membershipRows.isEmpty) {
       throw StateError('No active organization membership.');
+    }
     final orgId = membershipRows.first['organization_id'] as String;
     final values = await Future.wait<dynamic>([
       client
@@ -99,11 +100,12 @@ class _CommercialOperationsPageState extends State<CommercialOperationsPage> {
     final locations = data.locations
         .where((l) => l['factory_id'] == po['factory_id'])
         .toList();
-    if (lines.isEmpty || locations.isEmpty)
+    if (lines.isEmpty || locations.isEmpty) {
       return message(
         'No receivable line or location is available.',
         error: true,
       );
+    }
     final draft = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -214,9 +216,10 @@ class _CommercialOperationsPageState extends State<CommercialOperationsPage> {
     body: FutureBuilder<_CommercialMobileData>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(FactorySpacing.lg),
@@ -230,6 +233,7 @@ class _CommercialOperationsPageState extends State<CommercialOperationsPage> {
               ),
             ),
           );
+        }
         final data = snapshot.requireData;
         return RefreshIndicator(
           onRefresh: () async => reload(),
@@ -493,8 +497,9 @@ class _ReceiveSheetState extends State<_ReceiveSheet> {
                     if (q == null ||
                         q <= 0 ||
                         q > remaining ||
-                        locationId == null)
+                        locationId == null) {
                       return;
+                    }
                     Navigator.pop(context, {
                       'location_id': locationId,
                       'notes': notes.text.trim(),

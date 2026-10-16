@@ -112,11 +112,12 @@ class _FleetManagementPageState extends State<FleetManagementPage> {
     final employees = data.employees
         .where((row) => !existing.contains(row['id']))
         .toList();
-    if (employees.isEmpty)
+    if (employees.isEmpty) {
       return message(
         'No active employee is available to create as a driver.',
         error: true,
       );
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => DriverEditor(employees: employees),
@@ -132,8 +133,9 @@ class _FleetManagementPageState extends State<FleetManagementPage> {
     final drivers = data.drivers
         .where((row) => row['status'] == 'active')
         .toList();
-    if (vehicles.isEmpty || drivers.isEmpty)
+    if (vehicles.isEmpty || drivers.isEmpty) {
       return message('Create an active vehicle and driver first.', error: true);
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => AssignmentEditor(vehicles: vehicles, drivers: drivers),
@@ -151,11 +153,12 @@ class _FleetManagementPageState extends State<FleetManagementPage> {
     final assignments = data.assignments
         .where((row) => row['ended_at'] == null)
         .toList();
-    if (assignments.isEmpty)
+    if (assignments.isEmpty) {
       return message(
         'Create an active vehicle-driver assignment first.',
         error: true,
       );
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => TripEditor(
@@ -175,11 +178,12 @@ class _FleetManagementPageState extends State<FleetManagementPage> {
           (row) => row['status'] == 'active' && row['fuel_type'] != 'electric',
         )
         .toList();
-    if (vehicles.isEmpty)
+    if (vehicles.isEmpty) {
       return message(
         'No active liquid-fuel vehicle is available.',
         error: true,
       );
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => FuelEditor(
@@ -196,8 +200,9 @@ class _FleetManagementPageState extends State<FleetManagementPage> {
     final vehicles = data.vehicles
         .where((row) => row['status'] != 'inactive')
         .toList();
-    if (vehicles.isEmpty)
+    if (vehicles.isEmpty) {
       return message('No fleet vehicle is available.', error: true);
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => ServiceEditor(vehicles: vehicles),
@@ -217,16 +222,19 @@ class _FleetManagementPageState extends State<FleetManagementPage> {
       );
     }
     final currentFuture = future;
-    if (currentFuture == null)
+    if (currentFuture == null) {
       return const Center(child: CircularProgressIndicator());
+    }
 
     return FutureBuilder<FleetSnapshot>(
       future: currentFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return _FleetError(message: '${snapshot.error}', onRetry: reload);
+        }
         final data = snapshot.requireData;
         final tabs = <_FleetSection>[
           _FleetSection(
@@ -1158,8 +1166,9 @@ class _VehicleEditorState extends State<VehicleEditor> {
       FilledButton(
         onPressed: () {
           if (code.text.trim().length < 2 ||
-              registration.text.trim().length < 3)
+              registration.text.trim().length < 3) {
             return;
+          }
           Navigator.pop(context, {
             'vehicle_code': code.text.trim().toUpperCase(),
             'registration_no': registration.text.trim().toUpperCase(),
@@ -1244,8 +1253,9 @@ class _DriverEditorState extends State<DriverEditor> {
           if (employeeId == null ||
               license.text.trim().length < 3 ||
               type.text.trim().isEmpty ||
-              DateTime.tryParse(expiry.text.trim()) == null)
+              DateTime.tryParse(expiry.text.trim()) == null) {
             return;
+          }
           Navigator.pop(context, {
             'employee_id': employeeId,
             'license_no': license.text.trim(),
@@ -1332,12 +1342,13 @@ class _AssignmentEditorState extends State<AssignmentEditor> {
       ),
       FilledButton(
         onPressed: () {
-          if (vehicleId != null && driverId != null)
+          if (vehicleId != null && driverId != null) {
             Navigator.pop(context, {
               'vehicle_id': vehicleId,
               'driver_id': driverId,
               'notes': _blank(notes.text),
             });
+          }
         },
         child: const Text('Assign'),
       ),
@@ -1447,8 +1458,9 @@ class _TripEditorState extends State<TripEditor> {
           if (assignment == null ||
               origin.text.trim().length < 2 ||
               destination.text.trim().length < 2 ||
-              startAt == null)
+              startAt == null) {
             return;
+          }
           Navigator.pop(context, {
             'vehicle_id': assignment['vehicle_id'],
             'driver_id': assignment['driver_id'],
@@ -1593,8 +1605,9 @@ class _FuelEditorState extends State<FuelEditor> {
                 q <= 0 ||
                 r == null ||
                 r < 0 ||
-                o == null)
+                o == null) {
               return;
+            }
             Navigator.pop(context, {
               'vehicle_id': vehicleId,
               'driver_id': driverId,
@@ -1699,8 +1712,9 @@ class _ServiceEditorState extends State<ServiceEditor> {
           final odo = double.tryParse(dueOdometer.text.trim());
           if (vehicleId == null ||
               title.text.trim().length < 3 ||
-              (date == null && odo == null))
+              (date == null && odo == null)) {
             return;
+          }
           if (date != null && DateTime.tryParse(date) == null) return;
           Navigator.pop(context, {
             'vehicle_id': vehicleId,
@@ -1873,8 +1887,9 @@ class _ReportTable extends StatelessWidget {
   final List<List<String>> rows;
   @override
   Widget build(BuildContext context) {
-    if (rows.isEmpty)
+    if (rows.isEmpty) {
       return const _EmptyCard('No report rows for this factory.');
+    }
     return Card(
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,

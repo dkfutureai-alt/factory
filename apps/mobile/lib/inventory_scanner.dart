@@ -36,8 +36,9 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
         .eq('is_active', true)
         .limit(1)
         .maybeSingle();
-    if (membership == null)
+    if (membership == null) {
       throw StateError('No active organization membership.');
+    }
     return membership['organization_id'] as String;
   }
 

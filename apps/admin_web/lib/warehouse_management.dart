@@ -93,21 +93,23 @@ class _WarehouseManagementPageState extends State<WarehouseManagementPage> {
               const {'allocated', 'dispatch_ready'}.contains(row['status']),
         )
         .toList();
-    if (orders.isEmpty)
+    if (orders.isEmpty) {
       return message(
         'No allocated or dispatch-ready sales order needs a pick list.',
         error: true,
       );
+    }
     final staging = data.locations
         .where(
           (row) => const {'staging', 'dispatch'}.contains(row['location_type']),
         )
         .toList();
-    if (staging.isEmpty)
+    if (staging.isEmpty) {
       return message(
         'Create a staging or dispatch location first.',
         error: true,
       );
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => PickListEditor(orders: orders, stagingLocations: staging),
@@ -128,8 +130,9 @@ class _WarehouseManagementPageState extends State<WarehouseManagementPage> {
           }.contains(row['location_type']),
         )
         .toList();
-    if (locations.isEmpty)
+    if (locations.isEmpty) {
       return message('No countable warehouse location exists.', error: true);
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) =>
@@ -198,10 +201,12 @@ class _WarehouseManagementPageState extends State<WarehouseManagementPage> {
   Widget build(BuildContext context) => FutureBuilder<WarehouseSnapshot>(
     future: future,
     builder: (context, snapshot) {
-      if (snapshot.connectionState != ConnectionState.done)
+      if (snapshot.connectionState != ConnectionState.done) {
         return const Center(child: CircularProgressIndicator());
-      if (snapshot.hasError)
+      }
+      if (snapshot.hasError) {
         return _WarehouseError(message: '${snapshot.error}', onRetry: reload);
+      }
       final data = snapshot.requireData;
       final canManage = const {
         AppRole.platformOwner,
@@ -1267,8 +1272,9 @@ class _WarehouseLocationEditorState extends State<WarehouseLocationEditor> {
                   final lvl = int.tryParse(level.text.trim());
                   if (code.text.trim().length < 2 ||
                       name.text.trim().length < 2 ||
-                      (type != 'warehouse' && parentId == null))
+                      (type != 'warehouse' && parentId == null)) {
                     return;
+                  }
                   Navigator.pop(context, {
                     'factory_id': factoryId,
                     'name': name.text.trim(),
@@ -1448,8 +1454,9 @@ class _PutawayEditorState extends State<PutawayEditor> {
                 sourceId == null ||
                 targetId == null ||
                 q == null ||
-                q <= 0)
+                q <= 0) {
               return;
+            }
             Navigator.pop(context, {
               'factory_id': factoryId,
               'item_id': itemId,
@@ -1785,8 +1792,9 @@ class _AdjustmentEditorState extends State<AdjustmentEditor> {
                 itemId == null ||
                 q == null ||
                 q == 0 ||
-                reason.text.trim().length < 3)
+                reason.text.trim().length < 3) {
               return;
+            }
             Navigator.pop(context, {
               'factory_id': factoryId,
               'item_id': itemId,

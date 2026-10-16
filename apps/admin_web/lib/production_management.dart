@@ -251,10 +251,12 @@ class _ProductionManagementPageState extends State<ProductionManagementPage> {
   Widget build(BuildContext context) => FutureBuilder<ProductionSnapshot>(
     future: future,
     builder: (context, snapshot) {
-      if (snapshot.connectionState != ConnectionState.done)
+      if (snapshot.connectionState != ConnectionState.done) {
         return const Center(child: CircularProgressIndicator());
-      if (snapshot.hasError)
+      }
+      if (snapshot.hasError) {
         return _ErrorPanel(message: '${snapshot.error}', onRetry: reload);
+      }
       final data = snapshot.requireData;
       final canMaster = widget.actorRole.canManageOrganizationSetup;
       final canManage = widget.actorRole.canManagePeople;

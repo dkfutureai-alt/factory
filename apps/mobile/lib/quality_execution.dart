@@ -28,8 +28,9 @@ class _QualityExecutionPageState extends State<QualityExecutionPage> {
         .eq('user_id', uid)
         .eq('is_active', true)
         .limit(1);
-    if (memberships.isEmpty)
+    if (memberships.isEmpty) {
       throw StateError('No active organization membership.');
+    }
     final membership = Map<String, dynamic>.from(memberships.first);
     final orgId = membership['organization_id'] as String;
     final role = AppRole.fromWireName(membership['role'] as String);
@@ -145,8 +146,9 @@ class _QualityExecutionPageState extends State<QualityExecutionPage> {
       message(success);
       reload();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         message(e is PostgrestException ? e.message : '$e', error: true);
+      }
     }
   }
 
@@ -321,9 +323,10 @@ class _QualityExecutionPageState extends State<QualityExecutionPage> {
     body: FutureBuilder<_QualityMobileData>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(FactorySpacing.lg),
@@ -337,6 +340,7 @@ class _QualityExecutionPageState extends State<QualityExecutionPage> {
               ),
             ),
           );
+        }
         final data = snapshot.requireData;
         final s = data.summary;
         final active = data.inspections
@@ -452,8 +456,9 @@ class _QualityExecutionPageState extends State<QualityExecutionPage> {
                       onSelected: (value) {
                         if (value == 'result') recordResult(data, row);
                         if (value == 'complete') complete(row['id'] as String);
-                        if (value == 'hold')
+                        if (value == 'hold') {
                           complete(row['id'] as String, hold: true);
+                        }
                       },
                       itemBuilder: (_) => const [
                         PopupMenuItem(
@@ -677,11 +682,12 @@ class _StartInspectionDialogState extends State<_StartInspectionDialog> {
   }
 
   String? get factoryId {
-    if (batchId != null)
+    if (batchId != null) {
       return widget.batches.firstWhere(
             (row) => row['id'] == batchId,
           )['factory_id']
           as String;
+    }
     final itemId = plan['item_id'];
     final factoryIds = widget.employees
         .map((row) => row['primary_factory_id'])
@@ -1033,8 +1039,9 @@ class _NcrDialogState extends State<_NcrDialog> {
       FilledButton(
         onPressed: () {
           if (category.text.trim().length < 2 ||
-              description.text.trim().length < 4)
+              description.text.trim().length < 4) {
             return;
+          }
           Navigator.pop(context, {
             'severity': severity,
             'category': category.text.trim(),

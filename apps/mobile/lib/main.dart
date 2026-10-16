@@ -214,10 +214,11 @@ class MobileRepository {
     if (memberships.isEmpty) {
       final pending = await client.rpc('pending_invitation_for_current_user');
       final rows = pending as List<dynamic>;
-      if (rows.isNotEmpty)
+      if (rows.isNotEmpty) {
         return MobileBootstrapData(
           invitation: Map<String, dynamic>.from(rows.first as Map),
         );
+      }
       return const MobileBootstrapData(
         message:
             'No active FactoryOS membership or pending invitation was found.',
@@ -287,16 +288,19 @@ class _MobileBootstrapState extends State<MobileBootstrap> {
   Widget build(BuildContext context) => FutureBuilder<MobileBootstrapData>(
     future: future,
     builder: (context, snapshot) {
-      if (snapshot.connectionState != ConnectionState.done)
+      if (snapshot.connectionState != ConnectionState.done) {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      if (snapshot.hasError)
+      }
+      if (snapshot.hasError) {
         return MobileMessagePage(message: '${snapshot.error}', onRetry: reload);
+      }
       final data = snapshot.requireData;
-      if (data.invitation != null)
+      if (data.invitation != null) {
         return MobileOnboardingPage(
           invitation: data.invitation!,
           onCompleted: reload,
         );
+      }
       if (data.workspace != null) return MobileHome(data: data.workspace!);
       return MobileMessagePage(
         message: data.message ?? 'Access unavailable.',
@@ -348,14 +352,17 @@ class _MobileOnboardingPageState extends State<MobileOnboardingPage> {
   }
 
   Future<void> complete() async {
-    if (fullName.text.trim().length < 2)
+    if (fullName.text.trim().length < 2) {
       return setState(() => error = 'Enter your full name.');
-    if (password.text.length < 8)
+    }
+    if (password.text.length < 8) {
       return setState(
         () => error = 'Password must contain at least 8 characters.',
       );
-    if (password.text != confirmPassword.text)
+    }
+    if (password.text != confirmPassword.text) {
       return setState(() => error = 'Passwords do not match.');
+    }
     setState(() {
       busy = true;
       error = null;
@@ -803,9 +810,10 @@ bool _moduleAllowed(AppRole role, String key) {
   if (role == AppRole.platformOwner ||
       role == AppRole.orgAdmin ||
       role == AppRole.factoryManager ||
-      role == AppRole.supervisor)
+      role == AppRole.supervisor) {
     return true;
-  if (role == AppRole.driver)
+  }
+  if (role == AppRole.driver) {
     return const {
       'dashboard',
       'hr',
@@ -813,7 +821,8 @@ bool _moduleAllowed(AppRole role, String key) {
       'delivery',
       'reports',
     }.contains(key);
-  if (role == AppRole.employee)
+  }
+  if (role == AppRole.employee) {
     return const {
       'dashboard',
       'hr',
@@ -825,5 +834,6 @@ bool _moduleAllowed(AppRole role, String key) {
       'maintenance',
       'reports',
     }.contains(key);
+  }
   return const {'dashboard', 'reports'}.contains(key);
 }

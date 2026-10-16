@@ -28,8 +28,9 @@ class _ProductionExecutionPageState extends State<ProductionExecutionPage> {
         .eq('user_id', uid)
         .eq('is_active', true)
         .limit(1);
-    if (memberships.isEmpty)
+    if (memberships.isEmpty) {
       throw StateError('No active organization membership.');
+    }
     final membership = Map<String, dynamic>.from(memberships.first);
     final orgId = membership['organization_id'] as String;
     final role = AppRole.fromWireName(membership['role'] as String);
@@ -104,8 +105,9 @@ class _ProductionExecutionPageState extends State<ProductionExecutionPage> {
       message(success);
       reload();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         message(e is PostgrestException ? e.message : '$e', error: true);
+      }
     }
   }
 
@@ -241,9 +243,10 @@ class _ProductionExecutionPageState extends State<ProductionExecutionPage> {
     body: FutureBuilder<_ProductionMobileData>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(FactorySpacing.lg),
@@ -257,6 +260,7 @@ class _ProductionExecutionPageState extends State<ProductionExecutionPage> {
               ),
             ),
           );
+        }
         final data = snapshot.requireData;
         final s = data.summary;
         return RefreshIndicator(
@@ -470,8 +474,9 @@ class _StartBatchDialogState extends State<_StartBatchDialog> {
 
   void submit() {
     final q = num.tryParse(qty.text.trim());
-    if (orderId == null || batch.text.trim().isEmpty || q == null || q <= 0)
+    if (orderId == null || batch.text.trim().isEmpty || q == null || q <= 0) {
       return;
+    }
     Navigator.pop(context, {
       'order_id': orderId,
       'batch_no': batch.text.trim(),
@@ -587,8 +592,9 @@ class _IssueDialogState extends State<_IssueDialog> {
         itemId == null ||
         locationId == null ||
         q == null ||
-        q <= 0)
+        q <= 0) {
       return;
+    }
     Navigator.pop(context, {
       'batch_id': batchId,
       'item_id': itemId,
@@ -717,8 +723,9 @@ class _OutputDialogState extends State<_OutputDialog> {
         g < 0 ||
         s < 0 ||
         g + s <= 0 ||
-        (g > 0 && locationId == null))
+        (g > 0 && locationId == null)) {
       return;
+    }
     Navigator.pop(context, {
       'batch_id': batchId,
       'good_quantity': g,
@@ -848,8 +855,9 @@ class _DowntimeDialogState extends State<_DowntimeDialog> {
 
   void submit() {
     final m = int.tryParse(minutes.text.trim());
-    if (batchId == null || code.text.trim().length < 2 || m == null || m <= 0)
+    if (batchId == null || code.text.trim().length < 2 || m == null || m <= 0) {
       return;
+    }
     Navigator.pop(context, {
       'batch_id': batchId,
       'reason_code': code.text.trim().toUpperCase().replaceAll(' ', '_'),

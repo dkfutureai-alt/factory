@@ -49,11 +49,12 @@ class _QualityManagementPageState extends State<QualityManagementPage> {
       notify(success);
       reload();
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         notify(
           error is PostgrestException ? error.message : '$error',
           error: true,
         );
+      }
     }
   }
 
@@ -94,8 +95,9 @@ class _QualityManagementPageState extends State<QualityManagementPage> {
 
   Future<void> startInspection(_QualityData data) async {
     final plans = data.plans.where((row) => row['is_active'] == true).toList();
-    if (plans.isEmpty)
+    if (plans.isEmpty) {
       return notify('Create an active inspection plan first.', error: true);
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => _StartInspectionDialog(
@@ -119,8 +121,9 @@ class _QualityManagementPageState extends State<QualityManagementPage> {
     final checks = data.checks
         .where((row) => row['plan_id'] == inspection['plan_id'])
         .toList();
-    if (checks.isEmpty)
+    if (checks.isEmpty) {
       return notify('This plan has no checklist parameters.', error: true);
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => _ResultDialog(checks: checks),
@@ -150,8 +153,9 @@ class _QualityManagementPageState extends State<QualityManagementPage> {
               const {'fail', 'hold'}.contains(row['overall_result']),
         )
         .toList();
-    if (inspections.isEmpty)
+    if (inspections.isEmpty) {
       return notify('No failed or held inspection is available.', error: true);
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => _NcrDialog(
@@ -187,8 +191,9 @@ class _QualityManagementPageState extends State<QualityManagementPage> {
               const {'fail', 'hold'}.contains(row['overall_result']),
         )
         .toList();
-    if (inspections.isEmpty)
+    if (inspections.isEmpty) {
       return notify('No failed or held inspection is available.', error: true);
+    }
     final draft = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => _QuarantineDialog(
@@ -235,15 +240,17 @@ class _QualityManagementPageState extends State<QualityManagementPage> {
     return FutureBuilder<_QualityData>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(
             child: OutlinedButton(
               onPressed: reload,
               child: Text('Retry · ${snapshot.error}'),
             ),
           );
+        }
         final data = snapshot.requireData;
         final canMaster = widget.actorRole.canManageOrganizationSetup;
         final canOperate = const {
@@ -840,8 +847,9 @@ class _Inspections extends StatelessWidget {
               onSelected: (value) {
                 if (value == 'record') onRecord(row);
                 if (value == 'complete') onComplete(row['id'] as String);
-                if (value == 'hold')
+                if (value == 'hold') {
                   onComplete(row['id'] as String, hold: true);
+                }
                 if (value == 'ncr') onNcr(row);
                 if (value == 'quarantine') onQuarantine(row);
                 if (value == 'certificate') onCertificate(row['id'] as String);
@@ -1279,8 +1287,9 @@ class _PlanDialogState extends State<_PlanDialog> {
                 if (size == null ||
                     size <= 0 ||
                     name.text.trim().length < 2 ||
-                    code.text.trim().length < 2)
+                    code.text.trim().length < 2) {
                   return;
+                }
                 Navigator.pop(context, {
                   'item_id': itemId,
                   'name': name.text.trim(),
@@ -1426,8 +1435,9 @@ class _CheckDialogState extends State<_CheckDialog> {
       FilledButton(
         onPressed: () {
           final seq = int.tryParse(sequence.text.trim());
-          if (seq == null || seq <= 0 || parameter.text.trim().length < 2)
+          if (seq == null || seq <= 0 || parameter.text.trim().length < 2) {
             return;
+          }
           Navigator.pop(context, {
             'sequence_no': seq,
             'parameter_name': parameter.text.trim(),
@@ -1889,8 +1899,9 @@ class _NcrDialogState extends State<_NcrDialog> {
         FilledButton(
           onPressed: () {
             if (category.text.trim().length < 2 ||
-                description.text.trim().length < 4)
+                description.text.trim().length < 4) {
               return;
+            }
             Navigator.pop(context, {
               'inspection_id': inspectionId,
               'severity': severity,
@@ -2350,11 +2361,13 @@ String _number(dynamic value) {
 
 String? _blank(String value) => value.trim().isEmpty ? null : value.trim();
 String _checkDescription(Map<String, dynamic> check) {
-  if (check['check_type'] == 'numeric')
+  if (check['check_type'] == 'numeric') {
     return '${check['min_numeric'] ?? '—'} to ${check['max_numeric'] ?? '—'} ${check['unit_text'] ?? ''}'
         .trim();
-  if (check['check_type'] == 'boolean')
+  }
+  if (check['check_type'] == 'boolean') {
     return 'Expected: ${check['expected_boolean'] == true ? 'Yes' : 'No'}';
+  }
   return '${check['acceptance_text'] ?? _title('${check['check_type']}')}';
 }
 

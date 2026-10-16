@@ -50,8 +50,9 @@ class _RecipeEditorState extends State<RecipeEditor> {
         name.text.trim().length < 2 ||
         version.text.trim().isEmpty ||
         qty == null ||
-        qty <= 0)
+        qty <= 0) {
       return;
+    }
     Navigator.pop(context, {
       'product_item_id': productItemId,
       'name': name.text.trim(),
@@ -167,8 +168,9 @@ class _RecipeComponentEditorState extends State<RecipeComponentEditor> {
         qty <= 0 ||
         pct == null ||
         pct < 0 ||
-        pct > 100)
+        pct > 100) {
       return;
+    }
     Navigator.pop(context, {
       'item_id': itemId,
       'quantity_required': qty,
@@ -305,8 +307,9 @@ class _WorkCenterEditorState extends State<WorkCenterEditor> {
     if (factoryId == null ||
         name.text.trim().length < 2 ||
         code.text.trim().length < 2 ||
-        (capacity.text.trim().isNotEmpty && (cap == null || cap <= 0)))
+        (capacity.text.trim().isNotEmpty && (cap == null || cap <= 0))) {
       return;
+    }
     Navigator.pop(context, {
       'factory_id': factoryId,
       'name': name.text.trim(),
@@ -451,8 +454,9 @@ class _ProductionOrderEditorState extends State<ProductionOrderEditor> {
         recipeId == null ||
         workCenterId == null ||
         qty == null ||
-        qty <= 0)
+        qty <= 0) {
       return;
+    }
     Navigator.pop(context, {
       'factory_id': factoryId,
       'recipe_id': recipeId,
@@ -608,8 +612,9 @@ class _StartBatchEditorState extends State<StartBatchEditor> {
     if (orderId == null ||
         batchNo.text.trim().isEmpty ||
         qty == null ||
-        qty <= 0)
+        qty <= 0) {
       return;
+    }
     Navigator.pop(context, {
       'order_id': orderId,
       'batch_no': batchNo.text.trim(),
@@ -790,8 +795,9 @@ class _MaterialIssueEditorState extends State<MaterialIssueEditor> {
         itemId == null ||
         locationId == null ||
         qty == null ||
-        qty <= 0)
+        qty <= 0) {
       return;
+    }
     Navigator.pop(context, {
       'batch_id': batchId,
       'item_id': itemId,
@@ -951,8 +957,9 @@ class _OutputEditorState extends State<OutputEditor> {
         g < 0 ||
         s < 0 ||
         g + s <= 0 ||
-        (g > 0 && locationId == null))
+        (g > 0 && locationId == null)) {
       return;
+    }
     Navigator.pop(context, {
       'batch_id': batchId,
       'good_quantity': g,
@@ -1114,8 +1121,9 @@ class _DowntimeEditorState extends State<DowntimeEditor> {
     if (batchId == null ||
         code.text.trim().length < 2 ||
         duration == null ||
-        duration <= 0)
+        duration <= 0) {
       return;
+    }
     Navigator.pop(context, {
       'batch_id': batchId,
       'reason_code': code.text.trim().toUpperCase().replaceAll(' ', '_'),

@@ -138,8 +138,9 @@ class _InventoryItemEditorState extends State<InventoryItemEditor> {
   void save() {
     if (name.text.trim().length < 2 ||
         sku.text.trim().length < 2 ||
-        unitId == null)
+        unitId == null) {
       return;
+    }
     Navigator.pop(context, {
       'name': name.text.trim(),
       'sku': sku.text.trim().toUpperCase(),
@@ -301,8 +302,9 @@ class _StockLocationEditorState extends State<StockLocationEditor> {
   void save() {
     if (factoryId == null ||
         name.text.trim().length < 2 ||
-        code.text.trim().length < 2)
+        code.text.trim().length < 2) {
       return;
+    }
     Navigator.pop(context, {
       'factory_id': factoryId,
       'name': name.text.trim(),
@@ -587,8 +589,9 @@ class _StockMovementEditorState extends State<StockMovementEditor> {
     if (widget.type == 'transfer' &&
         (fromLocationId == null ||
             toLocationId == null ||
-            fromLocationId == toLocationId))
+            fromLocationId == toLocationId)) {
       return;
+    }
     Navigator.pop(
       context,
       StockMovementDraft(

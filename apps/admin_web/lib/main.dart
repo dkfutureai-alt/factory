@@ -222,11 +222,12 @@ class AdminRepository {
     }
     final membership = Map<String, dynamic>.from(memberships.first);
     final role = AppRole.fromWireName(membership['role'] as String);
-    if (!role.canUseAdminPortal)
+    if (!role.canUseAdminPortal) {
       return BootstrapResult(
         message:
             '${role.label} access is active. Use the FactoryOS mobile app.',
       );
+    }
     final orgId = membership['organization_id'] as String;
     final org = Map<String, dynamic>.from(membership['organizations'] as Map);
     final factories = await client
@@ -301,15 +302,19 @@ class _AdminBootstrapState extends State<AdminBootstrap> {
   Widget build(BuildContext context) => FutureBuilder<BootstrapResult>(
     future: future,
     builder: (context, snapshot) {
-      if (snapshot.connectionState != ConnectionState.done)
+      if (snapshot.connectionState != ConnectionState.done) {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      if (snapshot.hasError)
+      }
+      if (snapshot.hasError) {
         return _Message(text: '${snapshot.error}', onRetry: reload);
+      }
       final result = snapshot.requireData;
-      if (result.invite != null)
+      if (result.invite != null) {
         return OnboardingPage(invite: result.invite!, onDone: reload);
-      if (result.workspace != null)
+      }
+      if (result.workspace != null) {
         return AdminShell(workspace: result.workspace!, onRefresh: reload);
+      }
       return _Message(
         text: result.message ?? 'Access unavailable.',
         onRetry: reload,
