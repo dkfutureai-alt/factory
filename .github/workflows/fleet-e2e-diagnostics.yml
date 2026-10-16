@@ -1,5 +1,6 @@
 name: Fleet E2E Diagnostics Patch
 
+# One-shot branch patcher; remove after it commits the test diagnostics.
 on:
   push:
     branches: [phase9-fleet-backend]
