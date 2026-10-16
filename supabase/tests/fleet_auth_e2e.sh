@@ -99,11 +99,11 @@ TRIP_RESPONSE="$(rpc_checked "$MANAGER_TOKEN" fleet_create_trip "{\"p_factory_id
 TRIP_ID="$(python3 -c 'import json,sys; print(json.load(sys.stdin))' <<<"$TRIP_RESPONSE")"
 [[ -n "$TRIP_ID" ]]
 
-rpc "$DRIVER_TOKEN" fleet_start_trip "{\"p_trip_id\":\"$TRIP_ID\",\"p_odometer_km\":1010,\"p_notes\":\"Driver started\"}" >/dev/null
-FUEL_ID="$(rpc "$DRIVER_TOKEN" fleet_record_fuel "{\"p_vehicle_id\":\"$VEHICLE_ID\",\"p_driver_id\":\"$DRIVER_ID\",\"p_trip_id\":\"$TRIP_ID\",\"p_quantity_liters\":20,\"p_price_per_liter\":95,\"p_odometer_km\":1030,\"p_vendor\":\"E2E Fuel Point\"}" | python3 -c 'import json,sys; print(json.load(sys.stdin))')"
+rpc_checked "$DRIVER_TOKEN" fleet_start_trip "{\"p_trip_id\":\"$TRIP_ID\",\"p_odometer_km\":1010,\"p_notes\":\"Driver started\"}" >/dev/null
+FUEL_ID="$(rpc_checked "$DRIVER_TOKEN" fleet_record_fuel "{\"p_vehicle_id\":\"$VEHICLE_ID\",\"p_driver_id\":\"$DRIVER_ID\",\"p_trip_id\":\"$TRIP_ID\",\"p_quantity_liters\":20,\"p_price_per_liter\":95,\"p_odometer_km\":1030,\"p_vendor\":\"E2E Fuel Point\"}" | python3 -c 'import json,sys; print(json.load(sys.stdin))')"
 [[ -n "$FUEL_ID" ]]
-rpc "$DRIVER_TOKEN" fleet_mark_trip_arrived "{\"p_trip_id\":\"$TRIP_ID\",\"p_odometer_km\":1050,\"p_notes\":\"Reached customer\"}" >/dev/null
-rpc "$DRIVER_TOKEN" fleet_complete_trip "{\"p_trip_id\":\"$TRIP_ID\",\"p_odometer_km\":1060,\"p_notes\":\"Returned/closed route\"}" >/dev/null
+rpc_checked "$DRIVER_TOKEN" fleet_mark_trip_arrived "{\"p_trip_id\":\"$TRIP_ID\",\"p_odometer_km\":1050,\"p_notes\":\"Reached customer\"}" >/dev/null
+rpc_checked "$DRIVER_TOKEN" fleet_complete_trip "{\"p_trip_id\":\"$TRIP_ID\",\"p_odometer_km\":1060,\"p_notes\":\"Returned/closed route\"}" >/dev/null
 
 TRIP_STATE="$(psql "$DB_URL" -Atc "select status||'|'||start_odometer_km||'|'||arrival_odometer_km||'|'||end_odometer_km from public.fleet_trips where id='$TRIP_ID'")"
 [[ "$TRIP_STATE" == 'completed|1010.00|1050.00|1060.00' || "$TRIP_STATE" == 'completed|1010|1050|1060' ]]
