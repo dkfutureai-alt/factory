@@ -7,6 +7,7 @@ import 'inventory_scanner.dart';
 import 'production_execution.dart';
 import 'quality_execution.dart';
 import 'commercial_operations.dart';
+import 'warehouse_operations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -392,6 +393,10 @@ class HomeTab extends StatelessWidget {
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CommercialOperationsPage()));
       return;
     }
+    if (module.key == 'warehouse') {
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const WarehouseOperationsPage()));
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${module.name} activates in its module phase.')));
   }
 
@@ -420,6 +425,7 @@ class HomeTab extends StatelessWidget {
                 'inventory' => Icons.inventory_2_outlined,
                 'production' => Icons.precision_manufacturing_outlined,
                 'quality' => Icons.verified_user_outlined,
+                'warehouse' => Icons.warehouse_outlined,
                 _ => Icons.widgets_outlined,
               };
               return Card(

@@ -8,6 +8,7 @@ import 'inventory_management.dart';
 import 'production_management.dart';
 import 'quality_management.dart';
 import 'purchase_sales_management.dart';
+import 'warehouse_management.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -314,6 +315,7 @@ class _AdminShellState extends State<AdminShell> {
     final qualityEnabled = w.modules.any((module) => module.key == 'quality');
     final purchaseEnabled = w.modules.any((module) => module.key == 'purchase');
     final salesEnabled = w.modules.any((module) => module.key == 'sales');
+    final warehouseEnabled = w.modules.any((module) => module.key == 'warehouse');
     final commercialEnabled = purchaseEnabled || salesEnabled;
     final tabs = <_Tab>[
       _Tab('Overview', Icons.dashboard_outlined, Overview(workspace: w)),
@@ -323,6 +325,7 @@ class _AdminShellState extends State<AdminShell> {
       if (productionEnabled) _Tab('Production', Icons.precision_manufacturing_outlined, ProductionManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (qualityEnabled) _Tab('Quality', Icons.verified_user_outlined, QualityManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (commercialEnabled) _Tab('Purchase & Sales', Icons.sync_alt, PurchaseSalesManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
+      if (warehouseEnabled) _Tab('Warehouse', Icons.warehouse_outlined, WarehouseManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (w.role.canManageAccess) _Tab('Users', Icons.groups_outlined, AccessManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       _Tab('Modules', Icons.widgets_outlined, ModuleList(modules: w.modules)),
       _Tab('Organization', Icons.settings_outlined, Organization(workspace: w, onChanged: widget.onRefresh)),
