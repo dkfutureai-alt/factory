@@ -1,4 +1,4 @@
-name: Flutter Quality
+name: Flutter Application Quality
 
 on:
   push:
@@ -11,6 +11,10 @@ on:
       - 'apps/**'
       - 'packages/**'
       - '.github/workflows/flutter-quality.yml'
+
+concurrency:
+  group: flutter-quality-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   analyze-and-test:
