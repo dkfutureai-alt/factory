@@ -1,0 +1,59 @@
+name: Phase 8 Navigation Connect
+
+on:
+  push:
+    paths:
+      - '.github/workflows/phase8-navigation-connect.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  connect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Wire Admin and Mobile Warehouse modules
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          admin = Path('apps/admin_web/lib/main.dart')
+          text = admin.read_text()
+          text = text.replace("import 'purchase_sales_management.dart';\n", "import 'purchase_sales_management.dart';\nimport 'warehouse_management.dart';\n", 1)
+          text = text.replace(
+              "    final salesEnabled = w.modules.any((module) => module.key == 'sales');\n    final commercialEnabled = purchaseEnabled || salesEnabled;\n",
+              "    final salesEnabled = w.modules.any((module) => module.key == 'sales');\n    final warehouseEnabled = w.modules.any((module) => module.key == 'warehouse');\n    final commercialEnabled = purchaseEnabled || salesEnabled;\n",
+              1,
+          )
+          text = text.replace(
+              "      if (commercialEnabled) _Tab('Purchase & Sales', Icons.sync_alt, PurchaseSalesManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),\n",
+              "      if (commercialEnabled) _Tab('Purchase & Sales', Icons.sync_alt, PurchaseSalesManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),\n      if (warehouseEnabled) _Tab('Warehouse', Icons.warehouse_outlined, WarehouseManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),\n",
+              1,
+          )
+          admin.write_text(text)
+
+          mobile = Path('apps/mobile/lib/main.dart')
+          text = mobile.read_text()
+          text = text.replace("import 'commercial_operations.dart';\n", "import 'commercial_operations.dart';\nimport 'warehouse_operations.dart';\n", 1)
+          text = text.replace(
+              "    if (module.key == 'purchase' || module.key == 'sales') {\n      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CommercialOperationsPage()));\n      return;\n    }\n",
+              "    if (module.key == 'purchase' || module.key == 'sales') {\n      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CommercialOperationsPage()));\n      return;\n    }\n    if (module.key == 'warehouse') {\n      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const WarehouseOperationsPage()));\n      return;\n    }\n",
+              1,
+          )
+          text = text.replace(
+              "                'quality' => Icons.verified_user_outlined,\n",
+              "                'quality' => Icons.verified_user_outlined,\n                'warehouse' => Icons.warehouse_outlined,\n",
+              1,
+          )
+          mobile.write_text(text)
+          PY
+      - name: Commit navigation wiring
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/admin_web/lib/main.dart apps/mobile/lib/main.dart
+          git commit -m 'feat: connect Phase 8 warehouse navigation'
+          git push origin HEAD:phase8-warehouse
