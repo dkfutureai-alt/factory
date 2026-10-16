@@ -6,6 +6,7 @@ import 'access_management.dart';
 import 'hr_management.dart';
 import 'inventory_management.dart';
 import 'production_management.dart';
+import 'quality_management.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -309,12 +310,14 @@ class _AdminShellState extends State<AdminShell> {
     final hrEnabled = w.modules.any((module) => module.key == 'hr');
     final inventoryEnabled = w.modules.any((module) => module.key == 'inventory');
     final productionEnabled = w.modules.any((module) => module.key == 'production');
+    final qualityEnabled = w.modules.any((module) => module.key == 'quality');
     final tabs = <_Tab>[
       _Tab('Overview', Icons.dashboard_outlined, Overview(workspace: w)),
       _Tab('Factories', Icons.factory_outlined, Factories(workspace: w, onChanged: widget.onRefresh)),
       if (hrEnabled) _Tab('HR', Icons.groups_2_outlined, HrManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (inventoryEnabled) _Tab('Inventory', Icons.inventory_2_outlined, InventoryManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (productionEnabled) _Tab('Production', Icons.precision_manufacturing_outlined, ProductionManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
+      if (qualityEnabled) _Tab('Quality', Icons.verified_user_outlined, QualityManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       if (w.role.canManageAccess) _Tab('Users', Icons.groups_outlined, AccessManagementPage(organizationId: w.orgId, actorRole: w.role, factories: w.factories)),
       _Tab('Modules', Icons.widgets_outlined, ModuleList(modules: w.modules)),
       _Tab('Organization', Icons.settings_outlined, Organization(workspace: w, onChanged: widget.onRefresh)),
