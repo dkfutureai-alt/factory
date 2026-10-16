@@ -40,15 +40,15 @@ jobs:
       - name: Admin dependencies
         working-directory: apps/admin_web
         run: flutter pub get
-      - name: Admin analyze
+      - name: Admin analyze including Warehouse
         working-directory: apps/admin_web
         run: flutter analyze
-      - name: Admin web build
+      - name: Admin web build including Warehouse
         working-directory: apps/admin_web
         run: flutter build web --release --dart-define=SUPABASE_URL=https://example.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=placeholder
       - name: Mobile dependencies
         working-directory: apps/mobile
         run: flutter pub get
-      - name: Mobile analyze
+      - name: Mobile analyze including Warehouse
         working-directory: apps/mobile
         run: flutter analyze
