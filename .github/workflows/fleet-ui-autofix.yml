@@ -1,5 +1,6 @@
 name: Fleet UI Autofix
 
+# One-shot formatter/lint fixer for the Phase 9 Fleet UI branch.
 on:
   push:
     branches:
