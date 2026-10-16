@@ -1,6 +1,6 @@
 # Phase 9 — Vehicles, Drivers, Trips & Fuel
 
-Status: **implementation complete; CI validation in progress**.
+Status: **complete and CI validated**.
 
 ## Workflow
 
@@ -17,6 +17,7 @@ Migrations:
 - `supabase/migrations/0016_fleet_operations.sql`
 - `supabase/migrations/0017_fleet_scope_hardening.sql`
 - `supabase/migrations/0018_fleet_integrity_hardening.sql`
+- `supabase/migrations/0019_fleet_trigger_hardening.sql`
 
 Operational tables:
 
@@ -41,6 +42,8 @@ Each vehicle owns an Inventory `stock_locations` record with `location_type='veh
 - Driver fuel entries are limited to the driver's assigned vehicle/trip scope.
 - Fuel history and odometer history are audit-oriented operational records.
 - Organization-wide management reports remain restricted to authorized admin roles.
+- Fleet organization/factory scope, vehicle Inventory-location links and driver employee links are immutable through the hardened shared trigger.
+- The existing Phase 2 tenant-hardening policy limits factory-scoped roles to assigned factories, which also keeps Fleet factory selection inside the signed-in user's scope.
 
 ## Admin Web
 
@@ -49,7 +52,7 @@ Each vehicle owns an Inventory `stock_locations` record with `location_type='veh
 Connected from the existing `vehicles` module and includes:
 
 - Fleet dashboard KPIs;
-- factory selector;
+- factory selector restricted by database factory scope;
 - vehicle master and status controls;
 - driver master and vehicle/driver assignment;
 - trip planning and cancellation;
@@ -94,12 +97,15 @@ Authenticated Fleet E2E:
 
 - `supabase/tests/fleet_auth_e2e.sh`
 
-Coverage includes manager planning permissions, Driver-role execution, factory isolation, odometer/fuel controls, service reminder lifecycle, cross-factory denial, report authorization and Fleet integrity hardening.
+Coverage includes manager planning permissions, Driver-role execution, factory isolation, odometer/fuel controls, service reminder lifecycle, cross-factory denial, report authorization and Fleet integrity hardening. Existing authentication E2E coverage also validates assigned-factory metadata visibility.
 
 Flutter CI analyzes the shared core, Admin web including Fleet and Driver mobile including Fleet, and builds the Admin release web target.
 
-The final Phase 9 checkpoint requires both database and Flutter workflows to pass on the same branch head before Phase 10 begins.
+Phase 9 is closed only when both checks pass on the final branch head:
+
+- Flutter Application Quality;
+- Supabase Foundation Checks.
 
 ## Next
 
-After Phase 9 CI is green, Phase 10 is **Dispatch, Delivery & Returnables**: consume Warehouse handoff + Fleet trip, perform ledger-backed staging/vehicle/customer movements, proof of delivery, empty-cylinder/returnable pickup, delivery exceptions and delivery reports.
+Phase 10 is **Dispatch, Delivery & Returnables**: consume Warehouse handoff + Fleet trip, perform ledger-backed staging/vehicle/customer movements, proof of delivery, empty-cylinder/returnable pickup, delivery exceptions and delivery reports.
