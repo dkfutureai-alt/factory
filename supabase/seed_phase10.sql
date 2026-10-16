@@ -5,7 +5,39 @@ update public.inventory_items
 set is_returnable=true
 where id='43000000-0000-4000-8000-000000000003';
 
--- Stage the four fictional filled cylinders already allocated by Phase 7.
+-- Add four fictional filled cylinders specifically for the Phase 10 demo before
+-- staging them. This keeps the prior Production/Quality demo stock balances
+-- unchanged so later-phase seeds remain additive instead of rewriting fixtures.
+insert into public.inventory_transactions(
+ id,organization_id,factory_id,item_id,transaction_no,transaction_type,quantity,
+ to_location_id,external_reference,notes,occurred_at
+) values (
+ '98000000-0000-4000-8000-000000000002',
+ '10000000-0000-4000-8000-000000000001',
+ '20000000-0000-4000-8000-000000000001',
+ '43000000-0000-4000-8000-000000000006',
+ 'P10-DEMO-RECEIPT-001','receive',4,
+ '44000000-0000-4000-8000-000000000003',
+ 'P10-DEMO-STOCK','Additional fictional stock dedicated to Phase 10 dispatch demo',now()-interval '55 minutes'
+) on conflict (id) do nothing;
+
+insert into public.stock_ledger_entries(
+ organization_id,factory_id,transaction_id,item_id,location_id,quantity_delta,occurred_at
+)
+select
+ '10000000-0000-4000-8000-000000000001'::uuid,
+ '20000000-0000-4000-8000-000000000001'::uuid,
+ '98000000-0000-4000-8000-000000000002'::uuid,
+ '43000000-0000-4000-8000-000000000006'::uuid,
+ '44000000-0000-4000-8000-000000000003'::uuid,
+ 4::numeric,
+ now()-interval '55 minutes'
+where not exists(
+ select 1 from public.stock_ledger_entries
+ where transaction_id='98000000-0000-4000-8000-000000000002'
+);
+
+-- Stage the four fictional filled cylinders allocated by the Phase 7 sales demo.
 insert into public.inventory_transactions(
  id,organization_id,factory_id,item_id,transaction_no,transaction_type,quantity,
  from_location_id,to_location_id,external_reference,notes,occurred_at
