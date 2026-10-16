@@ -74,6 +74,7 @@ BEGIN
   IF to_regprocedure('public.can_view_fleet_factory(uuid)') IS NULL THEN RAISE EXCEPTION 'can_view_fleet_factory missing'; END IF;
   IF to_regprocedure('public.fleet_driver_is_current_user(uuid)') IS NULL THEN RAISE EXCEPTION 'fleet_driver_is_current_user missing'; END IF;
   IF to_regprocedure('public.fleet_can_operate_trip(uuid)') IS NULL THEN RAISE EXCEPTION 'fleet_can_operate_trip missing'; END IF;
+  IF to_regprocedure('public.fleet_assert_report_scope(uuid,uuid)') IS NULL THEN RAISE EXCEPTION 'fleet_assert_report_scope missing'; END IF;
   IF to_regprocedure('public.fleet_create_vehicle(uuid,text,text,text,text,text,text,numeric,text,numeric,text)') IS NULL THEN RAISE EXCEPTION 'fleet_create_vehicle missing'; END IF;
   IF to_regprocedure('public.fleet_create_driver(uuid,uuid,text,text,date,text,text)') IS NULL THEN RAISE EXCEPTION 'fleet_create_driver missing'; END IF;
   IF to_regprocedure('public.fleet_assign_driver(uuid,uuid,timestamptz,text)') IS NULL THEN RAISE EXCEPTION 'fleet_assign_driver missing'; END IF;
@@ -89,6 +90,36 @@ BEGIN
   IF to_regprocedure('public.fleet_trip_report(uuid,uuid,integer)') IS NULL THEN RAISE EXCEPTION 'fleet trip report missing'; END IF;
   IF to_regprocedure('public.fleet_fuel_report(uuid,uuid,integer)') IS NULL THEN RAISE EXCEPTION 'fleet fuel report missing'; END IF;
   IF to_regprocedure('public.fleet_service_due_report(uuid,uuid,integer)') IS NULL THEN RAISE EXCEPTION 'fleet service report missing'; END IF;
+END $$;
+
+DO $$
+DECLARE regression_blocked boolean:=false;
+BEGIN
+  IF NOT EXISTS(
+    select 1 from pg_trigger
+    where tgrelid='public.fleet_vehicles'::regclass
+      and tgname='fleet_vehicle_odometer_monotonic'
+      and not tgisinternal
+  ) THEN RAISE EXCEPTION 'vehicle odometer monotonic trigger missing'; END IF;
+
+  IF NOT EXISTS(
+    select 1 from pg_indexes
+    where schemaname='public'
+      and tablename='fleet_trips'
+      and indexname='fleet_trips_handoff_active_unique'
+  ) THEN RAISE EXCEPTION 'warehouse handoff trip uniqueness index missing'; END IF;
+
+  BEGIN
+    update public.fleet_vehicles
+    set current_odometer_km=current_odometer_km-1
+    where id='97100000-0000-4000-8000-000000000001';
+  EXCEPTION WHEN OTHERS THEN
+    regression_blocked:=position('cannot move backward' in SQLERRM)>0;
+  END;
+
+  IF NOT regression_blocked THEN
+    RAISE EXCEPTION 'vehicle odometer regression was not blocked';
+  END IF;
 END $$;
 
 DO $$
