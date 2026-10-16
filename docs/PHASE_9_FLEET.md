@@ -18,6 +18,7 @@ Migrations:
 - `supabase/migrations/0017_fleet_scope_hardening.sql`
 - `supabase/migrations/0018_fleet_integrity_hardening.sql`
 - `supabase/migrations/0019_fleet_trigger_hardening.sql`
+- `supabase/migrations/0020_factory_visibility_hardening.sql`
 
 Operational tables:
 
@@ -43,6 +44,7 @@ Each vehicle owns an Inventory `stock_locations` record with `location_type='veh
 - Fuel history and odometer history are audit-oriented operational records.
 - Organization-wide management reports remain restricted to authorized admin roles.
 - Fleet organization/factory scope, vehicle Inventory-location links and driver employee links are immutable through the hardened shared trigger.
+- Factory-scoped roles can read only factories assigned through `factory_members`; organization admins retain organization-wide factory visibility. This also keeps Fleet and other factory selectors within the signed-in user's scope.
 
 ## Admin Web
 
@@ -51,7 +53,7 @@ Each vehicle owns an Inventory `stock_locations` record with `location_type='veh
 Connected from the existing `vehicles` module and includes:
 
 - Fleet dashboard KPIs;
-- factory selector;
+- factory selector restricted by database factory scope;
 - vehicle master and status controls;
 - driver master and vehicle/driver assignment;
 - trip planning and cancellation;
@@ -91,19 +93,20 @@ The fictional Aarohan demo includes vehicle locations, truck/tanker examples, fi
 Database schema/integrity smoke coverage:
 
 - `supabase/tests/0016_fleet_smoke.sql`
+- `supabase/tests/0017_factory_visibility_smoke.sql`
 
 Authenticated Fleet E2E:
 
 - `supabase/tests/fleet_auth_e2e.sh`
 
-Coverage includes manager planning permissions, Driver-role execution, factory isolation, odometer/fuel controls, service reminder lifecycle, cross-factory denial, report authorization and Fleet integrity hardening.
+Coverage includes manager planning permissions, Driver-role execution, factory isolation, odometer/fuel controls, service reminder lifecycle, cross-factory denial, report authorization, Fleet integrity hardening and assigned-factory visibility policy validation.
 
 Flutter CI analyzes the shared core, Admin web including Fleet and Driver mobile including Fleet, and builds the Admin release web target.
 
-Validated together on Phase 9 branch head `634fe97b2283d716146a52c20e5e7a6f7bdfe546`:
+Phase 9 is closed only when both checks pass on the final branch head:
 
-- Flutter Application Quality — pass;
-- Supabase Foundation Checks — pass.
+- Flutter Application Quality;
+- Supabase Foundation Checks.
 
 ## Next
 
