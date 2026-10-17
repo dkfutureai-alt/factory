@@ -24,6 +24,7 @@ Migrations:
 - `supabase/migrations/0020_dispatch_delivery_returnables.sql`
 - `supabase/migrations/0021_dispatch_scope_hardening.sql`
 - `supabase/migrations/0022_delivery_pod_storage.sql`
+- `supabase/migrations/0023_dispatch_returnable_hardening.sql`
 
 Operational tables:
 
@@ -43,6 +44,8 @@ Completed delivery posts an Inventory issue from the vehicle location to the ext
 
 Returnable pickup posts an Inventory receive into the vehicle location and records condition separately so a later Warehouse return-intake workflow can route good/damaged/rejected units appropriately.
 
+Completed or cancelled returnable pickups are immutable: `dispatch_record_returnable` locks the pickup and rejects any new line or Inventory receipt once the pickup is no longer open.
+
 The Phase 10 seed owns dedicated Sales, Warehouse and Fleet fixtures so later-phase demos do not mutate or invalidate earlier phase smoke-test baselines.
 
 ## Security
@@ -54,6 +57,7 @@ The Phase 10 seed owns dedicated Sales, Warehouse and Fleet fixtures so later-ph
 - Aggregate Dispatch dashboard access is restricted to authorized planning/admin roles.
 - Inventory helper functions are internal and not granted to application roles directly.
 - Delivery completion requires receiver identity plus proof of delivery.
+- Returnable pickups cannot accept stock after they are completed or cancelled.
 - Exceptions are driver-reportable and manager-resolvable.
 - POD media uses the private `delivery-pod` Storage bucket.
 - POD object paths are scoped to organization/factory/delivery/user and protected by Storage RLS.
@@ -132,6 +136,7 @@ SQL/schema/security smoke coverage:
 - `supabase/tests/0020_dispatch_delivery_smoke.sql`
 - `supabase/tests/0021_dispatch_scope_smoke.sql`
 - `supabase/tests/0022_delivery_pod_storage_smoke.sql`
+- `supabase/tests/0023_dispatch_returnable_hardening_smoke.sql`
 
 Authenticated business-flow E2E:
 
@@ -141,7 +146,7 @@ The authenticated flow validates manager planning, cross-factory denial, driver 
 
 Flutter CI validates the shared core, Admin web analysis/release build and Mobile analysis including real `image_picker` POD capture/upload code.
 
-The final Phase 10 checkpoint passed both required gates:
+The final Phase 10 checkpoint passes both required gates on the merge candidate:
 
 - **Flutter Application Quality** — success;
 - **Supabase Foundation Checks** — success.
