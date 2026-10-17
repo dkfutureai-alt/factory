@@ -1,3 +1,4 @@
+# Generates missing Flutter platform projects from the pinned CI toolchain.
 name: Mobile Release Foundation
 
 on:
