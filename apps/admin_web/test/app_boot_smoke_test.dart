@@ -1,7 +1,6 @@
+import 'package:factoryos_admin_web/main_phase11.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../lib/main_phase11.dart';
 
 void main() {
   test('AppConfig requires both Supabase URL and publishable key', () {
