@@ -82,6 +82,7 @@ end $$;
 do $$
 declare
   unsafe_count integer;
+  immutable_is_definer boolean;
 begin
   select count(*) into unsafe_count
   from pg_proc p
@@ -95,6 +96,27 @@ begin
     );
   if unsafe_count<>0 then
     raise exception '% security definer functions lack explicit search_path',unsafe_count;
+  end if;
+
+  select p.prosecdef into immutable_is_definer
+  from pg_proc p
+  join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public' and p.proname='audit_logs_reject_mutation';
+  if immutable_is_definer is distinct from false then
+    raise exception 'audit immutability trigger function must run as SECURITY INVOKER';
+  end if;
+
+  if not exists(
+    select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname='security_can_view_org_user' and p.prosecdef
+  ) then
+    raise exception 'organization-user visibility helper must be SECURITY DEFINER';
+  end if;
+  if not exists(
+    select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname='security_can_view_profile' and p.prosecdef
+  ) then
+    raise exception 'profile visibility helper must be SECURITY DEFINER';
   end if;
 end $$;
 
