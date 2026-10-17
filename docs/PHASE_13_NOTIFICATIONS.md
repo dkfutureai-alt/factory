@@ -26,7 +26,11 @@ Migration `0028_notifications.sql` adds:
 - `notifications`
 - `notification_deliveries`
 
-Migration `0029_notification_rule_audit_hardening.sql` hardens rule audit handling for INSERT/UPDATE/DELETE operations.
+Hardening migrations:
+
+- `0029_notification_rule_audit_hardening.sql` — safe rule audit handling for INSERT/UPDATE/DELETE.
+- `0030_notification_scope_hardening.sql` — exact factory rule scope, organization-bound device identity and factory-aware device KPIs.
+- `0031_notification_rule_visibility.sql` — Factory Managers can inspect organization-default rules without seeing another factory's scoped rules.
 
 The `notifications` row is the canonical user notification. Channel delivery state is kept separately in `notification_deliveries`, so push retries never duplicate the inbox item.
 
@@ -34,10 +38,11 @@ The `notifications` row is the canonical user notification. Channel delivery sta
 
 - Every notification belongs to an organization and may be factory scoped.
 - Factory-scoped recipients must be authorized for that factory unless they are an organization/platform administrator.
+- Push devices are bound to organization + user + token fingerprint.
 - Users can read only their own inbox, preferences, devices and delivery rows.
 - Direct authenticated writes to inbox, delivery and device tables are revoked; guarded RPCs own those mutations.
 - Organization-wide notification administration requires Organization Admin or Platform Owner access.
-- Factory Managers administer only their allowed factory scope.
+- Factory Managers administer only their allowed factory scope and cannot inspect other factories' scoped rules.
 - Rule mutations are audit logged.
 
 ## Default event automation
@@ -99,7 +104,7 @@ The `notifications` module also appears in the mobile module grid when enabled.
 
 `supabase/functions/send-notifications/index.ts`
 
-Push delivery uses FCM HTTP v1 and an outbox model. No Firebase service-account credential is stored in the repository or database.
+Push delivery uses FCM HTTP v1 and an outbox model. No Firebase service-account credential is stored in the repository or database. Device lookup is organization-scoped before a push is attempted.
 
 Production deployment must provide Edge Function secrets:
 
@@ -116,6 +121,7 @@ Phase 13 adds:
 
 - `supabase/tests/0028_notifications_smoke.sql`
 - `supabase/tests/notifications_auth_e2e.sh`
+- `supabase/tests/notifications_scope_e2e.sh`
 - Deno type-check for the notification delivery worker
 - existing Admin web release build and mobile analysis/tests covering the newly wired source tree
 
@@ -128,9 +134,10 @@ Authenticated E2E verifies:
 5. In-app delivery is marked sent and push delivery is queued.
 6. Employee marks the notification read.
 7. Factory Manager can view factory notification health.
-8. Factory Manager cannot access organization-wide notification health.
+8. Factory Manager cannot access organization-wide or blocked-factory notification health.
 9. Employee cannot broadcast.
 10. Muted category preferences suppress matching notifications.
+11. Factory Manager can inspect organization-default rules but cannot read another factory's scoped rule.
 
 ## Phase boundary
 
