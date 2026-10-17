@@ -31,6 +31,7 @@ Hardening migrations:
 - `0029_notification_rule_audit_hardening.sql` — safe rule audit handling for INSERT/UPDATE/DELETE.
 - `0030_notification_scope_hardening.sql` — exact factory rule scope, organization-bound device identity and factory-aware device KPIs.
 - `0031_notification_rule_visibility.sql` — Factory Managers can inspect organization-default rules without seeing another factory's scoped rules.
+- `0032_notification_device_digest_hardening.sql` — explicitly resolves `pgcrypto.digest` from Supabase's `extensions` schema while preserving the restricted SECURITY DEFINER search path.
 
 The `notifications` row is the canonical user notification. Channel delivery state is kept separately in `notification_deliveries`, so push retries never duplicate the inbox item.
 
@@ -44,6 +45,7 @@ The `notifications` row is the canonical user notification. Channel delivery sta
 - Organization-wide notification administration requires Organization Admin or Platform Owner access.
 - Factory Managers administer only their allowed factory scope and cannot inspect other factories' scoped rules.
 - Rule mutations are audit logged.
+- Device-token hashing explicitly qualifies the trusted Supabase extension schema rather than widening the function search path.
 
 ## Default event automation
 
@@ -138,6 +140,7 @@ Authenticated E2E verifies:
 9. Employee cannot broadcast.
 10. Muted category preferences suppress matching notifications.
 11. Factory Manager can inspect organization-default rules but cannot read another factory's scoped rule.
+12. Device-registration smoke coverage verifies both authenticated EXECUTE privilege and the qualified `extensions.digest` implementation.
 
 ## Phase boundary
 
