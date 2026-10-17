@@ -43,6 +43,9 @@ jobs:
       - name: Admin analyze
         working-directory: apps/admin_web
         run: flutter analyze
+      - name: Admin widget tests
+        working-directory: apps/admin_web
+        run: flutter test
       - name: Admin release web build
         working-directory: apps/admin_web
         run: flutter build web --release --dart-define=SUPABASE_URL=https://example.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=placeholder
