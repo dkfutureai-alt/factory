@@ -32,6 +32,7 @@ Hardening migrations:
 - `0030_notification_scope_hardening.sql` — exact factory rule scope, organization-bound device identity and factory-aware device KPIs.
 - `0031_notification_rule_visibility.sql` — Factory Managers can inspect organization-default rules without seeing another factory's scoped rules.
 - `0032_notification_device_digest_hardening.sql` — explicitly resolves `pgcrypto.digest` from Supabase's `extensions` schema while preserving the restricted SECURITY DEFINER search path.
+- `0033_notification_channel_hardening.sql` — ensures in-app and push delivery records follow the rule/broadcast channel selection as well as each user's channel preferences.
 
 The `notifications` row is the canonical user notification. Channel delivery state is kept separately in `notification_deliveries`, so push retries never duplicate the inbox item.
 
@@ -46,6 +47,7 @@ The `notifications` row is the canonical user notification. Channel delivery sta
 - Factory Managers administer only their allowed factory scope and cannot inspect other factories' scoped rules.
 - Rule mutations are audit logged.
 - Device-token hashing explicitly qualifies the trusted Supabase extension schema rather than widening the function search path.
+- Push-only notifications never leak into the in-app inbox; channel delivery is explicit and tested.
 
 ## Default event automation
 
@@ -134,13 +136,14 @@ Authenticated E2E verifies:
 3. Factory Manager broadcasts to the allowed factory.
 4. Employee receives exactly one in-app notification.
 5. In-app delivery is marked sent and push delivery is queued.
-6. Employee marks the notification read.
-7. Factory Manager can view factory notification health.
-8. Factory Manager cannot access organization-wide or blocked-factory notification health.
-9. Employee cannot broadcast.
-10. Muted category preferences suppress matching notifications.
-11. Factory Manager can inspect organization-default rules but cannot read another factory's scoped rule.
-12. Device-registration smoke coverage verifies both authenticated EXECUTE privilege and the qualified `extensions.digest` implementation.
+6. Push-only delivery remains push-only and is excluded from the in-app inbox.
+7. Employee marks the notification read.
+8. Factory Manager can view factory notification health.
+9. Factory Manager cannot access organization-wide or blocked-factory notification health.
+10. Employee cannot broadcast.
+11. Muted category preferences suppress matching notifications.
+12. Factory Manager can inspect organization-default rules but cannot read another factory's scoped rule.
+13. Device-registration smoke coverage verifies both authenticated EXECUTE privilege and the qualified `extensions.digest` implementation.
 
 ## Phase boundary
 
