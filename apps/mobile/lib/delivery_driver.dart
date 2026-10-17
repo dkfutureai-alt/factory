@@ -186,6 +186,7 @@ class _DeliveryDriverPageState extends State<DeliveryDriverPage> {
                 TextField(
                   controller: receiver,
                   textCapitalization: TextCapitalization.words,
+                  onChanged: (_) => setDialogState(() {}),
                   decoration: const InputDecoration(labelText: 'Receiver name *'),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
@@ -552,7 +553,8 @@ class _DeliveryDriverPageState extends State<DeliveryDriverPage> {
                   const SizedBox(height: FactorySpacing.md),
                   _ReturnablesCard(
                     pickup: pickup,
-                    canAdd: status == 'arrived' || status == 'delivered',
+                    canAdd: (status == 'arrived' || status == 'delivered') &&
+                        (pickup == null || pickup['status'] == 'open'),
                     onAdd: () => recordReturnable(data, delivery),
                     onClose: pickup?['status'] == 'open'
                         ? () => run(
