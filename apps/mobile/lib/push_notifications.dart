@@ -71,8 +71,8 @@ class PushNotificationService {
   StreamSubscription<String>? _tokenRefreshSubscription;
   StreamSubscription<RemoteMessage>? _openedSubscription;
   bool _firebaseReady = false;
-  String? _organizationId;
-  String? _deviceId;
+  final Set<String> _organizationIds = <String>{};
+  final Set<String> _deviceIds = <String>{};
   String? _currentToken;
   String? _pendingRoute;
   ValueChanged<String>? _routeHandler;
@@ -97,8 +97,7 @@ class PushNotificationService {
     _tokenRefreshSubscription ??=
         FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
       _currentToken = token;
-      final organizationId = _organizationId;
-      if (organizationId != null) {
+      for (final organizationId in _organizationIds) {
         await _registerToken(organizationId, token);
       }
     });
@@ -121,12 +120,17 @@ class PushNotificationService {
         .from('organization_members')
         .select('organization_id')
         .eq('user_id', user.id)
-        .eq('is_active', true)
-        .limit(1);
+        .eq('is_active', true);
     if (memberships.isEmpty) return;
 
-    final organizationId = memberships.first['organization_id'] as String;
-    _organizationId = organizationId;
+    _organizationIds
+      ..clear()
+      ..addAll(
+        memberships
+            .map((row) => row['organization_id'] as String?)
+            .whereType<String>(),
+      );
+    if (_organizationIds.isEmpty) return;
 
     final settings = await FirebaseMessaging.instance.requestPermission(
       alert: true,
@@ -136,30 +140,36 @@ class PushNotificationService {
     if (settings.authorizationStatus == AuthorizationStatus.denied) return;
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      await _waitForApnsToken();
+      final apnsReady = await _waitForApnsToken();
+      if (!apnsReady) return;
     }
 
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null || token.trim().isEmpty) return;
     _currentToken = token;
-    await _registerToken(organizationId, token);
+    for (final organizationId in _organizationIds) {
+      await _registerToken(organizationId, token);
+    }
   }
 
-  Future<void> _waitForApnsToken() async {
+  Future<bool> _waitForApnsToken() async {
     for (var attempt = 0; attempt < 8; attempt++) {
       final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
-      if (apnsToken != null && apnsToken.isNotEmpty) return;
+      if (apnsToken != null && apnsToken.isNotEmpty) return true;
       await Future<void>.delayed(const Duration(milliseconds: 500));
     }
+    return false;
   }
 
   Future<void> _registerToken(String organizationId, String token) async {
     final client = Supabase.instance.client;
     if (client.auth.currentUser == null) return;
-    final platform = switch (defaultTargetPlatform) {
-      TargetPlatform.iOS => 'ios',
-      _ => 'android',
-    };
+    final platform = kIsWeb
+        ? 'web'
+        : switch (defaultTargetPlatform) {
+            TargetPlatform.iOS => 'ios',
+            _ => 'android',
+          };
     final value = await client.rpc(
       'notification_register_device',
       params: {
@@ -169,7 +179,7 @@ class PushNotificationService {
         'p_device_name': 'FactoryOS ${defaultTargetPlatform.name}',
       },
     );
-    if (value is String && value.isNotEmpty) _deviceId = value;
+    if (value is String && value.isNotEmpty) _deviceIds.add(value);
   }
 
   void attachRouteHandler(ValueChanged<String> handler) {
@@ -207,28 +217,27 @@ class PushNotificationService {
           'notification_disable_current_device',
           params: {'p_device_token': token},
         );
-        _deviceId = null;
+        _deviceIds.clear();
         return;
       } catch (_) {
         // Backward-compatible fallback for deployments not yet on migration 0040.
       }
     }
 
-    final deviceId = _deviceId;
-    if (deviceId != null) {
+    for (final deviceId in _deviceIds.toList(growable: false)) {
       await client.rpc(
         'notification_disable_device',
         params: {'p_device_id': deviceId},
       );
-      _deviceId = null;
     }
+    _deviceIds.clear();
   }
 
   Future<void> signOut() async {
     try {
       await disableCurrentDevice();
     } finally {
-      _organizationId = null;
+      _organizationIds.clear();
       _currentToken = null;
       await Supabase.instance.client.auth.signOut();
     }
