@@ -17,6 +17,7 @@ concurrency:
 jobs:
   database-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
@@ -33,7 +34,9 @@ jobs:
         run: supabase start
       - name: Reset and apply migrations + seed
         run: supabase db reset
-      - name: Run SQL smoke checks
+      - name: Lint public database functions
+        run: supabase db lint --level error -s public
+      - name: Run SQL smoke and structural quality checks
         run: |
           set -euo pipefail
           for test_file in supabase/tests/*.sql; do
@@ -58,3 +61,13 @@ jobs:
           bash supabase/tests/notifications_auth_e2e.sh
           bash supabase/tests/notifications_scope_e2e.sh
           bash supabase/tests/security_auth_e2e.sh
+      - name: Capture local database index diagnostics
+        run: |
+          set -euo pipefail
+          supabase inspect db index-stats --local | tee /tmp/factoryos-index-stats.txt
+          {
+            echo '### Database index diagnostics'
+            echo '```text'
+            head -n 80 /tmp/factoryos-index-stats.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

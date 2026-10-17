@@ -40,18 +40,48 @@ jobs:
       - name: Admin dependencies
         working-directory: apps/admin_web
         run: flutter pub get
-      - name: Admin analyze including Maintenance
+      - name: Admin analyze
         working-directory: apps/admin_web
         run: flutter analyze
-      - name: Admin web build including Maintenance
+      - name: Admin widget tests
+        working-directory: apps/admin_web
+        run: flutter test
+      - name: Admin release web build
         working-directory: apps/admin_web
         run: flutter build web --release --dart-define=SUPABASE_URL=https://example.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=placeholder
+      - name: Admin web app-payload budget
+        working-directory: apps/admin_web
+        run: |
+          set -euo pipefail
+          app_js='build/web/main.dart.js'
+          if [ ! -f "$app_js" ]; then
+            echo 'Expected release payload build/web/main.dart.js was not produced.' >&2
+            exit 1
+          fi
+          app_bytes="$(stat -c%s "$app_js")"
+          app_limit="$((5 * 1024 * 1024))"
+          total_bytes="$(du -sb build/web | cut -f1)"
+          app_mb="$(awk -v b="$app_bytes" 'BEGIN { printf "%.2f", b/1024/1024 }')"
+          total_mb="$(awk -v b="$total_bytes" 'BEGIN { printf "%.2f", b/1024/1024 }')"
+          echo "Admin app JavaScript payload: ${app_mb} MiB (${app_bytes} bytes)"
+          echo "Full Flutter web output (informational): ${total_mb} MiB (${total_bytes} bytes)"
+          find build/web -type f -printf '%s %p\n' | sort -nr | head -n 15
+          {
+            echo '### Admin web release payload'
+            echo "- App payload (main.dart.js): ${app_mb} MiB"
+            echo '- App payload budget: 5 MiB'
+            echo "- Full Flutter web output (informational): ${total_mb} MiB"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$app_bytes" -gt "$app_limit" ]; then
+            echo "Admin app JavaScript payload exceeds 5 MiB quality budget." >&2
+            exit 1
+          fi
       - name: Mobile dependencies
         working-directory: apps/mobile
         run: flutter pub get
-      - name: Mobile analyze including Maintenance
+      - name: Mobile analyze
         working-directory: apps/mobile
         run: flutter analyze
-      - name: Mobile tests including Maintenance
+      - name: Mobile tests
         working-directory: apps/mobile
         run: flutter test
