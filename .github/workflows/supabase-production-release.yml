@@ -1,0 +1,75 @@
+name: Supabase Production Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DEPLOY to apply production migrations and deploy functions'
+        required: true
+        default: 'REVIEW'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ inputs.confirm == 'DEPLOY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.FACTORYOS_SUPABASE_DB_PASSWORD }}
+      FACTORYOS_INVITE_REDIRECT_URL: ${{ secrets.FACTORYOS_INVITE_REDIRECT_URL }}
+      NOTIFICATION_DISPATCH_SECRET: ${{ secrets.NOTIFICATION_DISPATCH_SECRET }}
+      FCM_PROJECT_ID: ${{ secrets.FCM_PROJECT_ID }}
+      FCM_CLIENT_EMAIL: ${{ secrets.FCM_CLIENT_EMAIL }}
+      FCM_PRIVATE_KEY: ${{ secrets.FCM_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - name: Validate production release secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            SUPABASE_ACCESS_TOKEN
+            SUPABASE_PROJECT_REF
+            SUPABASE_DB_PASSWORD
+            FACTORYOS_INVITE_REDIRECT_URL
+            NOTIFICATION_DISPATCH_SECRET
+            FCM_PROJECT_ID
+            FCM_CLIENT_EMAIL
+            FCM_PRIVATE_KEY
+          )
+          missing=0
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required production secret: $name"
+              missing=1
+            fi
+          done
+          test "$missing" -eq 0
+      - name: Link exact FactoryOS production project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Preview pending production migrations
+        run: supabase db push --dry-run
+      - name: Apply pending production migrations
+        run: supabase db push
+      - name: Configure Edge Function production secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase secrets set \
+            --project-ref "$SUPABASE_PROJECT_REF" \
+            "FACTORYOS_INVITE_REDIRECT_URL=$FACTORYOS_INVITE_REDIRECT_URL" \
+            "NOTIFICATION_DISPATCH_SECRET=$NOTIFICATION_DISPATCH_SECRET" \
+            "FCM_PROJECT_ID=$FCM_PROJECT_ID" \
+            "FCM_CLIENT_EMAIL=$FCM_CLIENT_EMAIL" \
+            "FCM_PRIVATE_KEY=$FCM_PRIVATE_KEY"
+      - name: Deploy FactoryOS Edge Functions
+        run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Show migration state after deployment
+        run: supabase migration list
