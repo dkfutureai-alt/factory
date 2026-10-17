@@ -31,6 +31,7 @@ begin
 end $$;
 
 do $$
+declare v_definition text;
 begin
   if has_table_privilege('authenticated','public.notifications','INSERT') or has_table_privilege('authenticated','public.notifications','UPDATE') or has_table_privilege('authenticated','public.notifications','DELETE') then
     raise exception 'authenticated must not mutate notifications directly';
@@ -40,6 +41,15 @@ begin
   end if;
   if has_table_privilege('authenticated','public.notification_devices','INSERT') or has_table_privilege('authenticated','public.notification_devices','UPDATE') or has_table_privilege('authenticated','public.notification_devices','DELETE') then
     raise exception 'device mutations must use RPCs';
+  end if;
+
+  select pg_get_functiondef('public.notification_register_device(uuid,text,text,text)'::regprocedure)
+    into v_definition;
+  if position('extensions.digest' in v_definition)=0 then
+    raise exception 'notification_register_device must qualify pgcrypto digest through extensions schema';
+  end if;
+  if not has_function_privilege('authenticated','public.notification_register_device(uuid,text,text,text)','EXECUTE') then
+    raise exception 'authenticated must be able to execute notification_register_device RPC';
   end if;
 end $$;
 
