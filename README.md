@@ -48,13 +48,14 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 9: Vehicles, Drivers, Trips & Fuel — backend, Admin Fleet UI and Driver mobile workspace complete and CI validated.
 - Phase 10: Dispatch, Delivery & Returnables — backend, Admin Dispatch UI and Driver Delivery/POD/Returnables workspace complete and CI validated.
 - Phase 11: Maintenance — assets/equipment, requests, preventive plans, work orders, technician execution, QR scanning, private work media, downtime, ledger-backed spares, Admin and mobile workspaces complete and CI validated.
-- Phase 12: Reports & Dashboards — next development phase.
+- Phase 12: Reports & Dashboards — unified tenant-safe reporting, executive dashboard, date/factory filtering, trends, operational exceptions, audited activity, saved report views, Admin report workspace and management mobile reporting complete and CI validated.
+- Phase 13: Notifications — next development phase.
 
-Latest validated checks through Phase 11:
+Latest validated checks through Phase 12:
 
 - invitation Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations `0001`–`0026`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
-- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse, Fleet, Dispatch and Maintenance SQL smoke/integrity tests — pass;
+- clean local Supabase start/reset, migrations `0001`–`0027`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
+- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse, Fleet, Dispatch, Maintenance and Reports/Dashboards SQL smoke/integrity tests — pass;
 - factory metadata visibility is restricted to assigned factories for factory-scoped roles while organization admins retain organization-wide visibility — pass;
 - real signup -> password login -> JWT -> PostgREST factory/HR RLS — pass;
 - employee self-profile, check-in and leave-request flows — pass;
@@ -92,13 +93,18 @@ Latest validated checks through Phase 11:
 - Maintenance spare usage decrements the shared Inventory ledger and rejects insufficient stock — pass;
 - private Maintenance media bucket/path/RLS policy checks — pass;
 - Maintenance dashboard authorization and audit logging — pass;
+- Factory Manager factory-scoped executive report access — pass;
+- Factory Manager organization-wide and cross-factory reporting denial — pass;
+- employee management-report denial and Organization Admin organization-wide reporting — pass;
+- daily Reports trend, normalized operational exceptions and audited activity — pass;
+- authorized saved report views and report-scope RLS denial — pass;
 - shared Flutter core analysis and permission tests — pass;
-- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse + Fleet + Dispatch + Maintenance — pass;
-- mobile Flutter analysis and tests including HR, Inventory scan, Production, Quality, commercial, Warehouse, Fleet, Delivery/POD and Maintenance QR/photo/work-order operations — pass.
+- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse + Fleet + Dispatch + Maintenance + Reports/Dashboards — pass;
+- mobile Flutter analysis and tests including HR, Inventory scan, Production, Quality, commercial, Warehouse, Fleet, Delivery/POD, Maintenance QR/photo/work-order operations and management Reports — pass.
 
-Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–11 business logic.
+Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–12 business logic.
 
-See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md` and `docs/PHASE_11_MAINTENANCE.md`.
+See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md`, `docs/PHASE_11_MAINTENANCE.md` and `docs/PHASE_12_REPORTS_DASHBOARDS.md`.
 
 ## Local Supabase
 
@@ -119,6 +125,7 @@ bash supabase/tests/warehouse_auth_e2e.sh
 bash supabase/tests/fleet_auth_e2e.sh
 bash supabase/tests/dispatch_auth_e2e.sh
 bash supabase/tests/maintenance_auth_e2e.sh
+bash supabase/tests/reports_auth_e2e.sh
 ```
 
 ## Development Sequence
