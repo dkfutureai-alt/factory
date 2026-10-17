@@ -9,6 +9,7 @@ import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
 import 'maintenance_technician.dart';
 import 'main_phase11.dart' as phase11;
+import 'notification_inbox.dart';
 import 'production_execution.dart';
 import 'quality_execution.dart';
 import 'reports_mobile.dart';
@@ -152,6 +153,30 @@ class _MobileHomePhase12 extends StatefulWidget {
 class _MobileHomePhase12State extends State<_MobileHomePhase12> {
   int index = 0;
 
+  void _openNotificationRoute(String route) {
+    Widget? page;
+    if (route.startsWith('/maintenance')) {
+      page = const MaintenanceTechnicianPage();
+    } else if (route.startsWith('/hr')) {
+      page = const HrSelfServicePage();
+    } else if (route.startsWith('/inventory')) {
+      page = const InventoryScannerPage();
+    } else if (route.startsWith('/dispatch') || route.startsWith('/delivery')) {
+      if (widget.data.role == AppRole.driver || widget.data.role == AppRole.employee) {
+        page = const DeliveryDriverPage();
+      }
+    }
+    if (page == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Open this notification from the related FactoryOS Admin module.'),
+        ),
+      );
+      return;
+    }
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page!));
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasInventory = widget.data.modules.any(
@@ -166,10 +191,7 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
               title: 'Scan',
               icon: Icons.qr_code_scanner,
             ),
-      const phase11.SimpleTab(
-        title: 'Alerts',
-        icon: Icons.notifications_none,
-      ),
+      NotificationInboxPage(onOpenRoute: _openNotificationRoute),
       phase11.ProfileTab(data: widget.data),
     ];
     return Scaffold(
@@ -190,6 +212,7 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
           ),
           NavigationDestination(
             icon: Icon(Icons.notifications_none),
+            selectedIcon: Icon(Icons.notifications),
             label: 'Alerts',
           ),
           NavigationDestination(
@@ -225,6 +248,8 @@ class _HomeTabPhase12 extends StatelessWidget {
       page = const MaintenanceTechnicianPage();
     } else if (module.key == 'reports') {
       page = const ReportsMobilePage();
+    } else if (module.key == 'notifications') {
+      page = const NotificationInboxPage();
     } else if (module.key == 'delivery') {
       if (data.role == AppRole.driver || data.role == AppRole.employee) {
         page = const DeliveryDriverPage();
@@ -334,6 +359,7 @@ class _HomeTabPhase12 extends StatelessWidget {
                 'delivery' => Icons.route_outlined,
                 'maintenance' => Icons.build_circle_outlined,
                 'reports' => Icons.bar_chart_outlined,
+                'notifications' => Icons.notifications_active_outlined,
                 'dashboard' => Icons.dashboard_outlined,
                 _ => Icons.widgets_outlined,
               };
