@@ -41,7 +41,8 @@ begin
     and c.relkind in ('r','p')
     and not exists(select 1 from pg_index i where i.indrelid=c.oid and i.indisprimary)
     and not exists (
-      select 1 from pg_depend d
+      select 1
+      from pg_depend d
       where d.classid='pg_class'::regclass
         and d.objid=c.oid
         and d.deptype='e'
@@ -77,9 +78,10 @@ begin
         and i.indpred is null
         and i.indexprs is null
         and array(
-          select i.indkey[offset]
-          from generate_series(0,cardinality(fk.conkey)-1) as offset
-          order by offset
+          select indexed.attnum::smallint
+          from unnest(i.indkey::smallint[]) with ordinality as indexed(attnum, ordinality)
+          where indexed.ordinality <= cardinality(fk.conkey)
+          order by indexed.ordinality
         ) = fk.conkey
     )
   )
