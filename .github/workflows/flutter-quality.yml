@@ -60,8 +60,10 @@ jobs:
           total_bytes=$(du -sb build/web | cut -f1)
           echo "main.dart.js bytes: $main_bytes"
           echo "build/web total bytes: $total_bytes"
-          test "$main_bytes" -le 12582912
-          test "$total_bytes" -le 36700160
+          # Keep application JS below 5 MiB and the complete Flutter release
+          # payload (including framework engine assets) below 50 MiB.
+          test "$main_bytes" -le 5242880
+          test "$total_bytes" -le 52428800
       - name: Mobile dependencies
         working-directory: apps/mobile
         run: flutter pub get
