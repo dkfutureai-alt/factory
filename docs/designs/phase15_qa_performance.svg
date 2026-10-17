@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1024" viewBox="0 0 1440 1024">
+  <rect width="1440" height="1024" fill="#f5f7fb"/>
+  <rect x="0" y="0" width="1440" height="86" fill="#0f172a"/>
+  <text x="42" y="52" font-family="Arial" font-size="28" font-weight="700" fill="#ffffff">FactoryOS — Phase 15 Full QA &amp; Performance</text>
+  <text x="42" y="75" font-family="Arial" font-size="13" fill="#94a3b8">Release quality scorecard • regression • security • performance • build readiness</text>
+
+  <g font-family="Arial">
+    <rect x="42" y="116" width="250" height="120" rx="14" fill="#ffffff"/>
+    <text x="64" y="148" font-size="13" fill="#64748b">Regression suites</text><text x="64" y="194" font-size="34" font-weight="700" fill="#0f172a">PASS</text><text x="64" y="218" font-size="12" fill="#16a34a">Phase 1–14 E2E</text>
+    <rect x="310" y="116" width="250" height="120" rx="14" fill="#ffffff"/>
+    <text x="332" y="148" font-size="13" fill="#64748b">Database lint</text><text x="332" y="194" font-size="34" font-weight="700" fill="#0f172a">0</text><text x="382" y="194" font-size="13" fill="#64748b">errors</text>
+    <rect x="578" y="116" width="250" height="120" rx="14" fill="#ffffff"/>
+    <text x="600" y="148" font-size="13" fill="#64748b">RLS coverage</text><text x="600" y="194" font-size="34" font-weight="700" fill="#0f172a">100%</text><text x="600" y="218" font-size="12" fill="#16a34a">public app tables</text>
+    <rect x="846" y="116" width="250" height="120" rx="14" fill="#ffffff"/>
+    <text x="868" y="148" font-size="13" fill="#64748b">FK index coverage</text><text x="868" y="194" font-size="34" font-weight="700" fill="#0f172a">100%</text><text x="868" y="218" font-size="12" fill="#16a34a">performance gate</text>
+    <rect x="1114" y="116" width="284" height="120" rx="14" fill="#ffffff"/>
+    <text x="1136" y="148" font-size="13" fill="#64748b">Release builds</text><text x="1136" y="194" font-size="34" font-weight="700" fill="#0f172a">GREEN</text><text x="1136" y="218" font-size="12" fill="#16a34a">Admin web + mobile analysis</text>
+  </g>
+
+  <rect x="42" y="264" width="660" height="330" rx="14" fill="#ffffff"/>
+  <text x="66" y="302" font-family="Arial" font-size="19" font-weight="700" fill="#0f172a">Quality Gate Matrix</text>
+  <g font-family="Arial" font-size="12" fill="#64748b">
+    <text x="66" y="338">GATE</text><text x="360" y="338">TARGET</text><text x="560" y="338">STATUS</text>
+  </g>
+  <g font-family="Arial" font-size="14" fill="#0f172a">
+    <text x="66" y="376">Flutter analyze + tests</text><text x="360" y="376">0 analyzer/test failures</text><text x="560" y="376" fill="#16a34a">PASS</text>
+    <line x1="66" y1="392" x2="674" y2="392" stroke="#e2e8f0"/>
+    <text x="66" y="426">Admin release web build</text><text x="360" y="426">Build + size budget</text><text x="560" y="426" fill="#16a34a">PASS</text>
+    <line x1="66" y1="442" x2="674" y2="442" stroke="#e2e8f0"/>
+    <text x="66" y="476">Supabase reset + migrations</text><text x="360" y="476">Clean reset / no drift</text><text x="560" y="476" fill="#16a34a">PASS</text>
+    <line x1="66" y1="492" x2="674" y2="492" stroke="#e2e8f0"/>
+    <text x="66" y="526">DB lint + RLS audit</text><text x="360" y="526">0 blocking findings</text><text x="560" y="526" fill="#16a34a">PASS</text>
+    <line x1="66" y1="542" x2="674" y2="542" stroke="#e2e8f0"/>
+    <text x="66" y="576">Authenticated E2E chain</text><text x="360" y="576">All role workflows</text><text x="560" y="576" fill="#16a34a">PASS</text>
+  </g>
+
+  <rect x="726" y="264" width="672" height="330" rx="14" fill="#ffffff"/>
+  <text x="750" y="302" font-family="Arial" font-size="19" font-weight="700" fill="#0f172a">Performance &amp; Database Health</text>
+  <g font-family="Arial" font-size="14" fill="#334155">
+    <text x="750" y="352">✓ Foreign-key lookup indexes</text>
+    <text x="750" y="394">✓ High-volume tenant/time indexes</text>
+    <text x="750" y="436">✓ No public table without RLS</text>
+    <text x="750" y="478">✓ No duplicate/invalid primary-key model</text>
+    <text x="750" y="520">✓ PL/pgSQL lint gate</text>
+    <text x="750" y="562">✓ Query-plan smoke for core dashboards</text>
+  </g>
+  <rect x="1116" y="330" width="246" height="196" rx="12" fill="#f8fafc"/>
+  <text x="1138" y="360" font-family="Arial" font-size="13" fill="#64748b">Database checks</text>
+  <text x="1138" y="400" font-family="Arial" font-size="26" font-weight="700" fill="#0f172a">RLS</text>
+  <text x="1220" y="400" font-family="Arial" font-size="26" font-weight="700" fill="#0f172a">FK</text>
+  <text x="1284" y="400" font-family="Arial" font-size="26" font-weight="700" fill="#0f172a">RPC</text>
+  <text x="1138" y="440" font-family="Arial" font-size="13" fill="#16a34a">covered</text>
+  <text x="1220" y="440" font-family="Arial" font-size="13" fill="#16a34a">indexed</text>
+  <text x="1284" y="440" font-family="Arial" font-size="13" fill="#16a34a">linted</text>
+
+  <rect x="42" y="620" width="430" height="344" rx="14" fill="#ffffff"/>
+  <text x="66" y="658" font-family="Arial" font-size="19" font-weight="700" fill="#0f172a">Cross-Role Regression</text>
+  <g font-family="Arial" font-size="14" fill="#334155">
+    <text x="66" y="704">Platform Owner / Org Admin</text><text x="376" y="704" fill="#16a34a">PASS</text>
+    <text x="66" y="746">Factory Manager</text><text x="376" y="746" fill="#16a34a">PASS</text>
+    <text x="66" y="788">Supervisor / Employee</text><text x="376" y="788" fill="#16a34a">PASS</text>
+    <text x="66" y="830">Driver</text><text x="376" y="830" fill="#16a34a">PASS</text>
+    <text x="66" y="872">Cross-factory denial</text><text x="376" y="872" fill="#16a34a">PASS</text>
+    <text x="66" y="914">Anonymous privileged access</text><text x="376" y="914" fill="#16a34a">DENIED</text>
+  </g>
+
+  <rect x="494" y="620" width="442" height="344" rx="14" fill="#ffffff"/>
+  <text x="518" y="658" font-family="Arial" font-size="19" font-weight="700" fill="#0f172a">Responsive / UX QA</text>
+  <g font-family="Arial" font-size="14" fill="#334155">
+    <text x="518" y="704">Admin wide layout</text><text x="842" y="704" fill="#16a34a">PASS</text>
+    <text x="518" y="746">Admin compact navigation</text><text x="842" y="746" fill="#16a34a">PASS</text>
+    <text x="518" y="788">Mobile navigation/module gates</text><text x="842" y="788" fill="#16a34a">PASS</text>
+    <text x="518" y="830">Loading/error/retry states</text><text x="842" y="830" fill="#16a34a">PASS</text>
+    <text x="518" y="872">No hard-coded production KPIs</text><text x="842" y="872" fill="#16a34a">PASS</text>
+  </g>
+
+  <rect x="958" y="620" width="440" height="344" rx="14" fill="#ffffff"/>
+  <text x="982" y="658" font-family="Arial" font-size="19" font-weight="700" fill="#0f172a">Release Readiness</text>
+  <g font-family="Arial" font-size="14" fill="#334155">
+    <text x="982" y="704">Database / RLS</text><text x="1296" y="704" fill="#16a34a">READY</text>
+    <text x="982" y="746">Admin web</text><text x="1296" y="746" fill="#16a34a">READY</text>
+    <text x="982" y="788">Mobile source quality</text><text x="1296" y="788" fill="#16a34a">READY</text>
+    <text x="982" y="830">Android/iOS signing/config</text><text x="1274" y="830" fill="#f59e0b">PHASE 16</text>
+    <text x="982" y="872">SMTP / FCM production secrets</text><text x="1274" y="872" fill="#f59e0b">PHASE 16</text>
+  </g>
+  <rect x="982" y="906" width="208" height="38" rx="9" fill="#e0e7ff"/>
+  <text x="1012" y="930" font-family="Arial" font-size="13" font-weight="700" fill="#1d4ed8">Gate Production Release</text>
+</svg>
