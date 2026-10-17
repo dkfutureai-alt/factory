@@ -61,6 +61,7 @@ jobs:
             --data "$payload")
           token=$(jq -r '.access_token // empty' <<<"$response")
           test -n "$token"
+          echo "::add-mask::$token"
           echo "access_token=$token" >> "$GITHUB_OUTPUT"
 
       - name: Verify authenticated identity and tenant RLS
