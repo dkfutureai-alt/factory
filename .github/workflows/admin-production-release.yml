@@ -1,0 +1,67 @@
+name: Admin Production Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type PUBLISH to deploy the Admin portal to GitHub Pages'
+        required: true
+        default: 'REVIEW'
+      base_href:
+        description: 'Flutter web base href (for this repository Pages site use /factory/)'
+        required: true
+        default: '/factory/'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: factoryos-admin-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: ${{ inputs.confirm == 'PUBLISH' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Validate production web configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_URL:-}"
+          test -n "${SUPABASE_PUBLISHABLE_KEY:-}"
+          [[ "${{ inputs.base_href }}" == /*/ ]]
+      - name: Build production Admin portal
+        working-directory: apps/admin_web
+        run: >-
+          flutter build web --release
+          --base-href "${{ inputs.base_href }}"
+          --dart-define=SUPABASE_URL="$SUPABASE_URL"
+          --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/admin_web/build/web
+
+  deploy:
+    if: ${{ inputs.confirm == 'PUBLISH' }}
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Admin portal
+        id: deployment
+        uses: actions/deploy-pages@v4
