@@ -33,3 +33,6 @@ enable_confirmations = false
 
 [functions.invite-user]
 verify_jwt = true
+
+[functions.send-notifications]
+verify_jwt = false
