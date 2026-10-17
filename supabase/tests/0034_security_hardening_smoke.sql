@@ -77,6 +77,13 @@ begin
   if not has_function_privilege('authenticated','public.security_verify_audit_integrity(uuid,uuid,integer)','EXECUTE') then
     raise exception 'security integrity execute privilege missing';
   end if;
+
+  if has_function_privilege('anon','public.security_admin_summary(uuid,uuid)','EXECUTE')
+     or has_function_privilege('anon','public.security_audit_feed(uuid,uuid,integer,text,text,uuid)','EXECUTE')
+     or has_function_privilege('anon','public.security_access_review(uuid,uuid)','EXECUTE')
+     or has_function_privilege('anon','public.security_verify_audit_integrity(uuid,uuid,integer)','EXECUTE') then
+    raise exception 'anonymous role must not execute privileged security RPCs';
+  end if;
 end $$;
 
 do $$
