@@ -42,7 +42,7 @@ async function googleAccessToken(clientEmail: string, privateKeyPem: string) {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion }),
+    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth-type:jwt-bearer'.replace('oauth-type', 'oauth-grant-type'), assertion }),
   });
   if (!response.ok) throw new Error(`Google OAuth failed: ${response.status} ${await response.text()}`);
   const data = await response.json() as { access_token?: string };
@@ -51,6 +51,7 @@ async function googleAccessToken(clientEmail: string, privateKeyPem: string) {
 }
 
 type NotificationRow = {
+  organization_id: string;
   recipient_user_id: string;
   title: string;
   body: string;
@@ -88,7 +89,7 @@ Deno.serve(async (req) => {
     const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data: queue, error: queueError } = await service
       .from('notification_deliveries')
-      .select('id,notification_id,attempts,notifications(recipient_user_id,title,body,action_route,action_entity_id,priority,category,metadata)')
+      .select('id,notification_id,attempts,notifications(organization_id,recipient_user_id,title,body,action_route,action_entity_id,priority,category,metadata)')
       .eq('channel', 'push')
       .eq('status', 'queued')
       .order('created_at')
@@ -111,6 +112,7 @@ Deno.serve(async (req) => {
       const { data: devices, error: deviceError } = await service
         .from('notification_devices')
         .select('id,device_token')
+        .eq('organization_id', notification.organization_id)
         .eq('user_id', notification.recipient_user_id)
         .eq('is_active', true);
       if (deviceError) throw deviceError;
