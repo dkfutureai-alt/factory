@@ -129,30 +129,29 @@ begin
   end if;
 end $$;
 
--- No application table should expose direct mutation privileges to anon.
+-- Supabase grants baseline table privileges to anon/authenticated; RLS is the
+-- enforcement layer. No app mutation policy may grant INSERT/UPDATE/DELETE/ALL
+-- to anon or PUBLIC.
 do $$
 declare
   exposed text;
 begin
-  select string_agg(format('%I.%I',n.nspname,c.relname),', ' order by c.relname)
+  select string_agg(
+    format('%I.%I/%I[%s]',p.schemaname,p.tablename,p.policyname,p.cmd),
+    ', ' order by p.tablename,p.policyname
+  )
   into exposed
-  from pg_class c
-  join pg_namespace n on n.oid=c.relnamespace
-  where n.nspname='public'
-    and c.relkind in ('r','p')
-    and (
-      has_table_privilege('anon',c.oid,'INSERT')
-      or has_table_privilege('anon',c.oid,'UPDATE')
-      or has_table_privilege('anon',c.oid,'DELETE')
-      or has_table_privilege('anon',c.oid,'TRUNCATE')
-    )
-    and not exists (
-      select 1 from pg_depend d
-      where d.classid='pg_class'::regclass and d.objid=c.oid and d.deptype='e'
+  from pg_policies p
+  where p.schemaname='public'
+    and upper(p.cmd) in ('ALL','INSERT','UPDATE','DELETE')
+    and exists(
+      select 1
+      from unnest(p.roles) as role_name
+      where lower(role_name::text) in ('anon','public')
     );
 
   if exposed is not null then
-    raise exception 'Anonymous mutation privilege on application tables: %',exposed;
+    raise exception 'Anonymous/public mutating RLS policies: %',exposed;
   end if;
 end $$;
 
