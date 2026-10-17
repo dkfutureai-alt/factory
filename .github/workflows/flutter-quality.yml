@@ -40,18 +40,36 @@ jobs:
       - name: Admin dependencies
         working-directory: apps/admin_web
         run: flutter pub get
-      - name: Admin analyze including Maintenance
+      - name: Admin analyze
         working-directory: apps/admin_web
         run: flutter analyze
-      - name: Admin web build including Maintenance
+      - name: Admin release web build
         working-directory: apps/admin_web
         run: flutter build web --release --dart-define=SUPABASE_URL=https://example.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=placeholder
+      - name: Admin web bundle budget
+        working-directory: apps/admin_web
+        run: |
+          set -euo pipefail
+          bytes="$(du -sb build/web | cut -f1)"
+          limit="$((40 * 1024 * 1024))"
+          mb="$(awk -v b="$bytes" 'BEGIN { printf "%.2f", b/1024/1024 }')"
+          echo "Admin web release bundle: ${mb} MiB (${bytes} bytes)"
+          find build/web -type f -printf '%s %p\n' | sort -nr | head -n 15
+          {
+            echo '### Admin web release bundle'
+            echo "- Total: ${mb} MiB"
+            echo '- Budget: 40 MiB'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$bytes" -gt "$limit" ]; then
+            echo "Admin web bundle exceeds 40 MiB quality budget." >&2
+            exit 1
+          fi
       - name: Mobile dependencies
         working-directory: apps/mobile
         run: flutter pub get
-      - name: Mobile analyze including Maintenance
+      - name: Mobile analyze
         working-directory: apps/mobile
         run: flutter analyze
-      - name: Mobile tests including Maintenance
+      - name: Mobile tests
         working-directory: apps/mobile
         run: flutter test
