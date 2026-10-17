@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#F5F7FB"/>
+  <rect x="0" y="0" width="250" height="1000" fill="#0F2747"/>
+  <text x="32" y="58" font-family="Arial" font-size="28" font-weight="700" fill="#FFFFFF">FactoryOS</text>
+  <text x="32" y="88" font-family="Arial" font-size="13" fill="#AFC3DC">OPERATIONS ADMIN</text>
+  <g font-family="Arial" font-size="16" fill="#DCE7F5">
+    <text x="34" y="160">Dashboard</text><text x="34" y="210">Inventory</text><text x="34" y="260">Warehouse</text>
+    <rect x="18" y="285" width="214" height="52" rx="12" fill="#1E5BA8"/><text x="34" y="317" fill="#FFFFFF" font-weight="700">Dispatch &amp; Delivery</text>
+    <text x="34" y="380">Fleet</text><text x="34" y="430">Sales</text><text x="34" y="480">Reports</text>
+  </g>
+  <text x="292" y="66" font-family="Arial" font-size="32" font-weight="800" fill="#10243E">Dispatch &amp; Delivery</text>
+  <text x="292" y="98" font-family="Arial" font-size="15" fill="#61748C">Warehouse handoff → vehicle load → delivery → returnables</text>
+  <rect x="1265" y="34" width="280" height="52" rx="12" fill="#FFFFFF" stroke="#D9E2EF"/><text x="1290" y="66" font-family="Arial" font-size="15" fill="#334A64">Aarohan Plant 01 ▾</text>
+
+  <g font-family="Arial">
+    <rect x="292" y="130" width="286" height="120" rx="18" fill="#FFFFFF" stroke="#E0E7F0"/><text x="316" y="160" font-size="14" fill="#6B7D92">Ready to Load</text><text x="316" y="210" font-size="38" font-weight="800" fill="#173C6B">8</text><text x="410" y="210" font-size="13" fill="#1F8F5F">+3 today</text>
+    <rect x="596" y="130" width="286" height="120" rx="18" fill="#FFFFFF" stroke="#E0E7F0"/><text x="620" y="160" font-size="14" fill="#6B7D92">On Vehicle</text><text x="620" y="210" font-size="38" font-weight="800" fill="#173C6B">5</text><text x="690" y="210" font-size="13" fill="#6B7D92">active trips</text>
+    <rect x="900" y="130" width="286" height="120" rx="18" fill="#FFFFFF" stroke="#E0E7F0"/><text x="924" y="160" font-size="14" fill="#6B7D92">Delivered Today</text><text x="924" y="210" font-size="38" font-weight="800" fill="#173C6B">21</text><text x="1004" y="210" font-size="13" fill="#1F8F5F">96% success</text>
+    <rect x="1204" y="130" width="341" height="120" rx="18" fill="#FFFFFF" stroke="#E0E7F0"/><text x="1228" y="160" font-size="14" fill="#6B7D92">Returnables Pending</text><text x="1228" y="210" font-size="38" font-weight="800" fill="#D17A00">34</text><text x="1310" y="210" font-size="13" fill="#6B7D92">cylinders / crates</text>
+  </g>
+
+  <rect x="292" y="282" width="1253" height="82" rx="16" fill="#FFFFFF" stroke="#E0E7F0"/>
+  <g font-family="Arial" font-size="14" fill="#50657D">
+    <text x="316" y="316">Status</text><text x="316" y="344" font-weight="700" fill="#1E5BA8">All  •  Ready  •  Loaded  •  In Transit  •  Delivered  •  Exception</text>
+    <rect x="1198" y="301" width="322" height="44" rx="10" fill="#F7F9FC" stroke="#D8E0EA"/><text x="1220" y="328">Search delivery / order / vehicle</text>
+  </g>
+
+  <rect x="292" y="390" width="820" height="548" rx="18" fill="#FFFFFF" stroke="#E0E7F0"/>
+  <text x="318" y="430" font-family="Arial" font-size="20" font-weight="800" fill="#10243E">Delivery Queue</text>
+  <g font-family="Arial" font-size="13" fill="#6A7A8E"><text x="318" y="466">DELIVERY</text><text x="485" y="466">CUSTOMER</text><text x="676" y="466">VEHICLE / DRIVER</text><text x="888" y="466">STATUS</text><text x="1022" y="466">ACTION</text></g>
+  <g font-family="Arial" font-size="14" fill="#243A52">
+    <line x1="318" y1="485" x2="1085" y2="485" stroke="#E9EEF5"/>
+    <text x="318" y="520" font-weight="700">DEL-10428</text><text x="485" y="520">Shree Industrial Gas</text><text x="676" y="510">MH 13 AB 4210</text><text x="676" y="530" fill="#718297">R. Jadhav</text><rect x="876" y="498" width="98" height="30" rx="15" fill="#E8F1FF"/><text x="895" y="518" fill="#1E5BA8" font-weight="700">READY</text><text x="1022" y="520" fill="#1E5BA8" font-weight="700">Load →</text>
+    <line x1="318" y1="548" x2="1085" y2="548" stroke="#E9EEF5"/>
+    <text x="318" y="585" font-weight="700">DEL-10427</text><text x="485" y="585">Apex Fabrication</text><text x="676" y="575">MH 12 ZX 8842</text><text x="676" y="595" fill="#718297">S. Pawar</text><rect x="876" y="562" width="108" height="30" rx="15" fill="#FFF2D9"/><text x="891" y="582" fill="#B36600" font-weight="700">IN TRANSIT</text><text x="1022" y="585" fill="#1E5BA8" font-weight="700">Track →</text>
+    <line x1="318" y1="613" x2="1085" y2="613" stroke="#E9EEF5"/>
+    <text x="318" y="650" font-weight="700">DEL-10426</text><text x="485" y="650">Metro Works</text><text x="676" y="640">MH 13 PQ 1120</text><text x="676" y="660" fill="#718297">A. Shaikh</text><rect x="876" y="627" width="104" height="30" rx="15" fill="#E7F7EF"/><text x="891" y="647" fill="#17764D" font-weight="700">DELIVERED</text><text x="1022" y="650" fill="#1E5BA8" font-weight="700">View POD</text>
+  </g>
+
+  <rect x="1138" y="390" width="407" height="548" rx="18" fill="#FFFFFF" stroke="#E0E7F0"/>
+  <text x="1164" y="430" font-family="Arial" font-size="20" font-weight="800" fill="#10243E">Selected Delivery</text>
+  <text x="1164" y="468" font-family="Arial" font-size="22" font-weight="800" fill="#173C6B">DEL-10428</text>
+  <text x="1164" y="496" font-family="Arial" font-size="14" fill="#60748C">SO-2026-0184 • WH-HO-82A1</text>
+  <rect x="1164" y="525" width="355" height="110" rx="14" fill="#F7F9FC"/>
+  <text x="1184" y="552" font-family="Arial" font-size="13" fill="#708197">LOAD SUMMARY</text><text x="1184" y="580" font-family="Arial" font-size="15" font-weight="700" fill="#243A52">48 Oxygen Cylinders</text><text x="1184" y="605" font-family="Arial" font-size="14" fill="#60748C">Staging A → Vehicle MH 13 AB 4210</text>
+  <rect x="1164" y="660" width="355" height="58" rx="12" fill="#1E5BA8"/><text x="1265" y="696" font-family="Arial" font-size="16" font-weight="800" fill="#FFFFFF">CONFIRM VEHICLE LOAD</text>
+  <rect x="1164" y="736" width="355" height="58" rx="12" fill="#FFFFFF" stroke="#D7E0EA"/><text x="1268" y="772" font-family="Arial" font-size="16" font-weight="700" fill="#1E5BA8">DELIVERY DETAILS</text>
+  <text x="1164" y="826" font-family="Arial" font-size="13" fill="#708197">NEXT CONTROL</text><text x="1164" y="854" font-family="Arial" font-size="15" font-weight="700" fill="#243A52">Driver starts trip after load confirmation.</text><text x="1164" y="882" font-family="Arial" font-size="14" fill="#60748C">POD + returnables are captured at customer.</text>
+</svg>

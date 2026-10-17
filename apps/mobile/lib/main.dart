@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'commercial_operations.dart';
+import 'delivery_driver.dart';
 import 'fleet_driver.dart';
 import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
@@ -565,6 +566,22 @@ class HomeTab extends StatelessWidget {
       );
       return;
     }
+    if (module.key == 'delivery') {
+      if (data.role == AppRole.driver || data.role == AppRole.employee) {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const DeliveryDriverPage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Delivery execution is available in the Driver/Employee mobile workspace. Dispatch planning is available in FactoryOS Admin.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
     if (module.key == 'vehicles') {
       if (data.role == AppRole.driver) {
         Navigator.of(context).push(
@@ -658,6 +675,7 @@ class HomeTab extends StatelessWidget {
                 'quality' => Icons.verified_user_outlined,
                 'warehouse' => Icons.warehouse_outlined,
                 'vehicles' => Icons.local_shipping_outlined,
+                'delivery' => Icons.route_outlined,
                 _ => Icons.widgets_outlined,
               };
               return Card(
