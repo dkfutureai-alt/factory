@@ -42,9 +42,10 @@ begin
         and i.indpred is null
         and i.indexprs is null
         and array(
-          select i.indkey[offset]
-          from generate_series(0,cardinality(fk.conkey)-1) as offset
-          order by offset
+          select indexed.attnum::smallint
+          from unnest(i.indkey::smallint[]) with ordinality as indexed(attnum, ordinality)
+          where indexed.ordinality <= cardinality(fk.conkey)
+          order by indexed.ordinality
         ) = fk.conkey
     )
     order by fk.nspname,fk.relname,fk.conname
