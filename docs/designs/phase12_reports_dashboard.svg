@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960">
+  <defs>
+    <linearGradient id="nav" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0B1F33"/>
+      <stop offset="1" stop-color="#12293F"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+    <style>
+      .t{font-family:Inter,Arial,sans-serif;fill:#0F172A}.muted{fill:#64748B}.white{fill:#fff}.h1{font-size:26px;font-weight:800}.h2{font-size:18px;font-weight:700}.body{font-size:13px}.small{font-size:11px}.metric{font-size:24px;font-weight:800}.navt{font-family:Inter,Arial,sans-serif;font-size:13px;fill:#E2E8F0}.label{font-family:Inter,Arial,sans-serif;font-size:12px;fill:#475569}
+    </style>
+  </defs>
+  <rect width="1440" height="960" fill="#F4F7FB"/>
+  <rect width="235" height="960" fill="url(#nav)"/>
+  <circle cx="37" cy="39" r="18" fill="#2F80ED"/><path d="M27 45h20V32l-5 4-4-8-4 8-7-4z" fill="#fff"/>
+  <text x="65" y="37" class="white" font-family="Inter,Arial" font-size="22" font-weight="800">FactoryOS</text>
+  <text x="65" y="55" class="navt small">Smart Factory Management</text>
+  <g transform="translate(16,88)"><rect width="203" height="44" rx="10" fill="#1D4ED8"/><text x="46" y="27" class="navt" font-weight="700">Dashboard</text><text x="16" y="28" font-size="18" fill="#fff">⌂</text></g>
+  <g class="navt"><text x="32" y="168">Sales</text><text x="32" y="208">Purchase</text><text x="32" y="248">Inventory</text><text x="32" y="288">Production</text><text x="32" y="328">Quality</text><text x="32" y="368">Warehouse</text><text x="32" y="408">Fleet &amp; Delivery</text><text x="32" y="448">Maintenance</text><text x="32" y="488">HR &amp; Attendance</text><text x="32" y="528" font-weight="700" fill="#93C5FD">Reports</text><text x="32" y="568">Settings</text></g>
+  <rect x="16" y="850" width="203" height="86" rx="12" fill="#17324C"/><text x="31" y="878" class="white" font-family="Inter,Arial" font-size="13" font-weight="700">Demo Manufacturing Plant</text><text x="31" y="900" class="navt small">FactoryOS · Executive view</text><text x="31" y="920" class="navt small">Data derived from live modules</text>
+
+  <rect x="235" y="0" width="1205" height="70" fill="#fff"/><rect x="265" y="16" width="410" height="38" rx="10" fill="#F1F5F9"/><text x="286" y="40" class="muted body">Search report, order, item, customer…</text><text x="1278" y="32" class="t body" font-weight="700">Factory Manager</text><text x="1278" y="49" class="muted small">Reports access</text><circle cx="1248" cy="34" r="16" fill="#DBEAFE"/>
+
+  <text x="270" y="112" class="t h1">Executive Dashboard</text><text x="270" y="135" class="t muted body">Operational health across the selected factory and period.</text>
+  <rect x="930" y="92" width="205" height="40" rx="9" fill="#fff" stroke="#CBD5E1"/><text x="946" y="117" class="t body">Demo Plant · Solapur</text>
+  <rect x="1147" y="92" width="150" height="40" rx="9" fill="#fff" stroke="#CBD5E1"/><text x="1163" y="117" class="t body">Last 30 days</text>
+  <rect x="1309" y="92" width="95" height="40" rx="9" fill="url(#blue)"/><text x="1331" y="117" class="white body" font-weight="700">Refresh</text>
+
+  <g transform="translate(270,158)">
+    <rect width="258" height="110" rx="14" fill="#fff"/><circle cx="36" cy="38" r="20" fill="#DBEAFE"/><text x="29" y="44" font-size="18" fill="#2563EB">₹</text><text x="68" y="29" class="label">Sales billed</text><text x="68" y="57" class="t metric">₹12.45L</text><text x="68" y="83" class="small" fill="#16A34A">↑ 8.4% vs previous period</text>
+    <rect x="276" width="258" height="110" rx="14" fill="#fff"/><circle cx="312" cy="38" r="20" fill="#DCFCE7"/><text x="304" y="44" font-size="18" fill="#16A34A">▣</text><text x="344" y="29" class="label">Production output</text><text x="344" y="57" class="t metric">12,850</text><text x="344" y="83" class="small" fill="#16A34A">94.2% of plan</text>
+    <rect x="552" width="258" height="110" rx="14" fill="#fff"/><circle cx="588" cy="38" r="20" fill="#FEF3C7"/><text x="580" y="44" font-size="18" fill="#D97706">▢</text><text x="620" y="29" class="label">Inventory on hand</text><text x="620" y="57" class="t metric">18,420</text><text x="620" y="83" class="small" fill="#DC2626">7 items below reorder</text>
+    <rect x="828" width="258" height="110" rx="14" fill="#fff"/><circle cx="864" cy="38" r="20" fill="#FEE2E2"/><text x="856" y="44" font-size="18" fill="#DC2626">!</text><text x="896" y="29" class="label">Open exceptions</text><text x="896" y="57" class="t metric">9</text><text x="896" y="83" class="small" fill="#DC2626">2 high / critical</text>
+  </g>
+
+  <rect x="270" y="288" width="700" height="252" rx="14" fill="#fff"/><text x="292" y="319" class="t h2">Operations trend</text><text x="292" y="340" class="muted small">Production output and completed deliveries</text>
+  <line x1="306" y1="488" x2="940" y2="488" stroke="#E2E8F0"/><line x1="306" y1="445" x2="940" y2="445" stroke="#E2E8F0"/><line x1="306" y1="402" x2="940" y2="402" stroke="#E2E8F0"/><line x1="306" y1="359" x2="940" y2="359" stroke="#E2E8F0"/>
+  <polyline points="320,462 405,438 490,446 575,405 660,418 745,382 830,397 925,365" fill="none" stroke="#2563EB" stroke-width="4"/><polyline points="320,478 405,468 490,452 575,455 660,430 745,424 830,410 925,401" fill="none" stroke="#16A34A" stroke-width="3"/>
+  <circle cx="925" cy="365" r="5" fill="#2563EB"/><circle cx="925" cy="401" r="5" fill="#16A34A"/><text x="315" y="515" class="muted small">Week 1</text><text x="480" y="515" class="muted small">Week 2</text><text x="650" y="515" class="muted small">Week 3</text><text x="820" y="515" class="muted small">Week 4</text>
+
+  <rect x="990" y="288" width="414" height="252" rx="14" fill="#fff"/><text x="1012" y="319" class="t h2">Operational exceptions</text><text x="1012" y="340" class="muted small">Needs attention now</text>
+  <g class="body"><circle cx="1024" cy="375" r="6" fill="#DC2626"/><text x="1040" y="380" class="t body" font-weight="700">Quality NCR overdue</text><text x="1040" y="398" class="muted small">NCR-204 · 2 days overdue</text><line x1="1012" y1="414" x2="1382" y2="414" stroke="#E2E8F0"/><circle cx="1024" cy="442" r="6" fill="#D97706"/><text x="1040" y="447" class="t body" font-weight="700">Low stock · Bearing 6205</text><text x="1040" y="465" class="muted small">12 on hand · reorder at 50</text><line x1="1012" y1="480" x2="1382" y2="480" stroke="#E2E8F0"/><circle cx="1024" cy="505" r="6" fill="#DC2626"/><text x="1040" y="510" class="t body" font-weight="700">Maintenance asset down</text><text x="1040" y="528" class="muted small">Filling Manifold · high criticality</text></g>
+
+  <text x="270" y="580" class="t h2">Module scorecards</text>
+  <g transform="translate(270,596)">
+    <rect width="258" height="106" rx="14" fill="#fff"/><text x="18" y="28" class="label">Quality</text><text x="18" y="57" class="t metric">96.8%</text><text x="18" y="82" class="small" fill="#16A34A">Inspection pass rate</text>
+    <rect x="276" width="258" height="106" rx="14" fill="#fff"/><text x="294" y="28" class="label">Warehouse</text><text x="294" y="57" class="t metric">14</text><text x="294" y="82" class="small" fill="#475569">Picks / staging in progress</text>
+    <rect x="552" width="258" height="106" rx="14" fill="#fff"/><text x="570" y="28" class="label">Fleet &amp; Delivery</text><text x="570" y="57" class="t metric">7</text><text x="570" y="82" class="small" fill="#475569">Active trips / deliveries</text>
+    <rect x="828" width="258" height="106" rx="14" fill="#fff"/><text x="846" y="28" class="label">Maintenance</text><text x="846" y="57" class="t metric">3</text><text x="846" y="82" class="small" fill="#D97706">Open work orders</text>
+  </g>
+
+  <rect x="270" y="724" width="730" height="202" rx="14" fill="#fff"/><text x="292" y="756" class="t h2">Report workspace</text><text x="292" y="778" class="muted small">Drill down and copy/export the filtered report</text>
+  <rect x="292" y="796" width="686" height="38" rx="8" fill="#F8FAFC"/><text x="306" y="820" class="label">Report</text><text x="412" y="820" class="label">Metric</text><text x="630" y="820" class="label">Current</text><text x="756" y="820" class="label">Previous</text><text x="884" y="820" class="label">Status</text>
+  <text x="306" y="856" class="t body">Sales</text><text x="412" y="856" class="t body">Billed value</text><text x="630" y="856" class="t body">₹12.45L</text><text x="756" y="856" class="t body">₹11.48L</text><text x="884" y="856" class="small" fill="#16A34A">Healthy</text>
+  <text x="306" y="890" class="t body">Production</text><text x="412" y="890" class="t body">Plan attainment</text><text x="630" y="890" class="t body">94.2%</text><text x="756" y="890" class="t body">91.6%</text><text x="884" y="890" class="small" fill="#16A34A">Healthy</text>
+
+  <rect x="1020" y="724" width="384" height="202" rx="14" fill="#fff"/><text x="1042" y="756" class="t h2">Recent activity</text><text x="1042" y="778" class="muted small">Audited system events</text><circle cx="1050" cy="810" r="5" fill="#2563EB"/><text x="1066" y="815" class="t body">Production order completed</text><text x="1066" y="832" class="muted small">PO-DEMO-103 · 09:42</text><circle cx="1050" cy="857" r="5" fill="#16A34A"/><text x="1066" y="862" class="t body">Delivery POD completed</text><text x="1066" y="879" class="muted small">DLV-DEMO-018 · 09:18</text><circle cx="1050" cy="904" r="5" fill="#D97706"/><text x="1066" y="909" class="t body">Maintenance work started</text>
+</svg>
