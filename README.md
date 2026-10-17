@@ -32,6 +32,7 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Critical multi-step business operations must be atomic.
 - Every client organization is isolated using organization context plus RLS.
 - Major UI screens are designed before implementation and compared with the approved visual specification.
+- Privileged SECURITY DEFINER functions must have explicit caller authorization, narrowed execute permissions and pinned search paths.
 - No module is complete until database, CRUD, permissions, validation, loading/error states, realistic fictional seed data and workflow tests are verified.
 
 ## Current Status
@@ -50,16 +51,17 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 11: Maintenance — assets/equipment, requests, preventive plans, work orders, technician execution, QR scanning, private work media, downtime, ledger-backed spares, Admin and mobile workspaces complete and CI validated.
 - Phase 12: Reports & Dashboards — unified tenant-safe reporting, executive dashboard, date/factory filtering, trends, operational exceptions, audited activity, saved report views, Admin report workspace and management mobile reporting complete and CI validated.
 - Phase 13: Notifications — tenant-safe in-app inbox, scoped notification rules/templates, preferences, unread/read state, Admin broadcasts and delivery health, automatic operational events, device registry, FCM-ready push outbox/worker, Admin Notification Center and mobile Alerts inbox complete and CI validated.
-- Phase 14: Audit & Security Hardening — next development phase.
+- Phase 14: Audit & Security Hardening — assignment-correct factory scope, member/profile/audit RLS hardening, tamper-evident audit hash chain, immutable app-level audit history, privileged-function hardening, Security Admin workspace, Access Review and Audit Explorer complete and CI validated at the substantive source head; final documentation head validation pending before merge.
+- Phase 15: Full QA & Performance — next development phase after Phase 14 merge.
 
-Latest validated checks through Phase 13:
+Latest validated checks through the Phase 14 substantive source head:
 
 - invitation Edge Function type-check — pass;
 - notification FCM HTTP v1 Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations `0001`–`0033`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
-- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse, Fleet, Dispatch, Maintenance, Reports/Dashboards and Notifications SQL smoke/integrity tests — pass;
-- factory metadata visibility is restricted to assigned factories for factory-scoped roles while organization admins retain organization-wide visibility — pass;
+- clean local Supabase start/reset, migrations `0001`–`0038`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
+- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse, Fleet, Dispatch, Maintenance, Reports/Dashboards, Notifications and Audit/Security SQL smoke/integrity tests — pass;
 - real signup -> password login -> JWT -> PostgREST factory/HR RLS — pass;
+- factory metadata visibility is restricted to assigned factories for factory-scoped roles while organization admins retain organization-wide visibility — pass;
 - employee self-profile, check-in and leave-request flows — pass;
 - Inventory scan, receive/transfer/issue, negative-stock denial, cross-factory denial and employee-write denial — pass;
 - Production manager order creation and employee order-creation denial — pass;
@@ -67,53 +69,33 @@ Latest validated checks through Phase 13:
 - Production negative-stock, output-over-plan and cross-factory denial — pass;
 - Quality inspection start, checklist capture, pass/fail/hold completion and numeric tolerance auto-fail — pass;
 - employee Quality certificate issue denial and manager certificate issue — pass;
-- employee NCR creation and Quality quarantine ledger transfer — pass;
-- employee quarantine-release denial and manager NCR closure/release — pass;
-- Quality quarantine/release Inventory balance verification — pass;
-- Factory Manager cross-factory Quality denial — pass;
-- Purchase requisition create/approve and Purchase Order manager enforcement — pass;
-- ledger-backed Goods Receipt, automatic incoming Quality creation, Quality-to-GRN status sync and Inventory release — pass;
-- supplier invoice/payment and over-scope permission protections — pass;
-- quotation -> Sales Order conversion, stock allocation and dispatch readiness — pass;
-- customer invoice/payment and cross-factory commercial denial — pass;
-- Warehouse zone/bin/staging hierarchy, put-away, pick/stage/handoff, cycle count and stock-adjustment flows — pass;
-- Warehouse employee/manager permissions, ledger movement, reservation-location sync and cross-factory denial — pass;
-- Fleet manager vehicle/driver/trip planning permissions and Driver-role execution — pass;
-- Fleet odometer monotonicity, assignment checks, licence-expiry start protection and handoff uniqueness — pass;
-- Fleet driver fuel scope, service reminder lifecycle, report authorization and cross-factory isolation — pass;
-- Dispatch manager planning, Warehouse handoff/Fleet trip pairing and vehicle-load permissions — pass;
-- staging → vehicle transfer, vehicle → customer issue and customer returnable → vehicle receipt remain Inventory-ledger-backed — pass;
-- assigned-driver delivery visibility, unassigned-user denial, POD completion, returnable closure, exception report/resolution and dashboard authorization — pass;
-- closed returnable pickups reject later stock receipts — pass;
+- employee NCR creation, Quality quarantine ledger transfer, manager NCR closure/release and Inventory balance verification — pass;
+- Purchase requisition create/approve, Purchase Order manager enforcement, ledger-backed Goods Receipt, incoming Quality sync, supplier invoice/payment and cross-factory denial — pass;
+- quotation -> Sales Order conversion, stock allocation, dispatch readiness, customer invoice/payment and cross-factory commercial denial — pass;
+- Warehouse zone/bin/staging hierarchy, put-away, pick/stage/handoff, cycle count, stock adjustment, permissions and ledger/reservation-location synchronization — pass;
+- Fleet manager vehicle/driver/trip planning, Driver-role execution, odometer integrity, assignment/licence protections, fuel scope, service reminders and cross-factory isolation — pass;
+- Dispatch handoff/trip pairing, staging -> vehicle transfer, vehicle -> customer issue, returnables receipt, assigned-driver visibility, POD, exceptions, dashboard scope and closed-pickup protection — pass;
 - private POD Storage bucket/path/RLS policy checks — pass;
-- Maintenance asset/planning permissions and cross-factory denial — pass;
-- employee Maintenance request creation and assigned-technician work-order visibility — pass;
-- preventive schedule/checklist creation, due-work-order generation and next-due advancement — pass;
-- one-active-work-order-per-preventive-plan database integrity — pass;
-- technician work start, checklist completion, work updates and completion — pass;
-- Maintenance downtime lifecycle and asset status recovery — pass;
-- Maintenance spare usage decrements the shared Inventory ledger and rejects insufficient stock — pass;
-- private Maintenance media bucket/path/RLS policy checks — pass;
-- Maintenance dashboard authorization and audit logging — pass;
-- Factory Manager factory-scoped executive report access — pass;
-- Factory Manager organization-wide and cross-factory reporting denial — pass;
-- employee management-report denial and Organization Admin organization-wide reporting — pass;
-- daily Reports trend, normalized operational exceptions and audited activity — pass;
-- authorized saved report views and report-scope RLS denial — pass;
-- employee notification preferences, guarded device registration, in-app inbox and read state — pass;
-- Factory Manager scoped broadcast and notification-health access — pass;
-- employee broadcast denial plus organization-wide and blocked-factory manager denial — pass;
-- in-app sent + push queued delivery contract — pass;
-- push-only delivery remains excluded from the in-app inbox — pass;
-- muted notification category suppression — pass;
-- global-rule visibility with cross-factory scoped-rule denial — pass;
+- Maintenance asset/planning permissions, requests, technician execution, preventive scheduling, one-active-work-order integrity, downtime, shared-ledger spare usage, private media RLS and dashboard/audit authorization — pass;
+- Reports factory/organization authorization, daily trends, operational exceptions, audited activity and saved report views — pass;
+- Notifications preferences, device registration, inbox/read state, scoped broadcasts, delivery state, push-only isolation, muted-category suppression and factory-rule visibility — pass;
+- Factory Manager `is_factory_member` is now assignment-scoped rather than organization-wide — pass;
+- Factory Manager cross-factory organization-member, profile and factory-assignment privacy — pass;
+- Factory Manager organization-wide and blocked-factory Security RPC denial — pass;
+- Employee Security RPC denial and Organization Admin organization-wide Security access — pass;
+- Factory-scoped Security Access Review and audit-feed isolation — pass;
+- direct `audit_logs` RLS blocked-factory isolation — pass;
+- authenticated audit INSERT/UPDATE/DELETE privileges revoked and mutation guard enforced — pass;
+- per-organization audit SHA-256 hash generation, recomputation and chain-link verification — pass;
+- privileged Security RPCs unavailable to `anon` while intended guarded RPCs remain available to `authenticated` — pass;
+- Phase 14 SECURITY DEFINER functions use pinned search paths and explicit scope checks — pass;
 - shared Flutter core analysis and permission tests — pass;
-- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse + Fleet + Dispatch + Maintenance + Reports/Dashboards + Notifications — pass;
+- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse + Fleet + Dispatch + Maintenance + Reports/Dashboards + Notifications + Audit & Security — pass;
 - mobile Flutter analysis and tests including HR, Inventory scan, Production, Quality, commercial, Warehouse, Fleet, Delivery/POD, Maintenance QR/photo/work-order operations, management Reports and Notifications inbox/preferences — pass.
 
-Production deployment still needs project-specific SMTP/invite redirect configuration, generated Android/iOS platform/release configuration, and FCM deployment secrets/platform setup for external push delivery. These are environment/release tasks rather than missing Phase 2–13 in-app business logic.
+Production deployment still needs project-specific SMTP/invite redirect configuration, generated Android/iOS platform/release configuration, and FCM deployment secrets/platform setup for external push delivery. These are environment/release tasks rather than missing Phase 2–14 application business logic.
 
-See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md`, `docs/PHASE_11_MAINTENANCE.md`, `docs/PHASE_12_REPORTS_DASHBOARDS.md` and `docs/PHASE_13_NOTIFICATIONS.md`.
+See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md`, `docs/PHASE_11_MAINTENANCE.md`, `docs/PHASE_12_REPORTS_DASHBOARDS.md`, `docs/PHASE_13_NOTIFICATIONS.md` and `docs/PHASE_14_AUDIT_SECURITY.md`.
 
 ## Local Supabase
 
@@ -137,6 +119,7 @@ bash supabase/tests/maintenance_auth_e2e.sh
 bash supabase/tests/reports_auth_e2e.sh
 bash supabase/tests/notifications_auth_e2e.sh
 bash supabase/tests/notifications_scope_e2e.sh
+bash supabase/tests/security_auth_e2e.sh
 ```
 
 ## Development Sequence
