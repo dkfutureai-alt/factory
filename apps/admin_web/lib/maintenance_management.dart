@@ -65,23 +65,23 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
       if (!mounted) return;
       message(success);
       reload();
-    } catch (e) {
-      if (mounted) message(_errorText(e), error: true);
+    } catch (error) {
+      if (mounted) message(_errorText(error), error: true);
     }
   }
 
   Future<void> createAsset(MaintenanceSnapshot data) async {
     final code = TextEditingController();
     final name = TextEditingController();
-    final manufacturer = TextEditingController();
+    final maker = TextEditingController();
     final model = TextEditingController();
     final serial = TextEditingController();
     final qr = TextEditingController();
     final notes = TextEditingController();
     String type = 'equipment';
     String criticality = 'medium';
-    String? workCenterId;
-    String? locationId;
+    String workCenterId = '';
+    String locationId = '';
     final accepted = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
@@ -103,72 +103,72 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
                   decoration: const InputDecoration(labelText: 'Asset name *'),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
-                DropdownButtonFormField<String>(
-                  initialValue: type,
-                  decoration: const InputDecoration(labelText: 'Type'),
-                  items: const [
-                    DropdownMenuItem(value: 'machine', child: Text('Machine')),
-                    DropdownMenuItem(value: 'equipment', child: Text('Equipment')),
-                    DropdownMenuItem(value: 'utility', child: Text('Utility')),
-                    DropdownMenuItem(value: 'tool', child: Text('Tool')),
-                    DropdownMenuItem(value: 'other', child: Text('Other')),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: type,
+                        decoration: const InputDecoration(labelText: 'Type'),
+                        items: const [
+                          DropdownMenuItem(value: 'machine', child: Text('Machine')),
+                          DropdownMenuItem(value: 'equipment', child: Text('Equipment')),
+                          DropdownMenuItem(value: 'utility', child: Text('Utility')),
+                          DropdownMenuItem(value: 'tool', child: Text('Tool')),
+                          DropdownMenuItem(value: 'other', child: Text('Other')),
+                        ],
+                        onChanged: (value) => setDialogState(
+                          () => type = value ?? 'equipment',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: FactorySpacing.sm),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: criticality,
+                        decoration: const InputDecoration(labelText: 'Criticality'),
+                        items: _priorityItems,
+                        onChanged: (value) => setDialogState(
+                          () => criticality = value ?? 'medium',
+                        ),
+                      ),
+                    ),
                   ],
-                  onChanged: (value) =>
-                      setDialogState(() => type = value ?? 'equipment'),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 DropdownButtonFormField<String>(
-                  initialValue: criticality,
-                  decoration: const InputDecoration(labelText: 'Criticality'),
-                  items: const [
-                    DropdownMenuItem(value: 'low', child: Text('Low')),
-                    DropdownMenuItem(value: 'medium', child: Text('Medium')),
-                    DropdownMenuItem(value: 'high', child: Text('High')),
-                    DropdownMenuItem(value: 'critical', child: Text('Critical')),
-                  ],
-                  onChanged: (value) =>
-                      setDialogState(() => criticality = value ?? 'medium'),
-                ),
-                const SizedBox(height: FactorySpacing.sm),
-                DropdownButtonFormField<String?>(
                   initialValue: workCenterId,
                   decoration: const InputDecoration(labelText: 'Work center'),
                   items: [
-                    const DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text('Not linked'),
-                    ),
+                    const DropdownMenuItem(value: '', child: Text('Not linked')),
                     ...data.workCenters.map(
-                      (row) => DropdownMenuItem<String?>(
+                      (row) => DropdownMenuItem(
                         value: row['id'] as String,
                         child: Text('${row['name']} · ${row['code']}'),
                       ),
                     ),
                   ],
                   onChanged: (value) =>
-                      setDialogState(() => workCenterId = value),
+                      setDialogState(() => workCenterId = value ?? ''),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
-                DropdownButtonFormField<String?>(
+                DropdownButtonFormField<String>(
                   initialValue: locationId,
                   decoration: const InputDecoration(labelText: 'Factory location'),
                   items: [
-                    const DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text('Not linked'),
-                    ),
+                    const DropdownMenuItem(value: '', child: Text('Not linked')),
                     ...data.locations.map(
-                      (row) => DropdownMenuItem<String?>(
+                      (row) => DropdownMenuItem(
                         value: row['id'] as String,
                         child: Text('${row['name']} · ${row['code']}'),
                       ),
                     ),
                   ],
-                  onChanged: (value) => setDialogState(() => locationId = value),
+                  onChanged: (value) =>
+                      setDialogState(() => locationId = value ?? ''),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 TextField(
-                  controller: manufacturer,
+                  controller: maker,
                   decoration: const InputDecoration(labelText: 'Manufacturer'),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
@@ -212,13 +212,13 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
     final values = (
       code: code.text.trim(),
       name: name.text.trim(),
-      manufacturer: manufacturer.text.trim(),
+      maker: maker.text.trim(),
       model: model.text.trim(),
       serial: serial.text.trim(),
       qr: qr.text.trim(),
       notes: notes.text.trim(),
     );
-    for (final controller in [code, name, manufacturer, model, serial, qr, notes]) {
+    for (final controller in [code, name, maker, model, serial, qr, notes]) {
       controller.dispose();
     }
     if (accepted != true || values.code.length < 2 || values.name.length < 2) {
@@ -231,9 +231,9 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
         name: values.name,
         type: type,
         criticality: criticality,
-        workCenterId: workCenterId,
-        locationId: locationId,
-        manufacturer: values.manufacturer,
+        workCenterId: _nullableId(workCenterId),
+        locationId: _nullableId(locationId),
+        manufacturer: values.maker,
         model: values.model,
         serialNo: values.serial,
         qrCode: values.qr,
@@ -245,7 +245,8 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
 
   Future<void> createRequest(MaintenanceSnapshot data) async {
     if (data.assets.isEmpty) {
-      return message('Create an asset first.', error: true);
+      message('Create an asset first.', error: true);
+      return;
     }
     String assetId = data.assets.first['id'] as String;
     String issueType = 'mechanical';
@@ -261,20 +262,10 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<String>(
-                  initialValue: assetId,
-                  decoration: const InputDecoration(labelText: 'Asset'),
-                  items: data.assets
-                      .map(
-                        (row) => DropdownMenuItem(
-                          value: row['id'] as String,
-                          child: Text('${row['asset_code']} · ${row['name']}'),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) setDialogState(() => assetId = value);
-                  },
+                _AssetDropdown(
+                  data: data,
+                  value: assetId,
+                  onChanged: (value) => setDialogState(() => assetId = value),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 DropdownButtonFormField<String>(
@@ -289,16 +280,18 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
                     DropdownMenuItem(value: 'noise', child: Text('Noise')),
                     DropdownMenuItem(value: 'other', child: Text('Other')),
                   ],
-                  onChanged: (value) =>
-                      setDialogState(() => issueType = value ?? 'other'),
+                  onChanged: (value) => setDialogState(
+                    () => issueType = value ?? 'other',
+                  ),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 DropdownButtonFormField<String>(
                   initialValue: priority,
                   decoration: const InputDecoration(labelText: 'Priority'),
                   items: _priorityItems,
-                  onChanged: (value) =>
-                      setDialogState(() => priority = value ?? 'medium'),
+                  onChanged: (value) => setDialogState(
+                    () => priority = value ?? 'medium',
+                  ),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 TextField(
@@ -338,12 +331,15 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
   }
 
   Future<void> createPlan(MaintenanceSnapshot data) async {
-    if (data.assets.isEmpty) return message('Create an asset first.', error: true);
+    if (data.assets.isEmpty) {
+      message('Create an asset first.', error: true);
+      return;
+    }
     String assetId = data.assets.first['id'] as String;
     String type = 'preventive';
     String frequencyUnit = 'months';
     String priority = 'medium';
-    String? technicianId;
+    String technicianId = '';
     DateTime due = DateTime.now().add(const Duration(days: 7));
     final name = TextEditingController();
     final frequency = TextEditingController(text: '1');
@@ -360,20 +356,10 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
             width: 560,
             child: Column(
               children: [
-                DropdownButtonFormField<String>(
-                  initialValue: assetId,
-                  decoration: const InputDecoration(labelText: 'Asset'),
-                  items: data.assets
-                      .map(
-                        (row) => DropdownMenuItem(
-                          value: row['id'] as String,
-                          child: Text('${row['asset_code']} · ${row['name']}'),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) setDialogState(() => assetId = value);
-                  },
+                _AssetDropdown(
+                  data: data,
+                  value: assetId,
+                  onChanged: (value) => setDialogState(() => assetId = value),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 TextField(
@@ -381,16 +367,34 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
                   decoration: const InputDecoration(labelText: 'Plan name *'),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
-                DropdownButtonFormField<String>(
-                  initialValue: type,
-                  decoration: const InputDecoration(labelText: 'Maintenance type'),
-                  items: const [
-                    DropdownMenuItem(value: 'preventive', child: Text('Preventive')),
-                    DropdownMenuItem(value: 'inspection', child: Text('Inspection')),
-                    DropdownMenuItem(value: 'calibration', child: Text('Calibration')),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: type,
+                        decoration: const InputDecoration(labelText: 'Type'),
+                        items: const [
+                          DropdownMenuItem(value: 'preventive', child: Text('Preventive')),
+                          DropdownMenuItem(value: 'inspection', child: Text('Inspection')),
+                          DropdownMenuItem(value: 'calibration', child: Text('Calibration')),
+                        ],
+                        onChanged: (value) => setDialogState(
+                          () => type = value ?? 'preventive',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: FactorySpacing.sm),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: priority,
+                        decoration: const InputDecoration(labelText: 'Priority'),
+                        items: _priorityItems,
+                        onChanged: (value) => setDialogState(
+                          () => priority = value ?? 'medium',
+                        ),
+                      ),
+                    ),
                   ],
-                  onChanged: (value) =>
-                      setDialogState(() => type = value ?? 'preventive'),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 Row(
@@ -436,39 +440,27 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
                     if (picked != null) setDialogState(() => due = picked);
                   },
                 ),
-                DropdownButtonFormField<String?>(
+                DropdownButtonFormField<String>(
                   initialValue: technicianId,
                   decoration: const InputDecoration(labelText: 'Default technician'),
                   items: [
-                    const DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text('Unassigned'),
-                    ),
+                    const DropdownMenuItem(value: '', child: Text('Unassigned')),
                     ...data.employees.map(
-                      (row) => DropdownMenuItem<String?>(
+                      (row) => DropdownMenuItem(
                         value: row['id'] as String,
                         child: Text('${row['full_name']} · ${row['employee_code']}'),
                       ),
                     ),
                   ],
-                  onChanged: (value) =>
-                      setDialogState(() => technicianId = value),
-                ),
-                const SizedBox(height: FactorySpacing.sm),
-                DropdownButtonFormField<String>(
-                  initialValue: priority,
-                  decoration: const InputDecoration(labelText: 'Default priority'),
-                  items: _priorityItems,
-                  onChanged: (value) =>
-                      setDialogState(() => priority = value ?? 'medium'),
+                  onChanged: (value) => setDialogState(
+                    () => technicianId = value ?? '',
+                  ),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 TextField(
                   controller: estimated,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Estimated minutes',
-                  ),
+                  decoration: const InputDecoration(labelText: 'Estimated minutes'),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 TextField(
@@ -527,7 +519,7 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
         frequencyUnit: frequencyUnit,
         frequencyValue: values.frequency,
         dueDate: _date(due),
-        technicianId: technicianId,
+        technicianId: _nullableId(technicianId),
         priority: priority,
         estimatedMinutes: values.estimated,
         instructions: values.instructions,
@@ -535,18 +527,22 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
       for (final task in values.tasks) {
         await repository.addPlanTask(planId, task);
       }
-    }, 'Preventive maintenance schedule created.');
+    }, 'Preventive schedule created.');
   }
 
   Future<void> createWorkOrder(
     MaintenanceSnapshot data, {
     Map<String, dynamic>? request,
   }) async {
-    if (data.assets.isEmpty) return message('Create an asset first.', error: true);
-    String assetId = request?['asset_id'] as String? ?? data.assets.first['id'] as String;
-    String type = request == null ? 'corrective' : 'corrective';
+    if (data.assets.isEmpty) {
+      message('Create an asset first.', error: true);
+      return;
+    }
+    String assetId = request?['asset_id'] as String? ??
+        data.assets.first['id'] as String;
+    String type = 'corrective';
     String priority = request?['priority'] as String? ?? 'medium';
-    String? technicianId;
+    String technicianId = '';
     final problem = TextEditingController(
       text: request?['description'] as String? ?? '',
     );
@@ -554,28 +550,19 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(request == null ? 'Create work order' : 'Convert request to work order'),
+          title: Text(
+            request == null ? 'Create work order' : 'Convert request to work order',
+          ),
           content: SizedBox(
             width: 540,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<String>(
-                  initialValue: assetId,
-                  decoration: const InputDecoration(labelText: 'Asset'),
-                  items: data.assets
-                      .map(
-                        (row) => DropdownMenuItem(
-                          value: row['id'] as String,
-                          child: Text('${row['asset_code']} · ${row['name']}'),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: request == null
-                      ? (value) {
-                          if (value != null) setDialogState(() => assetId = value);
-                        }
-                      : null,
+                _AssetDropdown(
+                  data: data,
+                  value: assetId,
+                  enabled: request == null,
+                  onChanged: (value) => setDialogState(() => assetId = value),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 DropdownButtonFormField<String>(
@@ -587,42 +574,44 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
                     DropdownMenuItem(value: 'inspection', child: Text('Inspection')),
                     DropdownMenuItem(value: 'calibration', child: Text('Calibration')),
                   ],
-                  onChanged: (value) =>
-                      setDialogState(() => type = value ?? 'corrective'),
+                  onChanged: (value) => setDialogState(
+                    () => type = value ?? 'corrective',
+                  ),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 DropdownButtonFormField<String>(
                   initialValue: priority,
                   decoration: const InputDecoration(labelText: 'Priority'),
                   items: _priorityItems,
-                  onChanged: (value) =>
-                      setDialogState(() => priority = value ?? 'medium'),
+                  onChanged: (value) => setDialogState(
+                    () => priority = value ?? 'medium',
+                  ),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
-                DropdownButtonFormField<String?>(
+                DropdownButtonFormField<String>(
                   initialValue: technicianId,
                   decoration: const InputDecoration(labelText: 'Assign technician'),
                   items: [
-                    const DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text('Unassigned'),
-                    ),
+                    const DropdownMenuItem(value: '', child: Text('Unassigned')),
                     ...data.employees.map(
-                      (row) => DropdownMenuItem<String?>(
+                      (row) => DropdownMenuItem(
                         value: row['id'] as String,
                         child: Text('${row['full_name']} · ${row['employee_code']}'),
                       ),
                     ),
                   ],
-                  onChanged: (value) =>
-                      setDialogState(() => technicianId = value),
+                  onChanged: (value) => setDialogState(
+                    () => technicianId = value ?? '',
+                  ),
                 ),
                 const SizedBox(height: FactorySpacing.sm),
                 TextField(
                   controller: problem,
                   minLines: 3,
                   maxLines: 5,
-                  decoration: const InputDecoration(labelText: 'Problem / work description *'),
+                  decoration: const InputDecoration(
+                    labelText: 'Problem / work description *',
+                  ),
                 ),
               ],
             ),
@@ -649,7 +638,7 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
         type: type,
         priority: priority,
         problem: text,
-        technicianId: technicianId,
+        technicianId: _nullableId(technicianId),
         requestId: request?['id'] as String?,
       ),
       'Maintenance work order created.',
@@ -658,12 +647,13 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
 
   Future<void> assignWorkOrder(
     MaintenanceSnapshot data,
-    Map<String, dynamic> workOrder,
+    Map<String, dynamic> row,
   ) async {
     if (data.employees.isEmpty) {
-      return message('No active employees are available.', error: true);
+      message('No active employees are available.', error: true);
+      return;
     }
-    String employeeId = workOrder['assigned_employee_id'] as String? ??
+    String employeeId = row['assigned_employee_id'] as String? ??
         data.employees.first['id'] as String;
     final accepted = await showDialog<bool>(
       context: context,
@@ -675,9 +665,11 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
             decoration: const InputDecoration(labelText: 'Technician'),
             items: data.employees
                 .map(
-                  (row) => DropdownMenuItem(
-                    value: row['id'] as String,
-                    child: Text('${row['full_name']} · ${row['employee_code']}'),
+                  (employee) => DropdownMenuItem(
+                    value: employee['id'] as String,
+                    child: Text(
+                      '${employee['full_name']} · ${employee['employee_code']}',
+                    ),
                   ),
                 )
                 .toList(),
@@ -700,85 +692,8 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
     );
     if (accepted != true) return;
     await run(
-      () => repository.assignWorkOrder(
-        workOrder['id'] as String,
-        employeeId,
-      ),
+      () => repository.assignWorkOrder(row['id'] as String, employeeId),
       'Technician assigned.',
-    );
-  }
-
-  Future<void> completeWorkOrder(Map<String, dynamic> workOrder) async {
-    final resolution = TextEditingController();
-    final labor = TextEditingController(text: '0');
-    final external = TextEditingController(text: '0');
-    final accepted = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Complete work order'),
-        content: SizedBox(
-          width: 520,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: resolution,
-                minLines: 3,
-                maxLines: 5,
-                decoration: const InputDecoration(labelText: 'Resolution notes *'),
-              ),
-              const SizedBox(height: FactorySpacing.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: labor,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Labor minutes'),
-                    ),
-                  ),
-                  const SizedBox(width: FactorySpacing.sm),
-                  Expanded(
-                    child: TextField(
-                      controller: external,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'External cost'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Complete'),
-          ),
-        ],
-      ),
-    );
-    final values = (
-      resolution: resolution.text.trim(),
-      labor: int.tryParse(labor.text.trim()) ?? 0,
-      external: double.tryParse(external.text.trim()) ?? 0,
-    );
-    resolution.dispose();
-    labor.dispose();
-    external.dispose();
-    if (accepted != true || values.resolution.length < 3) return;
-    await run(
-      () => repository.completeWorkOrder(
-        workOrder['id'] as String,
-        values.resolution,
-        values.labor,
-        values.external,
-      ),
-      'Work order completed.',
     );
   }
 
@@ -805,7 +720,6 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
           padding: const EdgeInsets.all(FactorySpacing.lg),
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
@@ -870,52 +784,304 @@ class _MaintenanceManagementPageState extends State<MaintenanceManagementPage> {
               ],
             ),
             const SizedBox(height: FactorySpacing.md),
-            if (section == 'overview') _OverviewSection(data: data),
+            if (section == 'overview') _overview(data),
             if (section == 'assets')
-              _AssetsSection(
-                data: data,
-                onCreate: () => createAsset(data),
+              _panel(
+                context,
+                'Assets & Equipment',
+                [
+                  FilledButton.icon(
+                    onPressed: () => createAsset(data),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add asset'),
+                  ),
+                ],
+                data.assets.isEmpty
+                    ? const Text('No maintenance assets yet.')
+                    : Column(
+                        children: data.assets
+                            .map((row) => _assetTile(data, row))
+                            .toList(),
+                      ),
               ),
-            if (section == 'requests')
-              _RequestsSection(
-                data: data,
-                onCreate: () => createRequest(data),
-                onApprove: (row) => run(
-                  () => repository.decideRequest(row['id'] as String, 'approved'),
-                  'Request approved.',
-                ),
-                onReject: (row) => run(
-                  () => repository.decideRequest(row['id'] as String, 'rejected'),
-                  'Request rejected.',
-                ),
-                onConvert: (row) => createWorkOrder(data, request: row),
-              ),
-            if (section == 'plans')
-              _PlansSection(
-                data: data,
-                onCreate: () => createPlan(data),
-                onGenerate: () => run(
-                  () => repository.generateDue(factoryId!),
-                  'Due preventive work orders generated.',
-                ),
-              ),
-            if (section == 'work_orders')
-              _WorkOrdersSection(
-                data: data,
-                onCreate: () => createWorkOrder(data),
-                onAssign: (row) => assignWorkOrder(data, row),
-                onStart: (row) => run(
-                  () => repository.startWorkOrder(row['id'] as String),
-                  'Work order started.',
-                ),
-                onComplete: completeWorkOrder,
-              ),
-            if (section == 'parts') _PartsDowntimeSection(data: data),
+            if (section == 'requests') _requests(data),
+            if (section == 'plans') _plans(data),
+            if (section == 'work_orders') _workOrders(data),
+            if (section == 'parts') _parts(data),
           ],
         );
       },
     );
   }
+
+  Widget _overview(MaintenanceSnapshot data) => LayoutBuilder(
+        builder: (context, constraints) {
+          final recent = _panel(
+            context,
+            'Recent Work Orders',
+            const [],
+            Column(
+              children: data.workOrders.take(6).map((row) {
+                final asset = data.asset(row['asset_id']);
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.handyman_outlined),
+                  title: Text(row['work_order_no'] as String),
+                  subtitle: Text(
+                    '${asset?['name'] ?? 'Asset'} · ${_label(row['maintenance_type'] as String)}',
+                  ),
+                  trailing: _StatusChip(row['status'] as String),
+                );
+              }).toList(),
+            ),
+          );
+          final assets = _panel(
+            context,
+            'Asset Status',
+            const [],
+            Column(
+              children: data.assets.take(6).map((row) => _assetTile(data, row)).toList(),
+            ),
+          );
+          if (constraints.maxWidth <= 980) {
+            return Column(
+              children: [recent, const SizedBox(height: FactorySpacing.md), assets],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: recent),
+              const SizedBox(width: FactorySpacing.md),
+              Expanded(child: assets),
+            ],
+          );
+        },
+      );
+
+  Widget _assetTile(MaintenanceSnapshot data, Map<String, dynamic> row) =>
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const CircleAvatar(
+          child: Icon(Icons.precision_manufacturing_outlined),
+        ),
+        title: Text('${row['name']} (${row['asset_code']})'),
+        subtitle: Text(
+          '${_label(row['asset_type'] as String)} · ${_label(row['criticality'] as String)} criticality',
+        ),
+        trailing: _StatusChip(row['status'] as String),
+      );
+
+  Widget _requests(MaintenanceSnapshot data) => _panel(
+        context,
+        'Maintenance Requests',
+        [
+          FilledButton.icon(
+            onPressed: () => createRequest(data),
+            icon: const Icon(Icons.add_alert_outlined),
+            label: const Text('New request'),
+          ),
+        ],
+        data.requests.isEmpty
+            ? const Text('No maintenance requests.')
+            : Column(
+                children: data.requests.map((row) {
+                  final asset = data.asset(row['asset_id']);
+                  final status = row['status'] as String;
+                  return Card(
+                    child: ListTile(
+                      leading: _PriorityIcon(row['priority'] as String),
+                      title: Text('${row['request_no']} · ${asset?['name'] ?? 'Asset'}'),
+                      subtitle: Text('${_label(row['issue_type'] as String)} · ${row['description']}'),
+                      trailing: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: FactorySpacing.xs,
+                        children: [
+                          _StatusChip(status),
+                          if (status == 'open')
+                            IconButton(
+                              tooltip: 'Approve',
+                              onPressed: () => run(
+                                () => repository.decideRequest(
+                                  row['id'] as String,
+                                  'approved',
+                                ),
+                                'Request approved.',
+                              ),
+                              icon: const Icon(Icons.check_circle_outline),
+                            ),
+                          if (status == 'open')
+                            IconButton(
+                              tooltip: 'Reject',
+                              onPressed: () => run(
+                                () => repository.decideRequest(
+                                  row['id'] as String,
+                                  'rejected',
+                                ),
+                                'Request rejected.',
+                              ),
+                              icon: const Icon(Icons.cancel_outlined),
+                            ),
+                          if (status == 'open' || status == 'approved')
+                            FilledButton.tonal(
+                              onPressed: () => createWorkOrder(data, request: row),
+                              child: const Text('Create WO'),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+      );
+
+  Widget _plans(MaintenanceSnapshot data) => _panel(
+        context,
+        'Preventive Maintenance Schedule',
+        [
+          OutlinedButton.icon(
+            onPressed: () => run(
+              () => repository.generateDue(factoryId!),
+              'Due preventive work orders generated.',
+            ),
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: const Text('Generate due WOs'),
+          ),
+          FilledButton.icon(
+            onPressed: () => createPlan(data),
+            icon: const Icon(Icons.add),
+            label: const Text('New schedule'),
+          ),
+        ],
+        data.plans.isEmpty
+            ? const Text('No preventive schedules.')
+            : Column(
+                children: data.plans.map((row) {
+                  final asset = data.asset(row['asset_id']);
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.event_repeat_outlined),
+                    title: Text('${row['plan_no']} · ${asset?['name'] ?? 'Asset'}'),
+                    subtitle: Text(
+                      'Every ${row['frequency_value']} ${row['frequency_unit']} · ${_label(row['maintenance_type'] as String)}',
+                    ),
+                    trailing: Text('Due ${row['next_due_date']}'),
+                  );
+                }).toList(),
+              ),
+      );
+
+  Widget _workOrders(MaintenanceSnapshot data) => _panel(
+        context,
+        'Work Orders',
+        [
+          FilledButton.icon(
+            onPressed: () => createWorkOrder(data),
+            icon: const Icon(Icons.add),
+            label: const Text('Create work order'),
+          ),
+        ],
+        data.workOrders.isEmpty
+            ? const Text('No work orders.')
+            : Column(
+                children: data.workOrders.map((row) {
+                  final asset = data.asset(row['asset_id']);
+                  final employee = data.employee(row['assigned_employee_id']);
+                  final status = row['status'] as String;
+                  return Card(
+                    child: ListTile(
+                      leading: _PriorityIcon(row['priority'] as String),
+                      title: Text('${row['work_order_no']} · ${asset?['name'] ?? 'Asset'}'),
+                      subtitle: Text(
+                        '${_label(row['maintenance_type'] as String)} · ${employee?['full_name'] ?? 'Unassigned'}\n${row['problem_description']}',
+                      ),
+                      isThreeLine: true,
+                      trailing: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: FactorySpacing.xs,
+                        children: [
+                          _StatusChip(status),
+                          if (status != 'completed' && status != 'cancelled')
+                            IconButton(
+                              tooltip: 'Assign technician',
+                              onPressed: () => assignWorkOrder(data, row),
+                              icon: const Icon(Icons.person_add_alt_1_outlined),
+                            ),
+                          if (status == 'open' || status == 'assigned' || status == 'on_hold')
+                            FilledButton.tonal(
+                              onPressed: () => run(
+                                () => repository.startWorkOrder(row['id'] as String),
+                                'Work order started.',
+                              ),
+                              child: const Text('Start'),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+      );
+
+  Widget _parts(MaintenanceSnapshot data) => LayoutBuilder(
+        builder: (context, constraints) {
+          final parts = _panel(
+            context,
+            'Spare Parts Used',
+            const [],
+            data.spareUsage.isEmpty
+                ? const Text('No maintenance spare usage recorded.')
+                : Column(
+                    children: data.spareUsage.take(12).map((row) {
+                      final item = data.item(row['item_id']);
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.build_circle_outlined),
+                        title: Text(item?['name'] as String? ?? 'Spare item'),
+                        subtitle: Text('Quantity ${row['quantity']}'),
+                        trailing: Text('₹${row['line_cost']}'),
+                      );
+                    }).toList(),
+                  ),
+          );
+          final downtime = _panel(
+            context,
+            'Downtime',
+            const [],
+            data.downtime.isEmpty
+                ? const Text('No maintenance downtime recorded.')
+                : Column(
+                    children: data.downtime.take(12).map((row) {
+                      final asset = data.asset(row['asset_id']);
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.timer_outlined),
+                        title: Text(asset?['name'] as String? ?? 'Asset'),
+                        subtitle: Text(row['reason'] as String),
+                        trailing: Text(
+                          row['ended_at'] == null
+                              ? 'Active'
+                              : '${row['duration_minutes']} min',
+                        ),
+                      );
+                    }).toList(),
+                  ),
+          );
+          if (constraints.maxWidth <= 980) {
+            return Column(
+              children: [parts, const SizedBox(height: FactorySpacing.md), downtime],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: parts),
+              const SizedBox(width: FactorySpacing.md),
+              Expanded(child: downtime),
+            ],
+          );
+        },
+      );
 }
 
 class MaintenanceRepository {
@@ -1007,17 +1173,6 @@ class MaintenanceRepository {
           .eq('factory_id', factoryId)
           .order('started_at', ascending: false),
     );
-    final report = List<Map<String, dynamic>>.from(
-      await client.rpc(
-            'maintenance_work_order_report',
-            params: {
-              'p_factory_id': factoryId,
-              'p_from': null,
-              'p_to': null,
-            },
-          )
-          as List,
-    );
     return MaintenanceSnapshot(
       summary: summary,
       assets: assets,
@@ -1030,7 +1185,6 @@ class MaintenanceRepository {
       items: items,
       spareUsage: spareUsage,
       downtime: downtime,
-      report: report,
     );
   }
 
@@ -1090,7 +1244,9 @@ class MaintenanceRepository {
       params: {
         'p_request_id': id,
         'p_decision': decision,
-        'p_note': decision == 'approved' ? 'Approved from Maintenance Admin' : 'Rejected from Maintenance Admin',
+        'p_note': decision == 'approved'
+            ? 'Approved from Maintenance Admin'
+            : 'Rejected from Maintenance Admin',
       },
     );
   }
@@ -1177,23 +1333,6 @@ class MaintenanceRepository {
     );
   }
 
-  Future<void> completeWorkOrder(
-    String id,
-    String resolution,
-    int laborMinutes,
-    double externalCost,
-  ) async {
-    await client.rpc(
-      'maintenance_complete_work_order',
-      params: {
-        'p_work_order_id': id,
-        'p_resolution_notes': resolution,
-        'p_labor_minutes': laborMinutes,
-        'p_external_cost': externalCost,
-      },
-    );
-  }
-
   Future<void> generateDue(String factoryId) async {
     await client.rpc(
       'maintenance_generate_due_work_orders',
@@ -1215,7 +1354,6 @@ class MaintenanceSnapshot {
     required this.items,
     required this.spareUsage,
     required this.downtime,
-    required this.report,
   });
 
   final Map<String, dynamic> summary;
@@ -1229,7 +1367,6 @@ class MaintenanceSnapshot {
   final List<Map<String, dynamic>> items;
   final List<Map<String, dynamic>> spareUsage;
   final List<Map<String, dynamic>> downtime;
-  final List<Map<String, dynamic>> report;
 
   Map<String, dynamic>? asset(Object? id) => _find(assets, id);
   Map<String, dynamic>? employee(Object? id) => _find(employees, id);
@@ -1292,340 +1429,36 @@ class _Metric extends StatelessWidget {
       );
 }
 
-class _OverviewSection extends StatelessWidget {
-  const _OverviewSection({required this.data});
-  final MaintenanceSnapshot data;
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth > 980;
-          final children = [
-            _Panel(
-              title: 'Recent work orders',
-              child: Column(
-                children: data.workOrders.take(6).map((row) {
-                  final asset = data.asset(row['asset_id']);
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.handyman_outlined),
-                    title: Text(row['work_order_no'] as String),
-                    subtitle: Text('${asset?['name'] ?? 'Asset'} · ${_label(row['maintenance_type'] as String)}'),
-                    trailing: _StatusChip(row['status'] as String),
-                  );
-                }).toList(),
-              ),
-            ),
-            _Panel(
-              title: 'Asset status',
-              child: Column(
-                children: data.assets.take(6).map((row) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.precision_manufacturing_outlined),
-                      title: Text(row['name'] as String),
-                      subtitle: Text('${row['asset_code']} · ${_label(row['criticality'] as String)} criticality'),
-                      trailing: _StatusChip(row['status'] as String),
-                    )).toList(),
-              ),
-            ),
-          ];
-          return wide
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [Expanded(child: children[0]), const SizedBox(width: FactorySpacing.md), Expanded(child: children[1])],
-                )
-              : Column(children: [children[0], const SizedBox(height: FactorySpacing.md), children[1]]);
-        },
-      );
-}
-
-class _AssetsSection extends StatelessWidget {
-  const _AssetsSection({required this.data, required this.onCreate});
-  final MaintenanceSnapshot data;
-  final VoidCallback onCreate;
-
-  @override
-  Widget build(BuildContext context) => _Panel(
-        title: 'Assets & Equipment',
-        action: FilledButton.icon(
-          onPressed: onCreate,
-          icon: const Icon(Icons.add),
-          label: const Text('Add asset'),
-        ),
-        child: data.assets.isEmpty
-            ? const Text('No maintenance assets yet.')
-            : Column(
-                children: data.assets.map((row) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const CircleAvatar(child: Icon(Icons.precision_manufacturing_outlined)),
-                      title: Text('${row['name']} (${row['asset_code']})'),
-                      subtitle: Text('${_label(row['asset_type'] as String)} · ${_label(row['criticality'] as String)} criticality${row['model'] == null ? '' : ' · ${row['model']}'}'),
-                      trailing: _StatusChip(row['status'] as String),
-                    )).toList(),
-              ),
-      );
-}
-
-class _RequestsSection extends StatelessWidget {
-  const _RequestsSection({
+class _AssetDropdown extends StatelessWidget {
+  const _AssetDropdown({
     required this.data,
-    required this.onCreate,
-    required this.onApprove,
-    required this.onReject,
-    required this.onConvert,
+    required this.value,
+    required this.onChanged,
+    this.enabled = true,
   });
+
   final MaintenanceSnapshot data;
-  final VoidCallback onCreate;
-  final ValueChanged<Map<String, dynamic>> onApprove;
-  final ValueChanged<Map<String, dynamic>> onReject;
-  final ValueChanged<Map<String, dynamic>> onConvert;
+  final String value;
+  final ValueChanged<String> onChanged;
+  final bool enabled;
 
   @override
-  Widget build(BuildContext context) => _Panel(
-        title: 'Maintenance Requests',
-        action: FilledButton.icon(
-          onPressed: onCreate,
-          icon: const Icon(Icons.add_alert_outlined),
-          label: const Text('New request'),
-        ),
-        child: data.requests.isEmpty
-            ? const Text('No maintenance requests.')
-            : Column(
-                children: data.requests.map((row) {
-                  final asset = data.asset(row['asset_id']);
-                  final open = row['status'] == 'open';
-                  final approved = row['status'] == 'approved';
-                  return Card(
-                    child: ListTile(
-                      title: Text('${row['request_no']} · ${asset?['name'] ?? 'Asset'}'),
-                      subtitle: Text('${_label(row['issue_type'] as String)} · ${row['description']}'),
-                      leading: _PriorityIcon(row['priority'] as String),
-                      trailing: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: FactorySpacing.xs,
-                        children: [
-                          _StatusChip(row['status'] as String),
-                          if (open)
-                            IconButton(
-                              tooltip: 'Approve',
-                              onPressed: () => onApprove(row),
-                              icon: const Icon(Icons.check_circle_outline),
-                            ),
-                          if (open)
-                            IconButton(
-                              tooltip: 'Reject',
-                              onPressed: () => onReject(row),
-                              icon: const Icon(Icons.cancel_outlined),
-                            ),
-                          if (open || approved)
-                            FilledButton.tonal(
-                              onPressed: () => onConvert(row),
-                              child: const Text('Create WO'),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
+  Widget build(BuildContext context) => DropdownButtonFormField<String>(
+        initialValue: value,
+        decoration: const InputDecoration(labelText: 'Asset'),
+        items: data.assets
+            .map(
+              (row) => DropdownMenuItem(
+                value: row['id'] as String,
+                child: Text('${row['asset_code']} · ${row['name']}'),
               ),
-      );
-}
-
-class _PlansSection extends StatelessWidget {
-  const _PlansSection({required this.data, required this.onCreate, required this.onGenerate});
-  final MaintenanceSnapshot data;
-  final VoidCallback onCreate;
-  final VoidCallback onGenerate;
-
-  @override
-  Widget build(BuildContext context) => _Panel(
-        title: 'Preventive Maintenance Schedule',
-        action: Wrap(
-          spacing: FactorySpacing.sm,
-          children: [
-            OutlinedButton.icon(
-              onPressed: onGenerate,
-              icon: const Icon(Icons.auto_awesome_outlined),
-              label: const Text('Generate due WOs'),
-            ),
-            FilledButton.icon(
-              onPressed: onCreate,
-              icon: const Icon(Icons.add),
-              label: const Text('New schedule'),
-            ),
-          ],
-        ),
-        child: data.plans.isEmpty
-            ? const Text('No preventive schedules.')
-            : Column(
-                children: data.plans.map((row) {
-                  final asset = data.asset(row['asset_id']);
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.event_repeat_outlined),
-                    title: Text('${row['plan_no']} · ${asset?['name'] ?? 'Asset'}'),
-                    subtitle: Text('Every ${row['frequency_value']} ${row['frequency_unit']} · ${_label(row['maintenance_type'] as String)}'),
-                    trailing: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('Due ${row['next_due_date']}'),
-                        Text(row['is_active'] == true ? 'Active' : 'Inactive'),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-      );
-}
-
-class _WorkOrdersSection extends StatelessWidget {
-  const _WorkOrdersSection({
-    required this.data,
-    required this.onCreate,
-    required this.onAssign,
-    required this.onStart,
-    required this.onComplete,
-  });
-  final MaintenanceSnapshot data;
-  final VoidCallback onCreate;
-  final ValueChanged<Map<String, dynamic>> onAssign;
-  final ValueChanged<Map<String, dynamic>> onStart;
-  final ValueChanged<Map<String, dynamic>> onComplete;
-
-  @override
-  Widget build(BuildContext context) => _Panel(
-        title: 'Work Orders',
-        action: FilledButton.icon(
-          onPressed: onCreate,
-          icon: const Icon(Icons.add),
-          label: const Text('Create work order'),
-        ),
-        child: data.workOrders.isEmpty
-            ? const Text('No work orders.')
-            : Column(
-                children: data.workOrders.map((row) {
-                  final asset = data.asset(row['asset_id']);
-                  final employee = data.employee(row['assigned_employee_id']);
-                  final status = row['status'] as String;
-                  return Card(
-                    child: ListTile(
-                      leading: _PriorityIcon(row['priority'] as String),
-                      title: Text('${row['work_order_no']} · ${asset?['name'] ?? 'Asset'}'),
-                      subtitle: Text('${_label(row['maintenance_type'] as String)} · ${employee?['full_name'] ?? 'Unassigned'}\n${row['problem_description']}'),
-                      isThreeLine: true,
-                      trailing: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: FactorySpacing.xs,
-                        children: [
-                          _StatusChip(status),
-                          if (!const {'completed', 'cancelled'}.contains(status))
-                            IconButton(
-                              tooltip: 'Assign technician',
-                              onPressed: () => onAssign(row),
-                              icon: const Icon(Icons.person_add_alt_1_outlined),
-                            ),
-                          if (const {'open', 'assigned', 'on_hold'}.contains(status))
-                            FilledButton.tonal(
-                              onPressed: () => onStart(row),
-                              child: const Text('Start'),
-                            ),
-                          if (const {'in_progress', 'on_hold'}.contains(status))
-                            FilledButton(
-                              onPressed: () => onComplete(row),
-                              child: const Text('Complete'),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-      );
-}
-
-class _PartsDowntimeSection extends StatelessWidget {
-  const _PartsDowntimeSection({required this.data});
-  final MaintenanceSnapshot data;
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) {
-          final usage = _Panel(
-            title: 'Spare Parts Used',
-            child: data.spareUsage.isEmpty
-                ? const Text('No maintenance spare usage recorded.')
-                : Column(
-                    children: data.spareUsage.take(12).map((row) {
-                      final item = data.item(row['item_id']);
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.build_circle_outlined),
-                        title: Text(item?['name'] as String? ?? 'Spare item'),
-                        subtitle: Text('${row['quantity']} used · ${row['created_at']}'),
-                        trailing: Text('₹${row['line_cost']}'),
-                      );
-                    }).toList(),
-                  ),
-          );
-          final downtime = _Panel(
-            title: 'Downtime',
-            child: data.downtime.isEmpty
-                ? const Text('No maintenance downtime recorded.')
-                : Column(
-                    children: data.downtime.take(12).map((row) {
-                      final asset = data.asset(row['asset_id']);
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.timer_outlined),
-                        title: Text(asset?['name'] as String? ?? 'Asset'),
-                        subtitle: Text(row['reason'] as String),
-                        trailing: Text(row['ended_at'] == null ? 'Active' : '${row['duration_minutes']} min'),
-                      );
-                    }).toList(),
-                  ),
-          );
-          return constraints.maxWidth > 980
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [Expanded(child: usage), const SizedBox(width: FactorySpacing.md), Expanded(child: downtime)],
-                )
-              : Column(children: [usage, const SizedBox(height: FactorySpacing.md), downtime]);
-        },
-      );
-}
-
-class _Panel extends StatelessWidget {
-  const _Panel({required this.title, required this.child, this.action});
-  final String title;
-  final Widget child;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(FactorySpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                  ),
-                  if (action != null) action!,
-                ],
-              ),
-              const SizedBox(height: FactorySpacing.md),
-              child,
-            ],
-          ),
-        ),
+            )
+            .toList(),
+        onChanged: enabled
+            ? (value) {
+                if (value != null) onChanged(value);
+              }
+            : null,
       );
 }
 
@@ -1638,7 +1471,7 @@ class _StatusChip extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final background = switch (status) {
       'completed' || 'running' || 'approved' => scheme.primaryContainer,
-      'down' || 'overdue' || 'rejected' => scheme.errorContainer,
+      'down' || 'rejected' => scheme.errorContainer,
       'in_progress' || 'maintenance' || 'converted' => scheme.tertiaryContainer,
       _ => scheme.secondaryContainer,
     };
@@ -1687,6 +1520,37 @@ class _ErrorState extends StatelessWidget {
       );
 }
 
+Widget _panel(
+  BuildContext context,
+  String title,
+  List<Widget> actions,
+  Widget child,
+) => Card(
+      child: Padding(
+        padding: const EdgeInsets.all(FactorySpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+                Wrap(spacing: FactorySpacing.sm, children: actions),
+              ],
+            ),
+            const SizedBox(height: FactorySpacing.md),
+            child,
+          ],
+        ),
+      ),
+    );
+
 const _priorityItems = [
   DropdownMenuItem(value: 'low', child: Text('Low')),
   DropdownMenuItem(value: 'medium', child: Text('Medium')),
@@ -1705,6 +1569,8 @@ String? _nullable(String value) {
   final trimmed = value.trim();
   return trimmed.isEmpty ? null : trimmed;
 }
+
+String? _nullableId(String value) => value.isEmpty ? null : value;
 
 String _label(String value) => value
     .split('_')
