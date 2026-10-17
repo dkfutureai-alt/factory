@@ -1,3 +1,4 @@
+# Phase 15 final-head validation marker.
 name: Supabase Foundation Checks
 
 on:
@@ -21,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.121.0
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x

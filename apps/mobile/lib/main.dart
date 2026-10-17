@@ -87,14 +87,13 @@ class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12> {
     ).bootstrap(widget.user);
     final workspace = result.workspace;
     if (workspace == null) return result;
-    final management = {
-      AppRole.platformOwner,
-      AppRole.orgAdmin,
-      AppRole.factoryManager,
-      AppRole.supervisor,
-    }.contains(workspace.role);
     final modules = workspace.modules
-        .where((module) => module.key != 'reports' || management)
+        .where(
+          (module) => WorkspaceAccessPolicy.isMobileModuleVisible(
+            workspace.role,
+            module.key,
+          ),
+        )
         .toList();
     return phase11.MobileBootstrapData(
       workspace: phase11.MobileData(
@@ -162,7 +161,7 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
     } else if (route.startsWith('/inventory')) {
       page = const InventoryScannerPage();
     } else if (route.startsWith('/dispatch') || route.startsWith('/delivery')) {
-      if (widget.data.role == AppRole.driver || widget.data.role == AppRole.employee) {
+      if (WorkspaceAccessPolicy.canExecuteDelivery(widget.data.role)) {
         page = const DeliveryDriverPage();
       }
     }
@@ -179,8 +178,9 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
 
   @override
   Widget build(BuildContext context) {
-    final hasInventory = widget.data.modules.any(
-      (module) => module.key == 'inventory',
+    final hasInventory = WorkspaceAccessPolicy.isModuleEnabled(
+      widget.data.modules,
+      'inventory',
     );
     final pages = <Widget>[
       _HomeTabPhase12(data: widget.data),
@@ -251,7 +251,7 @@ class _HomeTabPhase12 extends StatelessWidget {
     } else if (module.key == 'notifications') {
       page = const NotificationInboxPage();
     } else if (module.key == 'delivery') {
-      if (data.role == AppRole.driver || data.role == AppRole.employee) {
+      if (WorkspaceAccessPolicy.canExecuteDelivery(data.role)) {
         page = const DeliveryDriverPage();
       } else {
         _notice(
@@ -261,7 +261,7 @@ class _HomeTabPhase12 extends StatelessWidget {
         return;
       }
     } else if (module.key == 'vehicles') {
-      if (data.role == AppRole.driver) {
+      if (WorkspaceAccessPolicy.canExecuteFleet(data.role)) {
         page = const FleetDriverPage();
       } else {
         _notice(

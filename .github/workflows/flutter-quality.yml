@@ -1,3 +1,4 @@
+# Phase 15 final-head validation marker.
 name: Flutter Application Quality
 
 on:
@@ -40,18 +41,36 @@ jobs:
       - name: Admin dependencies
         working-directory: apps/admin_web
         run: flutter pub get
-      - name: Admin analyze including Maintenance
+      - name: Admin analyze
         working-directory: apps/admin_web
         run: flutter analyze
-      - name: Admin web build including Maintenance
+      - name: Admin release web build
         working-directory: apps/admin_web
         run: flutter build web --release --dart-define=SUPABASE_URL=https://example.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=placeholder
+      - name: Enforce admin web bundle budget
+        working-directory: apps/admin_web
+        shell: bash
+        run: |
+          set -euo pipefail
+          main_js="build/web/main.dart.js"
+          if [[ ! -f "$main_js" ]]; then
+            echo "Expected Flutter web bundle $main_js was not produced."
+            exit 1
+          fi
+          main_bytes=$(stat -c%s "$main_js")
+          total_bytes=$(du -sb build/web | cut -f1)
+          echo "main.dart.js bytes: $main_bytes"
+          echo "build/web total bytes: $total_bytes"
+          # Keep application JS below 5 MiB and the complete Flutter release
+          # payload (including framework engine assets) below 50 MiB.
+          test "$main_bytes" -le 5242880
+          test "$total_bytes" -le 52428800
       - name: Mobile dependencies
         working-directory: apps/mobile
         run: flutter pub get
-      - name: Mobile analyze including Maintenance
+      - name: Mobile analyze
         working-directory: apps/mobile
         run: flutter analyze
-      - name: Mobile tests including Maintenance
+      - name: Mobile tests
         working-directory: apps/mobile
         run: flutter test

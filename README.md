@@ -14,7 +14,7 @@ and support HR, attendance, leave, maintenance, assets, fuel, documents, approva
 
 - `apps/admin_web` — responsive Supabase-aware administration portal
 - `apps/mobile` — role-aware employee, supervisor and driver Flutter app
-- `packages/factoryos_core` — shared roles, module model and design primitives
+- `packages/factoryos_core` — shared roles, module model, workspace access policy and design primitives
 - `supabase` — PostgreSQL migrations, RLS policies, Edge Functions, fictional seed data and automated access/workflow tests
 - `docs` — architecture, workflows, product decisions, QA and release documentation
 
@@ -51,15 +51,16 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 11: Maintenance — assets/equipment, requests, preventive plans, work orders, technician execution, QR scanning, private work media, downtime, ledger-backed spares, Admin and mobile workspaces complete and CI validated.
 - Phase 12: Reports & Dashboards — unified tenant-safe reporting, executive dashboard, date/factory filtering, trends, operational exceptions, audited activity, saved report views, Admin report workspace and management mobile reporting complete and CI validated.
 - Phase 13: Notifications — tenant-safe in-app inbox, scoped notification rules/templates, preferences, unread/read state, Admin broadcasts and delivery health, automatic operational events, device registry, FCM-ready push outbox/worker, Admin Notification Center and mobile Alerts inbox complete and CI validated.
-- Phase 14: Audit & Security Hardening — assignment-correct factory scope, member/profile/audit RLS hardening, tamper-evident audit hash chain, immutable app-level audit history, privileged-function hardening, Security Admin workspace, Access Review and Audit Explorer complete and CI validated at the substantive source head; final documentation head validation pending before merge.
-- Phase 15: Full QA & Performance — next development phase after Phase 14 merge.
+- Phase 14: Audit & Security Hardening — assignment-correct factory scope, member/profile/audit RLS hardening, tamper-evident audit hash chain, immutable app-level audit history, privileged-function hardening, Security Admin workspace, Access Review and Audit Explorer complete and CI validated.
+- Phase 15: Full QA & Performance — shared cross-app access-policy regression tests, reporting hot-path indexes, sargable report date filters, report RPC hardening, reproducible Supabase CLI pinning and Admin release bundle budgets complete and CI validated at the substantive source head; final documentation head validation pending before merge.
+- Phase 16: Production Release — next development phase after Phase 15 merge.
 
-Latest validated checks through the Phase 14 substantive source head:
+Latest validated checks through the Phase 15 substantive source head:
 
 - invitation Edge Function type-check — pass;
 - notification FCM HTTP v1 Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations `0001`–`0038`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
-- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse, Fleet, Dispatch, Maintenance, Reports/Dashboards, Notifications and Audit/Security SQL smoke/integrity tests — pass;
+- clean local Supabase start/reset, migrations `0001`–`0039`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
+- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse, Fleet, Dispatch, Maintenance, Reports/Dashboards, Notifications, Audit/Security and Phase 15 performance/security SQL smoke/integrity tests — pass;
 - real signup -> password login -> JWT -> PostgREST factory/HR RLS — pass;
 - factory metadata visibility is restricted to assigned factories for factory-scoped roles while organization admins retain organization-wide visibility — pass;
 - employee self-profile, check-in and leave-request flows — pass;
@@ -79,7 +80,7 @@ Latest validated checks through the Phase 14 substantive source head:
 - Maintenance asset/planning permissions, requests, technician execution, preventive scheduling, one-active-work-order integrity, downtime, shared-ledger spare usage, private media RLS and dashboard/audit authorization — pass;
 - Reports factory/organization authorization, daily trends, operational exceptions, audited activity and saved report views — pass;
 - Notifications preferences, device registration, inbox/read state, scoped broadcasts, delivery state, push-only isolation, muted-category suppression and factory-rule visibility — pass;
-- Factory Manager `is_factory_member` is now assignment-scoped rather than organization-wide — pass;
+- Factory Manager `is_factory_member` is assignment-scoped rather than organization-wide — pass;
 - Factory Manager cross-factory organization-member, profile and factory-assignment privacy — pass;
 - Factory Manager organization-wide and blocked-factory Security RPC denial — pass;
 - Employee Security RPC denial and Organization Admin organization-wide Security access — pass;
@@ -87,15 +88,17 @@ Latest validated checks through the Phase 14 substantive source head:
 - direct `audit_logs` RLS blocked-factory isolation — pass;
 - authenticated audit INSERT/UPDATE/DELETE privileges revoked and mutation guard enforced — pass;
 - per-organization audit SHA-256 hash generation, recomputation and chain-link verification — pass;
-- privileged Security RPCs unavailable to `anon` while intended guarded RPCs remain available to `authenticated` — pass;
-- Phase 14 SECURITY DEFINER functions use pinned search paths and explicit scope checks — pass;
-- shared Flutter core analysis and permission tests — pass;
+- privileged Security and optimized reporting RPCs unavailable to `anon` while intended guarded RPCs remain available to `authenticated` — pass;
+- privileged Phase 14 and optimized Phase 15 report SECURITY DEFINER functions use pinned search paths and explicit scope checks — pass;
+- Phase 15 report performance indexes installed and hot timestamp predicates kept index-friendly — pass;
+- shared Flutter core analysis and 11 permission/workspace policy tests — pass;
 - admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse + Fleet + Dispatch + Maintenance + Reports/Dashboards + Notifications + Audit & Security — pass;
+- admin release bundle budgets (`main.dart.js` <= 5 MiB; complete web payload <= 50 MiB) — pass;
 - mobile Flutter analysis and tests including HR, Inventory scan, Production, Quality, commercial, Warehouse, Fleet, Delivery/POD, Maintenance QR/photo/work-order operations, management Reports and Notifications inbox/preferences — pass.
 
-Production deployment still needs project-specific SMTP/invite redirect configuration, generated Android/iOS platform/release configuration, and FCM deployment secrets/platform setup for external push delivery. These are environment/release tasks rather than missing Phase 2–14 application business logic.
+Production deployment still needs project-specific SMTP/invite redirect configuration, generated Android/iOS platform/release configuration, FCM deployment secrets/platform setup for external push delivery, the actual FactoryOS Supabase project connection, production Admin hosting/environment variables and release signing/store credentials. These are Phase 16 environment/release tasks rather than missing Phase 1–15 application business logic.
 
-See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md`, `docs/PHASE_11_MAINTENANCE.md`, `docs/PHASE_12_REPORTS_DASHBOARDS.md`, `docs/PHASE_13_NOTIFICATIONS.md` and `docs/PHASE_14_AUDIT_SECURITY.md`.
+See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md`, `docs/PHASE_11_MAINTENANCE.md`, `docs/PHASE_12_REPORTS_DASHBOARDS.md`, `docs/PHASE_13_NOTIFICATIONS.md`, `docs/PHASE_14_AUDIT_SECURITY.md` and `docs/PHASE_15_QA_PERFORMANCE.md`.
 
 ## Local Supabase
 
