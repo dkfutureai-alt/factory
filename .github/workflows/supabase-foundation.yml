@@ -56,3 +56,4 @@ jobs:
           bash supabase/tests/maintenance_auth_e2e.sh
           bash supabase/tests/reports_auth_e2e.sh
           bash supabase/tests/notifications_auth_e2e.sh
+          bash supabase/tests/notifications_scope_e2e.sh
