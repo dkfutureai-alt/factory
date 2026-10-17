@@ -1,0 +1,36 @@
+name: Notification Push Dispatch
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: factoryos-notification-dispatch
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      NOTIFICATION_DISPATCH_SECRET: ${{ secrets.NOTIFICATION_DISPATCH_SECRET }}
+    steps:
+      - name: Dispatch queued push notifications
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${SUPABASE_PROJECT_REF:-}" || -z "${NOTIFICATION_DISPATCH_SECRET:-}" ]]; then
+            echo 'FactoryOS push dispatch is not configured yet; skipping.'
+            exit 0
+          fi
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            "https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/send-notifications" \
+            --header "x-notification-secret: ${NOTIFICATION_DISPATCH_SECRET}" \
+            --header 'Content-Type: application/json' \
+            --data '{}'
