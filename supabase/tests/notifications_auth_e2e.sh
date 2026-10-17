@@ -61,6 +61,15 @@ echo 'employee notification inbox passed'
 DELIVERIES="$(curl -fsS "$API_URL/rest/v1/notification_deliveries?select=channel,status,notifications!inner(recipient_user_id)&notifications.recipient_user_id=eq.$EMPLOYEE_USER_ID" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $EMPLOYEE_TOKEN")"
 python3 -c 'import json,sys; rows=json.load(sys.stdin); statuses={(r["channel"],r["status"]) for r in rows}; assert ("in_app","sent") in statuses,statuses; assert ("push","queued") in statuses,statuses; print("in-app sent + push queued delivery contract passed")' <<<"$DELIVERIES"
 
+PUSH_ONLY_COUNT="$(rpc "$MANAGER_TOKEN" notification_broadcast "{\"p_organization_id\":\"$ORG_ID\",\"p_factory_id\":\"$FACTORY_ALLOWED\",\"p_title\":\"Push only test\",\"p_body\":\"This message must not appear in the in-app inbox.\",\"p_priority\":\"normal\",\"p_category\":\"system\",\"p_roles\":[\"employee\"],\"p_channels\":[\"push\"]}")"
+python3 -c 'import json,sys; value=int(json.load(sys.stdin)); assert value>=1,value; print("push-only broadcast creation passed")' <<<"$PUSH_ONLY_COUNT"
+
+PUSH_ONLY_INBOX="$(rpc "$EMPLOYEE_TOKEN" notification_inbox '{"p_limit":100,"p_unread_only":false}')"
+python3 -c 'import json,sys; rows=json.load(sys.stdin); assert not any(r["title"]=="Push only test" for r in rows),rows; print("push-only rule does not leak into in-app inbox")' <<<"$PUSH_ONLY_INBOX"
+
+PUSH_ONLY_DELIVERIES="$(curl -fsS "$API_URL/rest/v1/notification_deliveries?select=channel,status,notifications!inner(title,recipient_user_id)&notifications.recipient_user_id=eq.$EMPLOYEE_USER_ID" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $EMPLOYEE_TOKEN")"
+python3 -c 'import json,sys; rows=json.load(sys.stdin); matches=[r for r in rows if (r.get("notifications") or {}).get("title")=="Push only test"]; assert matches,matches; assert all(r["channel"]=="push" for r in matches),matches; assert any(r["status"]=="queued" for r in matches),matches; print("push-only delivery channel contract passed")' <<<"$PUSH_ONLY_DELIVERIES"
+
 MARKED="$(rpc "$EMPLOYEE_TOKEN" notification_mark_read "{\"p_notification_id\":\"$NOTIFICATION_ID\"}")"
 python3 -c 'import json,sys; assert json.load(sys.stdin) is True; print("notification mark-read passed")' <<<"$MARKED"
 
