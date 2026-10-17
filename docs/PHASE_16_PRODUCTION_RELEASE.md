@@ -6,6 +6,8 @@ Phase 16 converts the validated FactoryOS application into a production-release-
 
 Source-controlled release work is implemented on `work/phase16-production-release`. Live production deployment is intentionally gated by external credentials and the exact FactoryOS cloud projects; no unrelated Supabase/Firebase project may be used as a substitute.
 
+First production mobile version: `1.0.0+1`.
+
 ## Mobile production foundation
 
 Flutter stable generated the missing native projects from the existing mobile application source:
@@ -63,10 +65,12 @@ When Firebase runtime configuration is supplied, the app now:
 1. initializes Firebase;
 2. requests notification permission;
 3. waits for the APNs token on iOS before requesting the FCM token;
-4. registers the device with the existing Supabase `notification_register_device` RPC;
-5. refreshes the registration when Firebase rotates the token;
+4. registers the same physical push target for every active organization membership owned by the signed-in user;
+5. refreshes all active tenant registrations when Firebase rotates the token;
 6. opens supported FactoryOS workflows from `action_route` when a push is tapped;
-7. disables the current push device before signing out.
+7. disables the current physical push target across the user's active tenant registrations before signing out.
+
+Registering against every active membership avoids coupling FCM registration to an arbitrary `limit(1)` tenant lookup and matches the tenant-aware device key introduced in migration `0040`.
 
 When no Firebase configuration is supplied, push setup is a safe no-op so local development and application QA continue to work without production credentials.
 
@@ -101,7 +105,7 @@ Regression checks:
 
 `supabase/tests/0040_notification_device_session_qa.sql`
 
-The existing authenticated Notification E2E remains the live device-registration workflow test.
+The existing authenticated Notification E2E remains the live device-registration workflow test. Migration `0040`, its SQL checks and the full existing authenticated Auth/JWT/RLS/module chain passed in the Phase 16 Supabase CI run.
 
 ## Release CI
 
@@ -110,6 +114,8 @@ The existing authenticated Notification E2E remains the live device-registration
 `.github/workflows/flutter-quality.yml`
 
 Continues to enforce shared tests, Admin analysis/release web build, Mobile analysis/tests and Admin bundle budgets.
+
+Flutter's generated template test was replaced with a FactoryOS Firebase release-configuration regression test so generated scaffolding cannot reference a nonexistent template `MyApp`.
 
 ### Native mobile release compilation
 
@@ -177,6 +183,30 @@ Manual guarded GitHub Pages workflow. Type `PUBLISH`, provide the correct base h
 
 The workflow builds the Admin portal with production Supabase values and deploys only the compiled static web output. No service-role/server secret is embedded in Flutter web.
 
+## Production smoke verification
+
+`.github/workflows/production-smoke.yml`
+
+Manual guarded workflow. Type `VERIFY` after deployment. It:
+
+1. verifies the configured Supabase REST endpoint;
+2. signs in a dedicated production smoke user;
+3. masks the resulting access token before passing it between workflow steps;
+4. verifies the authenticated identity;
+5. confirms the smoke user can see at least one active organization membership through RLS;
+6. confirms the Factory query is valid under that user's RLS scope;
+7. optionally verifies the configured Admin production URL responds.
+
+Required smoke secrets:
+
+- `FACTORYOS_SUPABASE_URL`
+- `FACTORYOS_SUPABASE_PUBLISHABLE_KEY`
+- `FACTORYOS_SMOKE_EMAIL`
+- `FACTORYOS_SMOKE_PASSWORD`
+- optional `FACTORYOS_ADMIN_URL`
+
+The smoke account should be a dedicated low-privilege FactoryOS test member, not a production owner's everyday account.
+
 ## External account configuration still required
 
 These items cannot be truthfully completed from repository source alone and must belong to the actual production accounts:
@@ -187,8 +217,9 @@ These items cannot be truthfully completed from repository source alone and must
 - set production Auth Site URL and allowed redirect URLs;
 - configure production SMTP/provider for invitation and Auth email delivery;
 - add the repository secrets listed above;
+- create a dedicated low-privilege production smoke account;
 - run the guarded production release workflow;
-- run post-deploy smoke checks against that exact project.
+- run the guarded production smoke workflow against that exact project.
 
 The Supabase connector available during this phase does not expose a FactoryOS production project, so no live remote mutation was attempted.
 
