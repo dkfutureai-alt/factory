@@ -14,6 +14,7 @@ import 'production_management.dart';
 import 'purchase_sales_management.dart';
 import 'quality_management.dart';
 import 'reports_dashboard.dart';
+import 'security_center.dart';
 import 'warehouse_management.dart';
 
 Future<void> main() async {
@@ -271,6 +272,16 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
           'Notifications',
           Icons.notifications_active_outlined,
           NotificationCenterPage(
+            organizationId: w.orgId,
+            actorRole: w.role,
+            factories: w.factories,
+          ),
+        ),
+      if (w.role.canUseAdminPortal)
+        _Phase12Tab(
+          'Audit & Security',
+          Icons.admin_panel_settings_outlined,
+          SecurityCenterPage(
             organizationId: w.orgId,
             actorRole: w.role,
             factories: w.factories,
