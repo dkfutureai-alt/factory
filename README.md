@@ -20,7 +20,7 @@ and support HR, attendance, leave, maintenance, assets, fuel, documents, approva
 
 ## Backend
 
-Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FCM may be used for mobile push notifications.
+Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FCM HTTP v1 is supported for mobile push delivery through a deployment-secret-backed Edge Function.
 
 ## Engineering Rules
 
@@ -49,13 +49,15 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 10: Dispatch, Delivery & Returnables — backend, Admin Dispatch UI and Driver Delivery/POD/Returnables workspace complete and CI validated.
 - Phase 11: Maintenance — assets/equipment, requests, preventive plans, work orders, technician execution, QR scanning, private work media, downtime, ledger-backed spares, Admin and mobile workspaces complete and CI validated.
 - Phase 12: Reports & Dashboards — unified tenant-safe reporting, executive dashboard, date/factory filtering, trends, operational exceptions, audited activity, saved report views, Admin report workspace and management mobile reporting complete and CI validated.
-- Phase 13: Notifications — next development phase.
+- Phase 13: Notifications — tenant-safe in-app inbox, scoped notification rules/templates, preferences, unread/read state, Admin broadcasts and delivery health, automatic operational events, device registry, FCM-ready push outbox/worker, Admin Notification Center and mobile Alerts inbox complete and CI validated.
+- Phase 14: Audit & Security Hardening — next development phase.
 
-Latest validated checks through Phase 12:
+Latest validated checks through Phase 13:
 
 - invitation Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations `0001`–`0027`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
-- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse, Fleet, Dispatch, Maintenance and Reports/Dashboards SQL smoke/integrity tests — pass;
+- notification FCM HTTP v1 Edge Function type-check — pass;
+- clean local Supabase start/reset, migrations `0001`–`0031`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
+- Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse, Fleet, Dispatch, Maintenance, Reports/Dashboards and Notifications SQL smoke/integrity tests — pass;
 - factory metadata visibility is restricted to assigned factories for factory-scoped roles while organization admins retain organization-wide visibility — pass;
 - real signup -> password login -> JWT -> PostgREST factory/HR RLS — pass;
 - employee self-profile, check-in and leave-request flows — pass;
@@ -98,13 +100,19 @@ Latest validated checks through Phase 12:
 - employee management-report denial and Organization Admin organization-wide reporting — pass;
 - daily Reports trend, normalized operational exceptions and audited activity — pass;
 - authorized saved report views and report-scope RLS denial — pass;
+- employee notification preferences, guarded device registration, in-app inbox and read state — pass;
+- Factory Manager scoped broadcast and notification-health access — pass;
+- employee broadcast denial plus organization-wide and blocked-factory manager denial — pass;
+- in-app sent + push queued delivery contract — pass;
+- muted notification category suppression — pass;
+- global-rule visibility with cross-factory scoped-rule denial — pass;
 - shared Flutter core analysis and permission tests — pass;
-- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse + Fleet + Dispatch + Maintenance + Reports/Dashboards — pass;
-- mobile Flutter analysis and tests including HR, Inventory scan, Production, Quality, commercial, Warehouse, Fleet, Delivery/POD, Maintenance QR/photo/work-order operations and management Reports — pass.
+- admin web analysis and release web build including Inventory + Production + Quality + Purchase/Sales + Warehouse + Fleet + Dispatch + Maintenance + Reports/Dashboards + Notifications — pass;
+- mobile Flutter analysis and tests including HR, Inventory scan, Production, Quality, commercial, Warehouse, Fleet, Delivery/POD, Maintenance QR/photo/work-order operations, management Reports and Notifications inbox/preferences — pass.
 
-Production deployment still needs project-specific SMTP/invite redirect configuration and generated Android/iOS platform/release configuration; these are environment/release tasks rather than missing Phase 2–12 business logic.
+Production deployment still needs project-specific SMTP/invite redirect configuration, generated Android/iOS platform/release configuration, and FCM deployment secrets/platform setup for external push delivery. These are environment/release tasks rather than missing Phase 2–13 in-app business logic.
 
-See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md`, `docs/PHASE_11_MAINTENANCE.md` and `docs/PHASE_12_REPORTS_DASHBOARDS.md`.
+See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md`, `docs/PHASE_11_MAINTENANCE.md`, `docs/PHASE_12_REPORTS_DASHBOARDS.md` and `docs/PHASE_13_NOTIFICATIONS.md`.
 
 ## Local Supabase
 
@@ -126,6 +134,8 @@ bash supabase/tests/fleet_auth_e2e.sh
 bash supabase/tests/dispatch_auth_e2e.sh
 bash supabase/tests/maintenance_auth_e2e.sh
 bash supabase/tests/reports_auth_e2e.sh
+bash supabase/tests/notifications_auth_e2e.sh
+bash supabase/tests/notifications_scope_e2e.sh
 ```
 
 ## Development Sequence
