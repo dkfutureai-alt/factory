@@ -50,20 +50,22 @@ async function googleAccessToken(clientEmail: string, privateKeyPem: string) {
   return data.access_token;
 }
 
+type NotificationRow = {
+  recipient_user_id: string;
+  title: string;
+  body: string;
+  action_route: string | null;
+  action_entity_id: string | null;
+  priority: string;
+  category: string;
+  metadata: Record<string, unknown>;
+};
+
 type QueueRow = {
   id: string;
   notification_id: string;
   attempts: number;
-  notifications: {
-    recipient_user_id: string;
-    title: string;
-    body: string;
-    action_route: string | null;
-    action_entity_id: string | null;
-    priority: string;
-    category: string;
-    metadata: Record<string, unknown>;
-  } | null;
+  notifications: NotificationRow[];
 };
 
 Deno.serve(async (req) => {
@@ -100,7 +102,7 @@ Deno.serve(async (req) => {
     let skipped = 0;
 
     for (const raw of queue as QueueRow[]) {
-      const notification = raw.notifications;
+      const notification = raw.notifications?.[0];
       if (!notification) {
         await service.from('notification_deliveries').update({ status: 'failed', attempts: raw.attempts + 1, last_attempt_at: new Date().toISOString(), error_message: 'Notification row missing' }).eq('id', raw.id);
         failed++;
