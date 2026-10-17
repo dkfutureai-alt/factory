@@ -56,7 +56,7 @@ Latest validated checks through Phase 13:
 
 - invitation Edge Function type-check — pass;
 - notification FCM HTTP v1 Edge Function type-check — pass;
-- clean local Supabase start/reset, migrations `0001`–`0032`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
+- clean local Supabase start/reset, migrations `0001`–`0033`, base seed + Phase 5 + Phase 6 + Phase 7 + Phase 8 + Phase 9 + Phase 10 + Phase 11 seeds — pass;
 - Foundation, Access, HR, Inventory, Production, Quality, Purchase/Sales, Warehouse, Fleet, Dispatch, Maintenance, Reports/Dashboards and Notifications SQL smoke/integrity tests — pass;
 - factory metadata visibility is restricted to assigned factories for factory-scoped roles while organization admins retain organization-wide visibility — pass;
 - real signup -> password login -> JWT -> PostgREST factory/HR RLS — pass;
@@ -104,6 +104,7 @@ Latest validated checks through Phase 13:
 - Factory Manager scoped broadcast and notification-health access — pass;
 - employee broadcast denial plus organization-wide and blocked-factory manager denial — pass;
 - in-app sent + push queued delivery contract — pass;
+- push-only delivery remains excluded from the in-app inbox — pass;
 - muted notification category suppression — pass;
 - global-rule visibility with cross-factory scoped-rule denial — pass;
 - shared Flutter core analysis and permission tests — pass;
