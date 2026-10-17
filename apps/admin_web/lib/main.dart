@@ -9,6 +9,7 @@ import 'hr_management.dart';
 import 'inventory_management.dart';
 import 'maintenance_management.dart';
 import 'main_phase11.dart' as phase11;
+import 'notification_center.dart';
 import 'production_management.dart';
 import 'purchase_sales_management.dart';
 import 'quality_management.dart';
@@ -141,6 +142,7 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
     final deliveryEnabled = enabled('delivery');
     final maintenanceEnabled = enabled('maintenance');
     final reportsEnabled = enabled('reports');
+    final notificationsEnabled = enabled('notifications');
     final commercialEnabled = purchaseEnabled || salesEnabled;
     final currencyCode = w.org['currency_code'] as String? ?? 'INR';
 
@@ -262,6 +264,16 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
             factories: w.factories,
             currencyCode: currencyCode,
             showReportWorkspace: true,
+          ),
+        ),
+      if (notificationsEnabled)
+        _Phase12Tab(
+          'Notifications',
+          Icons.notifications_active_outlined,
+          NotificationCenterPage(
+            organizationId: w.orgId,
+            actorRole: w.role,
+            factories: w.factories,
           ),
         ),
       if (w.role.canManageAccess)
