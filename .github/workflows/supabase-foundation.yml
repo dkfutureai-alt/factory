@@ -27,6 +27,8 @@ jobs:
           deno-version: v2.x
       - name: Check invitation Edge Function
         run: deno check supabase/functions/invite-user/index.ts
+      - name: Check notification delivery Edge Function
+        run: deno check supabase/functions/send-notifications/index.ts
       - name: Start local Supabase
         run: supabase start
       - name: Reset and apply migrations + seed
@@ -40,7 +42,7 @@ jobs:
               -v ON_ERROR_STOP=1 \
               -f "${test_file}"
           done
-      - name: Run real Auth, RLS, inventory, production, quality, purchase, sales, warehouse, fleet, dispatch, maintenance and reports flows
+      - name: Run real Auth, RLS, inventory, production, quality, purchase, sales, warehouse, fleet, dispatch, maintenance, reports and notifications flows
         run: |
           set -euo pipefail
           source supabase/tests/auth_login_e2e.sh
@@ -53,3 +55,4 @@ jobs:
           bash supabase/tests/dispatch_auth_e2e.sh
           bash supabase/tests/maintenance_auth_e2e.sh
           bash supabase/tests/reports_auth_e2e.sh
+          bash supabase/tests/notifications_auth_e2e.sh
