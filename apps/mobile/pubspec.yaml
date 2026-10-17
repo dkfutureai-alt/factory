@@ -1,6 +1,6 @@
 name: factoryos_mobile
 description: FactoryOS role-aware employee, supervisor and driver app.
-version: 0.1.0+1
+version: 1.0.0+1
 publish_to: none
 
 environment:
