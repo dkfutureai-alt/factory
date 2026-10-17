@@ -40,7 +40,7 @@ jobs:
               -v ON_ERROR_STOP=1 \
               -f "${test_file}"
           done
-      - name: Run real Auth, RLS, inventory, production, quality, purchase, sales, warehouse and fleet flows
+      - name: Run real Auth, RLS, inventory, production, quality, purchase, sales, warehouse, fleet and dispatch flows
         run: |
           set -euo pipefail
           source supabase/tests/auth_login_e2e.sh
@@ -50,3 +50,4 @@ jobs:
           bash supabase/tests/purchase_sales_auth_e2e.sh
           bash supabase/tests/warehouse_auth_e2e.sh
           bash supabase/tests/fleet_auth_e2e.sh
+          bash supabase/tests/dispatch_auth_e2e.sh
