@@ -7,6 +7,7 @@ import 'dispatch_management.dart';
 import 'fleet_management.dart';
 import 'hr_management.dart';
 import 'inventory_management.dart';
+import 'maintenance_management.dart';
 import 'production_management.dart';
 import 'quality_management.dart';
 import 'purchase_sales_management.dart';
@@ -498,6 +499,9 @@ class _AdminShellState extends State<AdminShell> {
     );
     final fleetEnabled = w.modules.any((module) => module.key == 'vehicles');
     final deliveryEnabled = w.modules.any((module) => module.key == 'delivery');
+    final maintenanceEnabled = w.modules.any(
+      (module) => module.key == 'maintenance',
+    );
     final commercialEnabled = purchaseEnabled || salesEnabled;
     final tabs = <_Tab>[
       _Tab('Overview', Icons.dashboard_outlined, Overview(workspace: w)),
@@ -581,6 +585,16 @@ class _AdminShellState extends State<AdminShell> {
           'Dispatch',
           Icons.route_outlined,
           DispatchManagementPage(
+            organizationId: w.orgId,
+            actorRole: w.role,
+            factories: w.factories,
+          ),
+        ),
+      if (maintenanceEnabled)
+        _Tab(
+          'Maintenance',
+          Icons.build_circle_outlined,
+          MaintenanceManagementPage(
             organizationId: w.orgId,
             actorRole: w.role,
             factories: w.factories,

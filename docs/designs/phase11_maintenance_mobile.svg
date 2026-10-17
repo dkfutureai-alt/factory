@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="900" viewBox="0 0 420 900">
+  <rect width="420" height="900" fill="#f7f9fc"/>
+  <rect width="420" height="88" fill="#0b4f91"/>
+  <text x="24" y="48" fill="#fff" font-family="Arial" font-size="24" font-weight="700">FactoryOS Maintenance</text>
+  <g font-family="Arial">
+    <rect x="18" y="110" width="384" height="118" rx="18" fill="#dcecff"/>
+    <text x="38" y="144" fill="#102a43" font-size="14">Technician workspace</text>
+    <text x="38" y="182" fill="#102a43" font-size="27" font-weight="700">My Maintenance</text>
+    <rect x="18" y="248" width="116" height="94" rx="14" fill="#fff"/><text x="38" y="278" fill="#6b7280" font-size="13">Open</text><text x="38" y="316" fill="#102a43" font-size="28" font-weight="700">5</text>
+    <rect x="152" y="248" width="116" height="94" rx="14" fill="#fff"/><text x="172" y="278" fill="#6b7280" font-size="13">In progress</text><text x="172" y="316" fill="#1263c5" font-size="28" font-weight="700">2</text>
+    <rect x="286" y="248" width="116" height="94" rx="14" fill="#fff"/><text x="306" y="278" fill="#6b7280" font-size="13">Completed</text><text x="306" y="316" fill="#0c9b5a" font-size="28" font-weight="700">8</text>
+    <text x="22" y="382" fill="#102a43" font-size="18" font-weight="700">Quick actions</text>
+    <rect x="18" y="400" width="184" height="78" rx="14" fill="#fff"/><text x="44" y="447" fill="#102a43" font-size="15">Scan Asset QR</text>
+    <rect x="218" y="400" width="184" height="78" rx="14" fill="#fff"/><text x="246" y="447" fill="#102a43" font-size="15">New Request</text>
+    <rect x="18" y="494" width="184" height="78" rx="14" fill="#fff"/><text x="44" y="541" fill="#102a43" font-size="15">My Work Orders</text>
+    <rect x="218" y="494" width="184" height="78" rx="14" fill="#fff"/><text x="246" y="541" fill="#102a43" font-size="15">PM Schedule</text>
+    <text x="22" y="618" fill="#102a43" font-size="18" font-weight="700">Assigned work</text>
+    <rect x="18" y="636" width="384" height="86" rx="14" fill="#fff"/><text x="36" y="666" fill="#102a43" font-size="15" font-weight="700">MWO-0018 · Air Compressor-1</text><text x="36" y="696" fill="#6b7280" font-size="13">Preventive · High · Assigned</text>
+    <rect x="18" y="738" width="384" height="86" rx="14" fill="#fff"/><text x="36" y="768" fill="#102a43" font-size="15" font-weight="700">MWO-0017 · Generator-500 KVA</text><text x="36" y="798" fill="#6b7280" font-size="13">Breakdown · High · In progress</text>
+    <text x="30" y="872" fill="#6b7280" font-size="12">Home      Work Orders      Assets      PM Schedule</text>
+  </g>
+</svg>
