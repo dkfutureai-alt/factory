@@ -4,6 +4,26 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val releaseKeystorePath = System.getenv("FACTORYOS_ANDROID_KEYSTORE_PATH")
+val releaseKeystorePassword = System.getenv("FACTORYOS_ANDROID_KEYSTORE_PASSWORD")
+val releaseKeyAlias = System.getenv("FACTORYOS_ANDROID_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("FACTORYOS_ANDROID_KEY_PASSWORD")
+val requireReleaseSigning = System.getenv("FACTORYOS_REQUIRE_RELEASE_SIGNING") == "true"
+val hasReleaseSigning = listOf(
+    releaseKeystorePath,
+    releaseKeystorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { !it.isNullOrBlank() }
+
+if (requireReleaseSigning && !hasReleaseSigning) {
+    throw GradleException(
+        "Production signing is required but FACTORYOS_ANDROID_KEYSTORE_PATH, " +
+            "FACTORYOS_ANDROID_KEYSTORE_PASSWORD, FACTORYOS_ANDROID_KEY_ALIAS and " +
+            "FACTORYOS_ANDROID_KEY_PASSWORD are not all configured."
+    )
+}
+
 android {
     namespace = "com.dkappsstudio.factoryos"
     compileSdk = flutter.compileSdkVersion
@@ -15,25 +35,34 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.dkappsstudio.factoryos"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
-        // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
-        // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
-        // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // CI can compile with the debug key to prove the release project builds.
+            // Store publishing must set FACTORYOS_REQUIRE_RELEASE_SIGNING=true,
+            // which makes missing production signing secrets a hard failure.
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
