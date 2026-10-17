@@ -7,71 +7,39 @@ import 'delivery_driver.dart';
 import 'fleet_driver.dart';
 import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
+import 'maintenance_execution.dart';
+import 'main_legacy.dart' as legacy;
 import 'production_execution.dart';
 import 'quality_execution.dart';
 import 'warehouse_operations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final config = MobileConfig.fromEnvironment();
-  if (config.isConfigured) {
-    await Supabase.initialize(
-      url: config.supabaseUrl,
-      publishableKey: config.publishableKey,
-    );
+  const url = String.fromEnvironment('SUPABASE_URL');
+  const currentKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+  const legacyKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  final key = currentKey.isNotEmpty ? currentKey : legacyKey;
+  if (url.isNotEmpty && key.isNotEmpty) {
+    await Supabase.initialize(url: url, publishableKey: key);
   }
-  runApp(FactoryMobileApp(config: config));
+  runApp(_FactoryMobileV11(configured: url.isNotEmpty && key.isNotEmpty));
 }
 
-class MobileConfig {
-  const MobileConfig({required this.supabaseUrl, required this.publishableKey});
-
-  factory MobileConfig.fromEnvironment() {
-    const url = String.fromEnvironment('SUPABASE_URL');
-    const currentKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
-    const legacyKey = String.fromEnvironment('SUPABASE_ANON_KEY');
-    return MobileConfig(
-      supabaseUrl: url,
-      publishableKey: currentKey.isNotEmpty ? currentKey : legacyKey,
-    );
-  }
-
-  final String supabaseUrl;
-  final String publishableKey;
-  bool get isConfigured => supabaseUrl.isNotEmpty && publishableKey.isNotEmpty;
-}
-
-class FactoryMobileApp extends StatelessWidget {
-  const FactoryMobileApp({required this.config, super.key});
-  final MobileConfig config;
+class _FactoryMobileV11 extends StatelessWidget {
+  const _FactoryMobileV11({required this.configured});
+  final bool configured;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'FactoryOS',
-    debugShowCheckedModeBanner: false,
-    theme: FactoryTheme.light(),
-    home: config.isConfigured ? const MobileAuthGate() : const ConfigPage(),
-  );
+        title: 'FactoryOS',
+        debugShowCheckedModeBanner: false,
+        theme: FactoryTheme.light(),
+        home: configured ? const _AuthGateV11() : const legacy.ConfigPage(),
+      );
 }
 
-class ConfigPage extends StatelessWidget {
-  const ConfigPage({super.key});
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-    body: Center(
-      child: Padding(
-        padding: EdgeInsets.all(FactorySpacing.lg),
-        child: Text(
-          'Provide SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY using --dart-define.',
-        ),
-      ),
-    ),
-  );
-}
-
-class MobileAuthGate extends StatelessWidget {
-  const MobileAuthGate({super.key});
+class _AuthGateV11 extends StatelessWidget {
+  const _AuthGateV11();
 
   @override
   Widget build(BuildContext context) {
@@ -85,393 +53,76 @@ class MobileAuthGate extends StatelessWidget {
       builder: (context, snapshot) {
         final session = snapshot.data?.session;
         return session == null
-            ? const SignInPage()
-            : MobileBootstrap(user: session.user);
+            ? const legacy.SignInPage()
+            : _MobileBootstrapV11(user: session.user);
       },
     );
   }
 }
 
-class SignInPage extends StatefulWidget {
-  const SignInPage({super.key});
-
-  @override
-  State<SignInPage> createState() => _SignInPageState();
-}
-
-class _SignInPageState extends State<SignInPage> {
-  final email = TextEditingController();
-  final password = TextEditingController();
-  bool busy = false;
-  String? error;
-
-  @override
-  void dispose() {
-    email.dispose();
-    password.dispose();
-    super.dispose();
-  }
-
-  Future<void> signIn() async {
-    setState(() {
-      busy = true;
-      error = null;
-    });
-    try {
-      await Supabase.instance.client.auth.signInWithPassword(
-        email: email.text.trim(),
-        password: password.text,
-      );
-    } on AuthException catch (exception) {
-      if (mounted) setState(() => error = exception.message);
-    } finally {
-      if (mounted) setState(() => busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(FactorySpacing.lg),
-        children: [
-          const SizedBox(height: 64),
-          const Icon(Icons.factory, size: 68, color: FactoryColors.blue),
-          const SizedBox(height: FactorySpacing.md),
-          Text(
-            'FactoryOS',
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const Text(
-            'Sign in to your factory workspace',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: FactorySpacing.xl),
-          TextField(
-            controller: email,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'Email'),
-          ),
-          const SizedBox(height: FactorySpacing.md),
-          TextField(
-            controller: password,
-            obscureText: true,
-            onSubmitted: (_) => signIn(),
-            decoration: const InputDecoration(labelText: 'Password'),
-          ),
-          if (error != null) ...[
-            const SizedBox(height: FactorySpacing.sm),
-            Text(
-              error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-          const SizedBox(height: FactorySpacing.lg),
-          FilledButton(
-            onPressed: busy ? null : signIn,
-            child: Text(busy ? 'Signing in…' : 'Sign in'),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-class MobileData {
-  const MobileData({
-    required this.organizationName,
-    required this.role,
-    required this.factories,
-    required this.modules,
-  });
-  final String organizationName;
-  final AppRole role;
-  final List<Map<String, dynamic>> factories;
-  final List<AppModule> modules;
-}
-
-class MobileBootstrapData {
-  const MobileBootstrapData({this.workspace, this.invitation, this.message});
-  final MobileData? workspace;
-  final Map<String, dynamic>? invitation;
-  final String? message;
-}
-
-class MobileRepository {
-  MobileRepository(this.client);
-  final SupabaseClient client;
-
-  Future<MobileBootstrapData> bootstrap(User user) async {
-    final memberships = await client
-        .from('organization_members')
-        .select('organization_id,role,organizations(name)')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .limit(1);
-
-    if (memberships.isEmpty) {
-      final pending = await client.rpc('pending_invitation_for_current_user');
-      final rows = pending as List<dynamic>;
-      if (rows.isNotEmpty) {
-        return MobileBootstrapData(
-          invitation: Map<String, dynamic>.from(rows.first as Map),
-        );
-      }
-      return const MobileBootstrapData(
-        message:
-            'No active FactoryOS membership or pending invitation was found.',
-      );
-    }
-
-    final membership = Map<String, dynamic>.from(memberships.first);
-    final organizationId = membership['organization_id'] as String;
-    final organization = Map<String, dynamic>.from(
-      membership['organizations'] as Map,
-    );
-    final role = AppRole.fromWireName(membership['role'] as String);
-    final factories = await client
-        .from('factories')
-        .select('id,name,code,city,state')
-        .eq('organization_id', organizationId)
-        .eq('is_active', true)
-        .order('name');
-    final moduleRows = await client
-        .from('organization_modules')
-        .select('app_modules(key,name,sort_order)')
-        .eq('organization_id', organizationId)
-        .eq('is_enabled', true);
-    final modules =
-        moduleRows
-            .map((row) => Map<String, dynamic>.from(row['app_modules'] as Map))
-            .map(AppModule.fromMap)
-            .where((module) => _moduleAllowed(role, module.key))
-            .toList()
-          ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-
-    return MobileBootstrapData(
-      workspace: MobileData(
-        organizationName: organization['name'] as String,
-        role: role,
-        factories: List<Map<String, dynamic>>.from(factories),
-        modules: modules,
-      ),
-    );
-  }
-}
-
-class MobileBootstrap extends StatefulWidget {
-  const MobileBootstrap({required this.user, super.key});
+class _MobileBootstrapV11 extends StatefulWidget {
+  const _MobileBootstrapV11({required this.user});
   final User user;
 
   @override
-  State<MobileBootstrap> createState() => _MobileBootstrapState();
+  State<_MobileBootstrapV11> createState() => _MobileBootstrapV11State();
 }
 
-class _MobileBootstrapState extends State<MobileBootstrap> {
-  late Future<MobileBootstrapData> future;
+class _MobileBootstrapV11State extends State<_MobileBootstrapV11> {
+  late Future<legacy.MobileBootstrapData> future;
 
   @override
   void initState() {
     super.initState();
-    future = MobileRepository(Supabase.instance.client).bootstrap(widget.user);
+    future = _load();
   }
 
-  void reload() => setState(
-    () => future = MobileRepository(
-      Supabase.instance.client,
-    ).bootstrap(widget.user),
-  );
+  Future<legacy.MobileBootstrapData> _load() =>
+      legacy.MobileRepository(Supabase.instance.client).bootstrap(widget.user);
+
+  void reload() => setState(() => future = _load());
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<MobileBootstrapData>(
-    future: future,
-    builder: (context, snapshot) {
-      if (snapshot.connectionState != ConnectionState.done) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      }
-      if (snapshot.hasError) {
-        return MobileMessagePage(message: '${snapshot.error}', onRetry: reload);
-      }
-      final data = snapshot.requireData;
-      if (data.invitation != null) {
-        return MobileOnboardingPage(
-          invitation: data.invitation!,
-          onCompleted: reload,
-        );
-      }
-      if (data.workspace != null) return MobileHome(data: data.workspace!);
-      return MobileMessagePage(
-        message: data.message ?? 'Access unavailable.',
-        onRetry: reload,
-      );
-    },
-  );
-}
-
-class MobileOnboardingPage extends StatefulWidget {
-  const MobileOnboardingPage({
-    required this.invitation,
-    required this.onCompleted,
-    super.key,
-  });
-  final Map<String, dynamic> invitation;
-  final VoidCallback onCompleted;
-
-  @override
-  State<MobileOnboardingPage> createState() => _MobileOnboardingPageState();
-}
-
-class _MobileOnboardingPageState extends State<MobileOnboardingPage> {
-  late final TextEditingController fullName;
-  late final TextEditingController phone;
-  final password = TextEditingController();
-  final confirmPassword = TextEditingController();
-  bool busy = false;
-  String? error;
-
-  @override
-  void initState() {
-    super.initState();
-    fullName = TextEditingController(
-      text: widget.invitation['full_name'] as String? ?? '',
-    );
-    phone = TextEditingController(
-      text: widget.invitation['phone'] as String? ?? '',
-    );
-  }
-
-  @override
-  void dispose() {
-    fullName.dispose();
-    phone.dispose();
-    password.dispose();
-    confirmPassword.dispose();
-    super.dispose();
-  }
-
-  Future<void> complete() async {
-    if (fullName.text.trim().length < 2) {
-      return setState(() => error = 'Enter your full name.');
-    }
-    if (password.text.length < 8) {
-      return setState(
-        () => error = 'Password must contain at least 8 characters.',
-      );
-    }
-    if (password.text != confirmPassword.text) {
-      return setState(() => error = 'Passwords do not match.');
-    }
-    setState(() {
-      busy = true;
-      error = null;
-    });
-    try {
-      await Supabase.instance.client.auth.updateUser(
-        UserAttributes(password: password.text),
-      );
-      await Supabase.instance.client.rpc(
-        'complete_invitation',
-        params: {
-          'p_invitation_id': widget.invitation['invitation_id'],
-          'p_full_name': fullName.text.trim(),
-          'p_phone': phone.text.trim(),
+  Widget build(BuildContext context) =>
+      FutureBuilder<legacy.MobileBootstrapData>(
+        future: future,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (snapshot.hasError) {
+            return legacy.MobileMessagePage(
+              message: '${snapshot.error}',
+              onRetry: reload,
+            );
+          }
+          final data = snapshot.requireData;
+          if (data.invitation != null) {
+            return legacy.MobileOnboardingPage(
+              invitation: data.invitation!,
+              onCompleted: reload,
+            );
+          }
+          if (data.workspace != null) return _MobileHomeV11(data: data.workspace!);
+          return legacy.MobileMessagePage(
+            message: data.message ?? 'Access unavailable.',
+            onRetry: reload,
+          );
         },
       );
-      if (mounted) widget.onCompleted();
-    } catch (exception) {
-      if (mounted) setState(() => error = '$exception');
-    } finally {
-      if (mounted) setState(() => busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final factoryNames =
-        (widget.invitation['factory_names'] as List<dynamic>? ?? const []).join(
-          ', ',
-        );
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(FactorySpacing.lg),
-          children: [
-            const SizedBox(height: 32),
-            const Icon(
-              Icons.verified_user_outlined,
-              size: 64,
-              color: FactoryColors.blue,
-            ),
-            const SizedBox(height: FactorySpacing.md),
-            Text(
-              'Complete your account',
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: FactorySpacing.sm),
-            Text(
-              '${widget.invitation['organization_name']} · ${AppRole.fromWireName(widget.invitation['invited_role'] as String).label}',
-              textAlign: TextAlign.center,
-            ),
-            if (factoryNames.isNotEmpty)
-              Text(factoryNames, textAlign: TextAlign.center),
-            const SizedBox(height: FactorySpacing.xl),
-            TextField(
-              controller: fullName,
-              decoration: const InputDecoration(labelText: 'Full name'),
-            ),
-            const SizedBox(height: FactorySpacing.sm),
-            TextField(
-              controller: phone,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Phone'),
-            ),
-            const SizedBox(height: FactorySpacing.sm),
-            TextField(
-              controller: password,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Create password'),
-            ),
-            const SizedBox(height: FactorySpacing.sm),
-            TextField(
-              controller: confirmPassword,
-              obscureText: true,
-              onSubmitted: (_) => complete(),
-              decoration: const InputDecoration(labelText: 'Confirm password'),
-            ),
-            if (error != null) ...[
-              const SizedBox(height: FactorySpacing.sm),
-              Text(
-                error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
-            const SizedBox(height: FactorySpacing.lg),
-            FilledButton(
-              onPressed: busy ? null : complete,
-              child: Text(busy ? 'Finishing setup…' : 'Complete setup'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
-class MobileHome extends StatefulWidget {
-  const MobileHome({required this.data, super.key});
-  final MobileData data;
+class _MobileHomeV11 extends StatefulWidget {
+  const _MobileHomeV11({required this.data});
+  final legacy.MobileData data;
 
   @override
-  State<MobileHome> createState() => _MobileHomeState();
+  State<_MobileHomeV11> createState() => _MobileHomeV11State();
 }
 
-class _MobileHomeState extends State<MobileHome> {
+class _MobileHomeV11State extends State<_MobileHomeV11> {
   int index = 0;
 
   @override
@@ -479,14 +130,17 @@ class _MobileHomeState extends State<MobileHome> {
     final hasInventory = widget.data.modules.any(
       (module) => module.key == 'inventory',
     );
-    final pages = [
-      HomeTab(data: widget.data),
-      const SimpleTab(title: 'Tasks', icon: Icons.task_alt),
+    final pages = <Widget>[
+      _HomeTabV11(data: widget.data),
+      const legacy.SimpleTab(title: 'Tasks', icon: Icons.task_alt),
       hasInventory
           ? const InventoryScannerPage()
-          : const SimpleTab(title: 'Scan', icon: Icons.qr_code_scanner),
-      const SimpleTab(title: 'Alerts', icon: Icons.notifications_none),
-      ProfileTab(data: widget.data),
+          : const legacy.SimpleTab(title: 'Scan', icon: Icons.qr_code_scanner),
+      const legacy.SimpleTab(
+        title: 'Alerts',
+        icon: Icons.notifications_none,
+      ),
+      legacy.ProfileTab(data: widget.data),
     ];
     return Scaffold(
       body: pages[index],
@@ -519,88 +173,57 @@ class _MobileHomeState extends State<MobileHome> {
   }
 }
 
-class HomeTab extends StatelessWidget {
-  const HomeTab({required this.data, super.key});
-  final MobileData data;
+class _HomeTabV11 extends StatelessWidget {
+  const _HomeTabV11({required this.data});
+  final legacy.MobileData data;
 
   void openModule(BuildContext context, AppModule module) {
+    Widget? page;
     if (module.key == 'hr') {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const HrSelfServicePage()),
-      );
-      return;
-    }
-    if (module.key == 'inventory') {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const InventoryScannerPage()),
-      );
-      return;
-    }
-    if (module.key == 'production') {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const ProductionExecutionPage(),
-        ),
-      );
-      return;
-    }
-    if (module.key == 'quality') {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const QualityExecutionPage()),
-      );
-      return;
-    }
-    if (module.key == 'purchase' || module.key == 'sales') {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const CommercialOperationsPage(),
-        ),
-      );
-      return;
-    }
-    if (module.key == 'warehouse') {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const WarehouseOperationsPage(),
-        ),
-      );
-      return;
-    }
-    if (module.key == 'delivery') {
+      page = const HrSelfServicePage();
+    } else if (module.key == 'inventory') {
+      page = const InventoryScannerPage();
+    } else if (module.key == 'production') {
+      page = const ProductionExecutionPage();
+    } else if (module.key == 'quality') {
+      page = const QualityExecutionPage();
+    } else if (module.key == 'purchase' || module.key == 'sales') {
+      page = const CommercialOperationsPage();
+    } else if (module.key == 'warehouse') {
+      page = const WarehouseOperationsPage();
+    } else if (module.key == 'maintenance') {
+      page = const MaintenanceExecutionPage();
+    } else if (module.key == 'delivery') {
       if (data.role == AppRole.driver || data.role == AppRole.employee) {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => const DeliveryDriverPage()),
-        );
+        page = const DeliveryDriverPage();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Delivery execution is available in the Driver/Employee mobile workspace. Dispatch planning is available in FactoryOS Admin.',
-            ),
-          ),
+        _notice(
+          context,
+          'Delivery execution is available in the Driver/Employee mobile workspace. Dispatch planning is available in FactoryOS Admin.',
         );
+        return;
       }
-      return;
-    }
-    if (module.key == 'vehicles') {
+    } else if (module.key == 'vehicles') {
       if (data.role == AppRole.driver) {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => const FleetDriverPage()),
-        );
+        page = const FleetDriverPage();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Driver Fleet operations are available to the Driver role. Fleet planning is available in FactoryOS Admin.',
-            ),
-          ),
+        _notice(
+          context,
+          'Driver Fleet operations are available to the Driver role. Fleet planning is available in FactoryOS Admin.',
         );
+        return;
       }
+    }
+
+    if (page == null) {
+      _notice(context, '${module.name} activates in its module phase.');
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${module.name} activates in its module phase.')),
-    );
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page!));
+  }
+
+  void _notice(BuildContext context, String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override
@@ -651,9 +274,10 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: FactorySpacing.lg),
           Text(
             'Your modules',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: FactorySpacing.md),
           GridView.builder(
@@ -676,6 +300,7 @@ class HomeTab extends StatelessWidget {
                 'warehouse' => Icons.warehouse_outlined,
                 'vehicles' => Icons.local_shipping_outlined,
                 'delivery' => Icons.route_outlined,
+                'maintenance' => Icons.build_outlined,
                 _ => Icons.widgets_outlined,
               };
               return Card(
@@ -714,144 +339,4 @@ class HomeTab extends StatelessWidget {
       ),
     );
   }
-}
-
-class SimpleTab extends StatelessWidget {
-  const SimpleTab({required this.title, required this.icon, super.key});
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) => SafeArea(
-    child: Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 52),
-          const SizedBox(height: FactorySpacing.md),
-          Text(title, style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: FactorySpacing.xs),
-          const Text('Workflow activates in its module phase.'),
-        ],
-      ),
-    ),
-  );
-}
-
-class ProfileTab extends StatelessWidget {
-  const ProfileTab({required this.data, super.key});
-  final MobileData data;
-
-  @override
-  Widget build(BuildContext context) => SafeArea(
-    child: ListView(
-      padding: const EdgeInsets.all(FactorySpacing.lg),
-      children: [
-        Text(
-          'Profile',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: FactorySpacing.lg),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.business_outlined),
-            title: Text(data.organizationName),
-            subtitle: Text(data.role.label),
-          ),
-        ),
-        const SizedBox(height: FactorySpacing.md),
-        for (final factory in data.factories)
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.factory_outlined),
-              title: Text(factory['name'] as String),
-              subtitle: Text(factory['code'] as String),
-            ),
-          ),
-        const SizedBox(height: FactorySpacing.lg),
-        FilledButton.tonalIcon(
-          onPressed: () => Supabase.instance.client.auth.signOut(),
-          icon: const Icon(Icons.logout),
-          label: const Text('Sign out'),
-        ),
-      ],
-    ),
-  );
-}
-
-class MobileMessagePage extends StatelessWidget {
-  const MobileMessagePage({
-    required this.message,
-    required this.onRetry,
-    super.key,
-  });
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(FactorySpacing.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.info_outline, size: 52),
-              const SizedBox(height: FactorySpacing.md),
-              Text(message, textAlign: TextAlign.center),
-              const SizedBox(height: FactorySpacing.md),
-              Wrap(
-                spacing: FactorySpacing.sm,
-                children: [
-                  OutlinedButton(
-                    onPressed: onRetry,
-                    child: const Text('Retry'),
-                  ),
-                  FilledButton(
-                    onPressed: () => Supabase.instance.client.auth.signOut(),
-                    child: const Text('Sign out'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-bool _moduleAllowed(AppRole role, String key) {
-  if (role == AppRole.platformOwner ||
-      role == AppRole.orgAdmin ||
-      role == AppRole.factoryManager ||
-      role == AppRole.supervisor) {
-    return true;
-  }
-  if (role == AppRole.driver) {
-    return const {
-      'dashboard',
-      'hr',
-      'vehicles',
-      'delivery',
-      'reports',
-    }.contains(key);
-  }
-  if (role == AppRole.employee) {
-    return const {
-      'dashboard',
-      'hr',
-      'inventory',
-      'production',
-      'quality',
-      'warehouse',
-      'delivery',
-      'maintenance',
-      'reports',
-    }.contains(key);
-  }
-  return const {'dashboard', 'reports'}.contains(key);
 }
