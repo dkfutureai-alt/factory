@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <rect width="1440" height="900" fill="#f6f8fb"/>
+  <rect width="220" height="900" fill="#0b2f5b"/>
+  <text x="28" y="54" fill="#fff" font-family="Arial" font-size="24" font-weight="700">FactoryOS</text>
+  <text x="28" y="118" fill="#c9d8eb" font-family="Arial" font-size="15">Dashboard</text>
+  <text x="28" y="158" fill="#c9d8eb" font-family="Arial" font-size="15">Production</text>
+  <rect x="12" y="182" width="196" height="46" rx="10" fill="#1263c5"/>
+  <text x="28" y="211" fill="#fff" font-family="Arial" font-size="15" font-weight="700">Maintenance</text>
+  <text x="250" y="52" fill="#102a43" font-family="Arial" font-size="28" font-weight="700">Maintenance Overview</text>
+  <g font-family="Arial">
+    <rect x="250" y="82" width="200" height="92" rx="14" fill="#fff"/><text x="272" y="116" fill="#6b7280" font-size="14">Open Work Orders</text><text x="272" y="151" fill="#102a43" font-size="28" font-weight="700">12</text>
+    <rect x="470" y="82" width="200" height="92" rx="14" fill="#fff"/><text x="492" y="116" fill="#6b7280" font-size="14">In Progress</text><text x="492" y="151" fill="#1263c5" font-size="28" font-weight="700">7</text>
+    <rect x="690" y="82" width="200" height="92" rx="14" fill="#fff"/><text x="712" y="116" fill="#6b7280" font-size="14">Completed</text><text x="712" y="151" fill="#0c9b5a" font-size="28" font-weight="700">18</text>
+    <rect x="910" y="82" width="200" height="92" rx="14" fill="#fff"/><text x="932" y="116" fill="#6b7280" font-size="14">Overdue</text><text x="932" y="151" fill="#d64545" font-size="28" font-weight="700">3</text>
+    <rect x="250" y="196" width="560" height="250" rx="14" fill="#fff"/><text x="274" y="229" fill="#102a43" font-size="18" font-weight="700">Recent Work Orders</text>
+    <rect x="832" y="196" width="560" height="250" rx="14" fill="#fff"/><text x="856" y="229" fill="#102a43" font-size="18" font-weight="700">Asset Status</text>
+    <rect x="250" y="468" width="560" height="190" rx="14" fill="#fff"/><text x="274" y="501" fill="#102a43" font-size="18" font-weight="700">Preventive Maintenance Schedule</text>
+    <rect x="832" y="468" width="560" height="190" rx="14" fill="#fff"/><text x="856" y="501" fill="#102a43" font-size="18" font-weight="700">Maintenance Requests</text>
+    <rect x="250" y="680" width="560" height="174" rx="14" fill="#fff"/><text x="274" y="713" fill="#102a43" font-size="18" font-weight="700">Spare Parts & Cost</text>
+    <rect x="832" y="680" width="560" height="174" rx="14" fill="#fff"/><text x="856" y="713" fill="#102a43" font-size="18" font-weight="700">Downtime</text>
+  </g>
+</svg>
