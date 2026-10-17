@@ -130,21 +130,20 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
   @override
   Widget build(BuildContext context) {
     final w = widget.workspace;
-    bool enabled(String key) => w.modules.any((module) => module.key == key);
+    bool enabled(String key) =>
+        WorkspaceAccessPolicy.isModuleEnabled(w.modules, key);
     final dashboardEnabled = enabled('dashboard');
     final hrEnabled = enabled('hr');
     final inventoryEnabled = enabled('inventory');
     final productionEnabled = enabled('production');
     final qualityEnabled = enabled('quality');
-    final purchaseEnabled = enabled('purchase');
-    final salesEnabled = enabled('sales');
     final warehouseEnabled = enabled('warehouse');
     final fleetEnabled = enabled('vehicles');
-    final deliveryEnabled = enabled('delivery');
     final maintenanceEnabled = enabled('maintenance');
     final reportsEnabled = enabled('reports');
     final notificationsEnabled = enabled('notifications');
-    final commercialEnabled = purchaseEnabled || salesEnabled;
+    final commercialEnabled = WorkspaceAccessPolicy.isCommercialEnabled(w.modules);
+    final dispatchEnabled = WorkspaceAccessPolicy.isDispatchEnabled(w.modules);
     final currencyCode = w.org['currency_code'] as String? ?? 'INR';
 
     final tabs = <_Phase12Tab>[
@@ -235,7 +234,7 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
             factories: w.factories,
           ),
         ),
-      if (deliveryEnabled && warehouseEnabled && fleetEnabled && salesEnabled)
+      if (dispatchEnabled)
         _Phase12Tab(
           'Dispatch',
           Icons.route_outlined,
