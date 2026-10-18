@@ -7,6 +7,10 @@ on:
         description: 'Type DEPLOY to apply production migrations and deploy functions'
         required: true
         default: 'REVIEW'
+      confirm_project_ref:
+        description: 'Independently type the exact FactoryOS production Supabase project ref'
+        required: true
+        default: ''
 
 permissions:
   contents: read
@@ -16,7 +20,10 @@ jobs:
     if: ${{ inputs.confirm == 'DEPLOY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: factoryos-production
     env:
+      CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
+      FACTORYOS_SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
       SUPABASE_DB_PASSWORD: ${{ secrets.FACTORYOS_SUPABASE_DB_PASSWORD }}
@@ -38,6 +45,7 @@ jobs:
             SUPABASE_ACCESS_TOKEN
             SUPABASE_PROJECT_REF
             SUPABASE_DB_PASSWORD
+            FACTORYOS_SUPABASE_URL
             FACTORYOS_INVITE_REDIRECT_URL
             NOTIFICATION_DISPATCH_SECRET
             FCM_PROJECT_ID
@@ -52,6 +60,13 @@ jobs:
             fi
           done
           test "$missing" -eq 0
+          if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{20}$ ]] || \
+             [[ "$CONFIRMED_PROJECT_REF" != "$SUPABASE_PROJECT_REF" ]] || \
+             [[ "${FACTORYOS_SUPABASE_URL%/}" != "https://${SUPABASE_PROJECT_REF}.supabase.co" ]]; then
+            echo 'Production project confirmation or URL mismatch; refusing to deploy.'
+            exit 1
+          fi
+          [[ "$FACTORYOS_INVITE_REDIRECT_URL" == https://* ]]
       - name: Link exact FactoryOS production project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
       - name: Preview pending production migrations
