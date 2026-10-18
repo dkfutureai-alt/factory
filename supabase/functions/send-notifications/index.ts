@@ -66,7 +66,8 @@ type QueueRow = {
   id: string;
   notification_id: string;
   attempts: number;
-  notifications: NotificationRow[];
+  claim_token: string;
+  notifications: NotificationRow | NotificationRow[] | null;
 };
 
 Deno.serve(async (req) => {
@@ -87,15 +88,32 @@ Deno.serve(async (req) => {
     }
 
     const service = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    // The RPC atomically claims work with SKIP LOCKED. A second invocation
+    // cannot send the same queued row while the 15-minute claim is active.
+    const { data: claims, error: claimError } = await service
+      .rpc('notification_claim_push_deliveries', { p_batch_size: 20 });
+    if (claimError) throw claimError;
+    if (!claims?.length) return json(200, { processed: 0, sent: 0, failed: 0, skipped: 0 });
+
     const { data: queue, error: queueError } = await service
       .from('notification_deliveries')
-      .select('id,notification_id,attempts,notifications(organization_id,recipient_user_id,title,body,action_route,action_entity_id,priority,category,metadata)')
-      .eq('channel', 'push')
-      .eq('status', 'queued')
-      .order('created_at')
-      .limit(50);
+      .select('id,notification_id,attempts,claim_token,notifications(organization_id,recipient_user_id,title,body,action_route,action_entity_id,priority,category,metadata)')
+      .in('id', claims.map((claim) => claim.id))
+      .eq('status', 'processing');
     if (queueError) throw queueError;
     if (!queue?.length) return json(200, { processed: 0, sent: 0, failed: 0, skipped: 0 });
+
+    // Lease-token fencing prevents an expired worker from overwriting a newer
+    // worker's result. Push delivery remains at-least-once after a worker crash.
+    async function finish(row: QueueRow, patch: Record<string, unknown>) {
+      const { error } = await service
+        .from('notification_deliveries')
+        .update({ ...patch, claimed_at: null, claim_token: null })
+        .eq('id', row.id)
+        .eq('claim_token', row.claim_token)
+        .eq('status', 'processing');
+      if (error) throw error;
+    }
 
     const accessToken = await googleAccessToken(clientEmail, privateKey);
     let sent = 0;
@@ -103,9 +121,11 @@ Deno.serve(async (req) => {
     let skipped = 0;
 
     for (const raw of queue as QueueRow[]) {
-      const notification = raw.notifications?.[0];
+      const notification = Array.isArray(raw.notifications)
+        ? raw.notifications[0]
+        : raw.notifications;
       if (!notification) {
-        await service.from('notification_deliveries').update({ status: 'failed', attempts: raw.attempts + 1, last_attempt_at: new Date().toISOString(), error_message: 'Notification row missing' }).eq('id', raw.id);
+        await finish(raw, { status: 'failed', error_message: 'Notification row missing' });
         failed++;
         continue;
       }
@@ -117,7 +137,7 @@ Deno.serve(async (req) => {
         .eq('is_active', true);
       if (deviceError) throw deviceError;
       if (!devices?.length) {
-        await service.from('notification_deliveries').update({ status: 'skipped', attempts: raw.attempts + 1, last_attempt_at: new Date().toISOString(), error_message: 'No active device' }).eq('id', raw.id);
+        await finish(raw, { status: 'skipped', error_message: 'No active device' });
         skipped++;
         continue;
       }
@@ -157,13 +177,11 @@ Deno.serve(async (req) => {
         }
       }
 
-      await service.from('notification_deliveries').update({
+      await finish(raw, {
         status: deliverySent ? 'sent' : 'failed',
-        attempts: raw.attempts + 1,
-        last_attempt_at: new Date().toISOString(),
         provider_message_id: providerMessageId,
         error_message: deliverySent ? null : (lastError || 'FCM delivery failed'),
-      }).eq('id', raw.id);
+      });
       if (deliverySent) sent++; else failed++;
     }
 
