@@ -4,13 +4,13 @@
 
 Phase 16 converts the validated FactoryOS application into a production-release-ready repository.
 
-Source-controlled release work is implemented on `work/phase16-production-release`. Live production deployment is intentionally gated by external credentials and the exact FactoryOS cloud projects; no unrelated Supabase/Firebase project may be used as a substitute.
+Source-controlled release work is implemented on `work/phase16-production-release`. Live production deployment is intentionally gated by external credentials and the exact FactoryOS cloud projects; no unrelated Supabase/Firebase project may be used as a substitute. Manual production jobs now require an independent typed confirmation of the project reference in addition to the stored reference and matching project URL.
 
 First production mobile version: `1.0.0+1`.
 
 ## Mobile production foundation
 
-Flutter stable generated the missing native projects from the existing mobile application source:
+Flutter stable generated the missing native projects from the existing mobile application source (the temporary self-modifying generator workflow has been retired after these platform shells were committed):
 
 - `apps/mobile/android`
 - `apps/mobile/ios`
@@ -133,7 +133,7 @@ These jobs use placeholder Supabase values and no Firebase runtime values. Their
 
 `.github/workflows/android-production-bundle.yml`
 
-Manual guarded workflow. Type `BUILD` to create a signed AAB after the required repository secrets are configured. It restores the production keystore only inside the runner, enables the Gradle hard signing requirement, injects production Supabase/Firebase defines, verifies the bundle and stores the AAB as a short-retention workflow artifact.
+Manual guarded workflow. Type `BUILD` and independently provide `confirm_project_ref` matching the configured FactoryOS project ref to create a signed AAB after the required repository secrets are configured. The Supabase URL must resolve to that exact project, and the Firebase app ID must identify an Android app. It restores the production keystore only inside the runner, enables the Gradle hard signing requirement, injects production Supabase/Firebase defines, verifies the bundle and stores the AAB as a short-retention workflow artifact.
 
 The workflow does not publish to Google Play automatically; Play publishing remains an explicit release-owner action until a Play Console service account is connected.
 
@@ -141,7 +141,7 @@ The workflow does not publish to Google Play automatically; Play publishing rema
 
 `.github/workflows/supabase-production-release.yml`
 
-Manual guarded workflow. Type `DEPLOY` to:
+Manual guarded workflow. Type `DEPLOY` and independently provide `confirm_project_ref` matching the configured FactoryOS Supabase project ref. The workflow additionally verifies `FACTORYOS_SUPABASE_URL` resolves to that exact ref, requires an HTTPS invite redirect URL, and uses the `factoryos-production` GitHub environment. Configure required reviewers on this GitHub environment for a human release approval. Only then may the job:
 
 1. validate all required production secrets;
 2. link the exact FactoryOS Supabase project;
@@ -158,6 +158,7 @@ Required repository secrets:
 - `SUPABASE_ACCESS_TOKEN`
 - `FACTORYOS_SUPABASE_PROJECT_REF`
 - `FACTORYOS_SUPABASE_DB_PASSWORD`
+- `FACTORYOS_SUPABASE_URL`
 - `FACTORYOS_INVITE_REDIRECT_URL`
 - `NOTIFICATION_DISPATCH_SECRET`
 - `FCM_PROJECT_ID`
@@ -176,10 +177,11 @@ This provides a zero-infrastructure scheduler for queued external push delivery.
 
 `.github/workflows/admin-production-release.yml`
 
-Manual guarded GitHub Pages workflow. Type `PUBLISH`, provide the correct base href (the repository Pages default is `/factory/`) and configure:
+Manual guarded GitHub Pages workflow. Type `PUBLISH`, provide a normalized base href without spaces, traversal or shell metacharacters (the repository Pages default is `/factory/`) and configure:
 
 - `FACTORYOS_SUPABASE_URL`
 - `FACTORYOS_SUPABASE_PUBLISHABLE_KEY`
+- `FACTORYOS_SUPABASE_PROJECT_REF` (must match `FACTORYOS_SUPABASE_URL`)
 
 The workflow builds the Admin portal with production Supabase values and deploys only the compiled static web output. No service-role/server secret is embedded in Flutter web.
 
@@ -187,7 +189,7 @@ The workflow builds the Admin portal with production Supabase values and deploys
 
 `.github/workflows/production-smoke.yml`
 
-Manual guarded workflow. Type `VERIFY` after deployment. It:
+Manual guarded workflow. Type `VERIFY` and independently provide the exact `confirm_project_ref` before production authentication; it refuses a URL/ref mismatch. Run only after deployment. It:
 
 1. verifies the configured Supabase REST endpoint;
 2. signs in a dedicated production smoke user;
@@ -203,9 +205,14 @@ Required smoke secrets:
 - `FACTORYOS_SUPABASE_PUBLISHABLE_KEY`
 - `FACTORYOS_SMOKE_EMAIL`
 - `FACTORYOS_SMOKE_PASSWORD`
+- `FACTORYOS_SUPABASE_PROJECT_REF`
 - optional `FACTORYOS_ADMIN_URL`
 
-The smoke account should be a dedicated low-privilege FactoryOS test member, not a production owner's everyday account.
+The smoke account should be a dedicated low-privilege FactoryOS test member, not a production owner's everyday account. Its active membership is verified against its authenticated `user_id`, rather than accepting another user's tenant membership.
+
+## Release workflow lint
+
+`.github/workflows/release-workflow-lint.yml` installs the pinned `actionlint` version and checks workflow syntax, expressions and shell blocks whenever workflow files change. This is a source/CI safety check, not a substitute for the production smoke test or release-owner approval.
 
 ## External account configuration still required
 
