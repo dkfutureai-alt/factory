@@ -7,6 +7,10 @@ on:
         description: 'Type VERIFY to run authenticated production smoke checks'
         required: true
         default: 'REVIEW'
+      confirm_project_ref:
+        description: 'Independently type the exact FactoryOS production Supabase project ref'
+        required: true
+        default: ''
 
 permissions:
   contents: read
@@ -22,12 +26,14 @@ jobs:
       SMOKE_EMAIL: ${{ secrets.FACTORYOS_SMOKE_EMAIL }}
       SMOKE_PASSWORD: ${{ secrets.FACTORYOS_SMOKE_PASSWORD }}
       ADMIN_URL: ${{ secrets.FACTORYOS_ADMIN_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
     steps:
       - name: Validate smoke configuration
         shell: bash
         run: |
           set -euo pipefail
-          required=(SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SMOKE_EMAIL SMOKE_PASSWORD)
+          required=(SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SMOKE_EMAIL SMOKE_PASSWORD SUPABASE_PROJECT_REF)
           missing=0
           for name in "${required[@]}"; do
             if [[ -z "${!name:-}" ]]; then
@@ -36,7 +42,12 @@ jobs:
             fi
           done
           test "$missing" -eq 0
-          [[ "$SUPABASE_URL" == https://*.supabase.co ]]
+          if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{20}$ ]] || \
+             [[ "$CONFIRMED_PROJECT_REF" != "$SUPABASE_PROJECT_REF" ]] || \
+             [[ "${SUPABASE_URL%/}" != "https://${SUPABASE_PROJECT_REF}.supabase.co" ]]; then
+            echo 'Production smoke target mismatch; refusing to authenticate.'
+            exit 1
+          fi
 
       - name: Verify Supabase REST endpoint
         shell: bash
@@ -76,11 +87,12 @@ jobs:
             --header "Authorization: Bearer $ACCESS_TOKEN")
           test -n "$(jq -r '.id // empty' <<<"$user")"
 
+          user_id=$(jq -r '.id' <<<"$user")
           memberships=$(curl --fail-with-body --silent --show-error \
-            "$SUPABASE_URL/rest/v1/organization_members?select=organization_id,role&is_active=eq.true&limit=5" \
+            "$SUPABASE_URL/rest/v1/organization_members?select=organization_id,user_id,role&user_id=eq.${user_id}&is_active=eq.true&limit=5" \
             --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
             --header "Authorization: Bearer $ACCESS_TOKEN")
-          jq -e 'type == "array" and length > 0 and all(.[]; (.organization_id | type == "string") and (.role | type == "string"))' \
+          jq -e --arg uid "$user_id" 'type == "array" and length > 0 and all(.[]; (.organization_id | type == "string") and (.role | type == "string") and .user_id == $uid)' \
             <<<"$memberships" >/dev/null
 
           factories=$(curl --fail-with-body --silent --show-error \
