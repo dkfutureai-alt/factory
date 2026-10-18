@@ -77,6 +77,22 @@ class ReleaseConfigurationTests(unittest.TestCase):
 
 
 
+class NativeIdentityTests(unittest.TestCase):
+    def test_qa_workflow_reuses_committed_native_package(self):
+        root = Path(__file__).resolve().parents[2]
+        workflow = (root / ".github/workflows/release-candidate.yml").read_text()
+        gradle = (root / "apps/mobile/android/app/build.gradle.kts").read_text()
+        app_id = 'applicationId = "com.dkappsstudio.factoryos"'
+        namespace = 'namespace = "com.dkappsstudio.factoryos"'
+        self.assertNotIn("flutter create", workflow)
+        self.assertNotIn("FACTORYOS_ANDROID_ORG", workflow)
+        self.assertIn(app_id, workflow)
+        self.assertIn(namespace, workflow)
+        self.assertIn(app_id, gradle)
+        self.assertIn(namespace, gradle)
+
+
+
 class AndroidPermissionsTests(unittest.TestCase):
     def test_permissions_and_idempotency(self):
         with tempfile.TemporaryDirectory() as d:
