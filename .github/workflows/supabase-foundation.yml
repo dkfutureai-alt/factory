@@ -36,6 +36,8 @@ jobs:
         run: supabase start
       - name: Reset and apply migrations + seed
         run: supabase db reset
+      - name: Lint public database functions
+        run: supabase db lint --level error -s public
       - name: Run SQL smoke checks
         run: |
           set -euo pipefail
