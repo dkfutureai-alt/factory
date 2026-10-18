@@ -48,6 +48,16 @@ class ReleaseConfigurationTests(unittest.TestCase):
     def test_url_path(self):
         self.bad(FACTORYOS_SUPABASE_URL="https://factory.supabase.co/rest/v1")
 
+    def test_nonstandard_and_explicit_default_ports_rejected(self):
+        for url in (
+            "https://factory.supabase.co:8443",
+            "https://factory.supabase.co:443",
+            "https://factory.supabase.co:invalid",
+            "https://factory.supabase.co:99999",
+        ):
+            with self.subTest(url=url):
+                self.bad(FACTORYOS_SUPABASE_URL=url)
+
     def test_service_secret_rejected(self):
         self.bad(FACTORYOS_SUPABASE_PUBLISHABLE_KEY="sb_secret_0123456789abcdef")
 
