@@ -29,6 +29,8 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
       SUPABASE_PUBLISHABLE_KEY: ${{ secrets.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      BASE_HREF: ${{ inputs.base_href }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -41,12 +43,17 @@ jobs:
           set -euo pipefail
           test -n "${SUPABASE_URL:-}"
           test -n "${SUPABASE_PUBLISHABLE_KEY:-}"
-          [[ "${{ inputs.base_href }}" == /*/ ]]
+          test -n "${SUPABASE_PROJECT_REF:-}"
+          [[ "${SUPABASE_URL%/}" == "https://${SUPABASE_PROJECT_REF}.supabase.co" ]]
+          if [[ ! "$BASE_HREF" =~ ^/[A-Za-z0-9._/-]*/$ ]] || [[ "$BASE_HREF" == *'..'* ]]; then
+            echo 'Invalid base href; use a normalized path such as /factory/ or /.'
+            exit 1
+          fi
       - name: Build production Admin portal
         working-directory: apps/admin_web
         run: >-
           flutter build web --release
-          --base-href "${{ inputs.base_href }}"
+          --base-href "$BASE_HREF"
           --dart-define=SUPABASE_URL="$SUPABASE_URL"
           --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
       - uses: actions/configure-pages@v5
