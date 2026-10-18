@@ -32,4 +32,49 @@ class WorkspaceAccessPolicy {
       isModuleEnabled(modules, 'warehouse') &&
       isModuleEnabled(modules, 'vehicles') &&
       isModuleEnabled(modules, 'sales');
+
+  /// Resolves a notification route only when its module is available in the
+  /// authenticated workspace. This is UI navigation filtering, not an RLS
+  /// replacement: every destination must keep enforcing database permissions.
+  ///
+  /// The first path segment must match exactly (never use startsWith), so
+  /// /sales-preview cannot accidentally open the Sales workspace.
+  static String? mobileNotificationDestination(
+    AppRole role,
+    Iterable<AppModule> modules,
+    String route,
+  ) {
+    final path = route.trim().split(RegExp(r'[?#]')).first;
+    final parts = path.split('/');
+    if (parts.length < 2 || parts.first.isNotEmpty || parts[1].isEmpty) {
+      return null;
+    }
+    final section = parts[1];
+    final destination = switch (section) {
+      'hr' ||
+      'inventory' ||
+      'production' ||
+      'quality' ||
+      'warehouse' ||
+      'maintenance' ||
+      'purchase' ||
+      'sales' ||
+      'reports' ||
+      'notifications' => section,
+      'commercial' => 'commercial',
+      'dispatch' || 'delivery' => 'delivery',
+      'fleet' || 'vehicles' => 'vehicles',
+      _ => null,
+    };
+    if (destination == null) return null;
+    if (destination == 'commercial') {
+      return isCommercialEnabled(modules) ? destination : null;
+    }
+    if (destination == 'delivery' && !canExecuteDelivery(role)) return null;
+    if (destination == 'vehicles' && !canExecuteFleet(role)) return null;
+    if (destination == 'reports' && !isMobileModuleVisible(role, 'reports')) {
+      return null;
+    }
+    return isModuleEnabled(modules, destination) ? destination : null;
+  }
 }

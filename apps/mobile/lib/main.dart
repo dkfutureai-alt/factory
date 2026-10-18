@@ -177,47 +177,37 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
 
   void _openNotificationRoute(String route) {
     if (!mounted) return;
-    Widget? page;
-    if (route.startsWith('/maintenance')) {
-      page = const MaintenanceTechnicianPage();
-    } else if (route.startsWith('/hr')) {
-      page = const HrSelfServicePage();
-    } else if (route.startsWith('/inventory')) {
-      page = const InventoryScannerPage();
-    } else if (route.startsWith('/production')) {
-      page = const ProductionExecutionPage();
-    } else if (route.startsWith('/quality')) {
-      page = const QualityExecutionPage();
-    } else if (route.startsWith('/warehouse')) {
-      page = const WarehouseOperationsPage();
-    } else if (route.startsWith('/purchase') ||
-        route.startsWith('/sales') ||
-        route.startsWith('/commercial')) {
-      page = const CommercialOperationsPage();
-    } else if (route.startsWith('/reports')) {
-      if (WorkspaceAccessPolicy.isMobileModuleVisible(widget.data.role, 'reports')) {
-        page = const ReportsMobilePage();
-      }
-    } else if (route.startsWith('/notifications')) {
-      page = const NotificationInboxPage();
-    } else if (route.startsWith('/dispatch') || route.startsWith('/delivery')) {
-      if (WorkspaceAccessPolicy.canExecuteDelivery(widget.data.role)) {
-        page = const DeliveryDriverPage();
-      }
-    } else if (route.startsWith('/fleet') || route.startsWith('/vehicles')) {
-      if (WorkspaceAccessPolicy.canExecuteFleet(widget.data.role)) {
-        page = const FleetDriverPage();
-      }
-    }
+    final destination = WorkspaceAccessPolicy.mobileNotificationDestination(
+      widget.data.role,
+      widget.data.modules,
+      route,
+    );
+    final Widget? page = switch (destination) {
+      'maintenance' => const MaintenanceTechnicianPage(),
+      'hr' => const HrSelfServicePage(),
+      'inventory' => const InventoryScannerPage(),
+      'production' => const ProductionExecutionPage(),
+      'quality' => const QualityExecutionPage(),
+      'warehouse' => const WarehouseOperationsPage(),
+      'purchase' || 'sales' || 'commercial' =>
+        const CommercialOperationsPage(),
+      'reports' => const ReportsMobilePage(),
+      'notifications' => const NotificationInboxPage(),
+      'delivery' => const DeliveryDriverPage(),
+      'vehicles' => const FleetDriverPage(),
+      _ => null,
+    };
     if (page == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Open this notification from the related FactoryOS Admin module.'),
+          content: Text(
+            'This notification is not available in your FactoryOS mobile workspace.',
+          ),
         ),
       );
       return;
     }
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page!));
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
   }
 
   @override
