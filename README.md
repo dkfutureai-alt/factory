@@ -51,10 +51,10 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 11: Maintenance — assets/equipment, requests, preventive plans, work orders, technician execution, QR scanning, private work media, downtime, ledger-backed spares, Admin and mobile workspaces complete and CI validated.
 - Phase 12: Reports & Dashboards — unified tenant-safe reporting, executive dashboard, date/factory filtering, trends, operational exceptions, audited activity, saved report views, Admin report workspace and management mobile reporting complete and CI validated.
 - Phase 13: Notifications — tenant-safe in-app inbox, scoped notification rules/templates, preferences, unread/read state, Admin broadcasts and delivery health, automatic operational events, device registry, FCM-ready push outbox/worker, Admin Notification Center and mobile Alerts inbox complete and CI validated.
-- Phase 14: Audit & Security Hardening — assignment-correct factory scope, member/profile/audit RLS hardening, tamper-evident audit hash chain, immutable app-level audit history, privileged-function hardening, Security Admin workspace, Access Review and Audit Explorer complete and CI validated at the substantive source head; final documentation head validation pending before merge.
-- Phase 15: Full QA & Performance — next development phase after Phase 14 merge.
+- Phase 14: Audit & Security Hardening — assignment-correct factory scope, member/profile/audit RLS hardening, tamper-evident audit hash chain, immutable app-level audit history, privileged-function hardening, Security Admin workspace, Access Review and Audit Explorer merged to main after CI validation.
+- Phase 15: Full QA & Performance — draft PR in progress: structural database gates, missing foreign-key index hardening, Flutter bundle budget and push-worker concurrency hardening. Changes require final-head CI and staging/device verification before a production release.
 
-Latest validated checks through the Phase 14 substantive source head:
+Verified repository checks through Phase 14, plus the initial green Phase 15 QA head (October 17, 2026). More recent Phase 15 changes must pass their own latest CI run:
 
 - invitation Edge Function type-check — pass;
 - notification FCM HTTP v1 Edge Function type-check — pass;
@@ -95,7 +95,7 @@ Latest validated checks through the Phase 14 substantive source head:
 
 Production deployment still needs project-specific SMTP/invite redirect configuration, generated Android/iOS platform/release configuration, and FCM deployment secrets/platform setup for external push delivery. These are environment/release tasks rather than missing Phase 2–14 application business logic.
 
-See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md`, `docs/PHASE_11_MAINTENANCE.md`, `docs/PHASE_12_REPORTS_DASHBOARDS.md`, `docs/PHASE_13_NOTIFICATIONS.md` and `docs/PHASE_14_AUDIT_SECURITY.md`.
+See `docs/PHASE_1_FOUNDATION.md`, `docs/PHASE_2_AUTH_SHELLS.md`, `docs/PHASE_3_HR.md`, `docs/PHASE_4_INVENTORY.md`, `docs/PHASE_5_PRODUCTION.md`, `docs/PHASE_6_QUALITY.md`, `docs/PHASE_7_PURCHASE_SALES.md`, `docs/PHASE_8_WAREHOUSE.md`, `docs/PHASE_9_FLEET.md`, `docs/PHASE_10_DISPATCH_DELIVERY.md`, `docs/PHASE_11_MAINTENANCE.md`, `docs/PHASE_12_REPORTS_DASHBOARDS.md`, `docs/PHASE_13_NOTIFICATIONS.md` and `docs/PHASE_14_AUDIT_SECURITY.md`. The active QA/release checklist is `docs/PHASE_15_QA_PERFORMANCE.md`.
 
 ## Local Supabase
 
