@@ -1,0 +1,111 @@
+name: Production Smoke Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type VERIFY to run authenticated production smoke checks'
+        required: true
+        default: 'REVIEW'
+      confirm_project_ref:
+        description: 'Independently type the exact FactoryOS production Supabase project ref'
+        required: true
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: ${{ inputs.confirm == 'VERIFY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
+      SMOKE_EMAIL: ${{ secrets.FACTORYOS_SMOKE_EMAIL }}
+      SMOKE_PASSWORD: ${{ secrets.FACTORYOS_SMOKE_PASSWORD }}
+      ADMIN_URL: ${{ secrets.FACTORYOS_ADMIN_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
+    steps:
+      - name: Validate smoke configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SMOKE_EMAIL SMOKE_PASSWORD SUPABASE_PROJECT_REF)
+          missing=0
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required production smoke secret: $name"
+              missing=1
+            fi
+          done
+          test "$missing" -eq 0
+          if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{20}$ ]] || \
+             [[ "$CONFIRMED_PROJECT_REF" != "$SUPABASE_PROJECT_REF" ]] || \
+             [[ "${SUPABASE_URL%/}" != "https://${SUPABASE_PROJECT_REF}.supabase.co" ]]; then
+            echo 'Production smoke target mismatch; refusing to authenticate.'
+            exit 1
+          fi
+
+      - name: Verify Supabase REST endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            "$SUPABASE_URL/rest/v1/" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            >/dev/null
+
+      - name: Sign in production smoke user
+        id: auth
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload=$(jq -nc --arg email "$SMOKE_EMAIL" --arg password "$SMOKE_PASSWORD" '{email:$email,password:$password}')
+          response=$(curl --fail-with-body --silent --show-error \
+            --request POST \
+            "$SUPABASE_URL/auth/v1/token?grant_type=password" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "$payload")
+          token=$(jq -r '.access_token // empty' <<<"$response")
+          test -n "$token"
+          echo "::add-mask::$token"
+          echo "access_token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Verify authenticated identity and tenant RLS
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          user=$(curl --fail-with-body --silent --show-error \
+            "$SUPABASE_URL/auth/v1/user" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Authorization: Bearer $ACCESS_TOKEN")
+          test -n "$(jq -r '.id // empty' <<<"$user")"
+
+          user_id=$(jq -r '.id' <<<"$user")
+          memberships=$(curl --fail-with-body --silent --show-error \
+            "$SUPABASE_URL/rest/v1/organization_members?select=organization_id,user_id,role&user_id=eq.${user_id}&is_active=eq.true&limit=5" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Authorization: Bearer $ACCESS_TOKEN")
+          jq -e --arg uid "$user_id" 'type == "array" and length > 0 and all(.[]; (.organization_id | type == "string") and (.role | type == "string") and .user_id == $uid)' \
+            <<<"$memberships" >/dev/null
+
+          factories=$(curl --fail-with-body --silent --show-error \
+            "$SUPABASE_URL/rest/v1/factories?select=id,name,code&is_active=eq.true&limit=5" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Authorization: Bearer $ACCESS_TOKEN")
+          jq -e 'type == "array"' <<<"$factories" >/dev/null
+          echo "Authenticated production Auth + RLS smoke passed."
+
+      - name: Verify Admin portal when configured
+        if: ${{ env.ADMIN_URL != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error --location "$ADMIN_URL" >/dev/null
+          echo "Admin production URL responded successfully."

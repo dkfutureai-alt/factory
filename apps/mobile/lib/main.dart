@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,12 +13,14 @@ import 'maintenance_technician.dart';
 import 'main_phase11.dart' as phase11;
 import 'notification_inbox.dart';
 import 'production_execution.dart';
+import 'push_notifications.dart';
 import 'quality_execution.dart';
 import 'reports_mobile.dart';
 import 'warehouse_operations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await PushNotificationService.instance.initializeFirebase();
   final config = phase11.MobileConfig.fromEnvironment();
   if (config.isConfigured) {
     await Supabase.initialize(
@@ -118,7 +122,7 @@ class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12> {
             );
           }
           if (snapshot.hasError) {
-            return phase11.MobileMessagePage(
+            return _MessagePagePhase16(
               message: '${snapshot.error}',
               onRetry: reload,
             );
@@ -133,7 +137,7 @@ class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12> {
           if (data.workspace != null) {
             return _MobileHomePhase12(data: data.workspace!);
           }
-          return phase11.MobileMessagePage(
+          return _MessagePagePhase16(
             message: data.message ?? 'Access unavailable.',
             onRetry: reload,
           );
@@ -151,8 +155,28 @@ class _MobileHomePhase12 extends StatefulWidget {
 
 class _MobileHomePhase12State extends State<_MobileHomePhase12> {
   int index = 0;
+  late final ValueChanged<String> _pushRouteHandler;
+
+  @override
+  void initState() {
+    super.initState();
+    _pushRouteHandler = _openNotificationRoute;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final push = PushNotificationService.instance;
+      push.attachRouteHandler(_pushRouteHandler);
+      unawaited(push.registerCurrentWorkspace());
+    });
+  }
+
+  @override
+  void dispose() {
+    PushNotificationService.instance.detachRouteHandler(_pushRouteHandler);
+    super.dispose();
+  }
 
   void _openNotificationRoute(String route) {
+    if (!mounted) return;
     Widget? page;
     if (route.startsWith('/maintenance')) {
       page = const MaintenanceTechnicianPage();
@@ -160,9 +184,29 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
       page = const HrSelfServicePage();
     } else if (route.startsWith('/inventory')) {
       page = const InventoryScannerPage();
+    } else if (route.startsWith('/production')) {
+      page = const ProductionExecutionPage();
+    } else if (route.startsWith('/quality')) {
+      page = const QualityExecutionPage();
+    } else if (route.startsWith('/warehouse')) {
+      page = const WarehouseOperationsPage();
+    } else if (route.startsWith('/purchase') ||
+        route.startsWith('/sales') ||
+        route.startsWith('/commercial')) {
+      page = const CommercialOperationsPage();
+    } else if (route.startsWith('/reports')) {
+      if (WorkspaceAccessPolicy.isMobileModuleVisible(widget.data.role, 'reports')) {
+        page = const ReportsMobilePage();
+      }
+    } else if (route.startsWith('/notifications')) {
+      page = const NotificationInboxPage();
     } else if (route.startsWith('/dispatch') || route.startsWith('/delivery')) {
       if (WorkspaceAccessPolicy.canExecuteDelivery(widget.data.role)) {
         page = const DeliveryDriverPage();
+      }
+    } else if (route.startsWith('/fleet') || route.startsWith('/vehicles')) {
+      if (WorkspaceAccessPolicy.canExecuteFleet(widget.data.role)) {
+        page = const FleetDriverPage();
       }
     }
     if (page == null) {
@@ -192,7 +236,7 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
               icon: Icons.qr_code_scanner,
             ),
       NotificationInboxPage(onOpenRoute: _openNotificationRoute),
-      phase11.ProfileTab(data: widget.data),
+      _ProfileTabPhase16(data: widget.data),
     ];
     return Scaffold(
       body: pages[index],
@@ -224,6 +268,105 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
       ),
     );
   }
+}
+
+class _ProfileTabPhase16 extends StatefulWidget {
+  const _ProfileTabPhase16({required this.data});
+  final phase11.MobileData data;
+
+  @override
+  State<_ProfileTabPhase16> createState() => _ProfileTabPhase16State();
+}
+
+class _ProfileTabPhase16State extends State<_ProfileTabPhase16> {
+  bool signingOut = false;
+
+  Future<void> _signOut() async {
+    setState(() => signingOut = true);
+    try {
+      await PushNotificationService.instance.signOut();
+    } finally {
+      if (mounted) setState(() => signingOut = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(FactorySpacing.lg),
+          children: [
+            Text(
+              'Profile',
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineMedium
+                  ?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: FactorySpacing.lg),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.business_outlined),
+                title: Text(widget.data.organizationName),
+                subtitle: Text(widget.data.role.label),
+              ),
+            ),
+            const SizedBox(height: FactorySpacing.md),
+            for (final factory in widget.data.factories)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.factory_outlined),
+                  title: Text(factory['name'] as String),
+                  subtitle: Text(factory['code'] as String),
+                ),
+              ),
+            const SizedBox(height: FactorySpacing.lg),
+            FilledButton.tonalIcon(
+              onPressed: signingOut ? null : _signOut,
+              icon: const Icon(Icons.logout),
+              label: Text(signingOut ? 'Signing out…' : 'Sign out'),
+            ),
+          ],
+        ),
+      );
+}
+
+class _MessagePagePhase16 extends StatelessWidget {
+  const _MessagePagePhase16({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(FactorySpacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.info_outline, size: 52),
+                  const SizedBox(height: FactorySpacing.md),
+                  Text(message, textAlign: TextAlign.center),
+                  const SizedBox(height: FactorySpacing.md),
+                  Wrap(
+                    spacing: FactorySpacing.sm,
+                    children: [
+                      OutlinedButton(
+                        onPressed: onRetry,
+                        child: const Text('Retry'),
+                      ),
+                      FilledButton(
+                        onPressed: () => PushNotificationService.instance.signOut(),
+                        child: const Text('Sign out'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
 }
 
 class _HomeTabPhase12 extends StatelessWidget {

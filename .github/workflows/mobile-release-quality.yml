@@ -1,0 +1,72 @@
+name: Mobile Release Quality
+
+on:
+  push:
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/factoryos_core/**'
+      - '.github/workflows/mobile-release-quality.yml'
+  pull_request:
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/factoryos_core/**'
+      - '.github/workflows/mobile-release-quality.yml'
+
+concurrency:
+  group: mobile-release-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-release-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Resolve dependencies
+        working-directory: apps/mobile
+        run: flutter pub get
+      - name: Build Android release bundle
+        working-directory: apps/mobile
+        run: >-
+          flutter build appbundle --release
+          --dart-define=SUPABASE_URL=https://example.supabase.co
+          --dart-define=SUPABASE_PUBLISHABLE_KEY=placeholder
+      - name: Verify Android release artifact
+        working-directory: apps/mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          bundle='build/app/outputs/bundle/release/app-release.aab'
+          test -f "$bundle"
+          bytes=$(stat -c%s "$bundle")
+          echo "Android AAB bytes: $bytes"
+          test "$bytes" -le 104857600
+
+  ios-release-build:
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Resolve dependencies
+        working-directory: apps/mobile
+        run: flutter pub get
+      - name: Build iOS release without signing
+        working-directory: apps/mobile
+        run: >-
+          flutter build ios --release --no-codesign
+          --dart-define=SUPABASE_URL=https://example.supabase.co
+          --dart-define=SUPABASE_PUBLISHABLE_KEY=placeholder
+      - name: Verify iOS release app
+        working-directory: apps/mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d build/ios/iphoneos/Runner.app
