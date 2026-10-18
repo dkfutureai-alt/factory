@@ -27,4 +27,4 @@ jobs:
       - name: Install pinned actionlint
         run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
       - name: Validate workflow expressions and shell blocks
-        run: '$(go env GOPATH)/bin/actionlint -color'
+        run: '"$(go env GOPATH)/bin/actionlint" -color'
