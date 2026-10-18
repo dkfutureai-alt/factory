@@ -17,20 +17,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      FACTORYOS_SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      FACTORYOS_SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
       NOTIFICATION_DISPATCH_SECRET: ${{ secrets.NOTIFICATION_DISPATCH_SECRET }}
     steps:
+      - uses: actions/checkout@v4
+      - name: Validate destination before sending the push secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          if python3 scripts/notification_dispatch_preflight.py; then
+            echo 'FactoryOS dispatch target is verified.'
+          else
+            status=$?
+            if [[ "$status" -eq 3 ]]; then
+              exit 0
+            fi
+            exit "$status"
+          fi
       - name: Dispatch queued push notifications
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "${SUPABASE_PROJECT_REF:-}" || -z "${NOTIFICATION_DISPATCH_SECRET:-}" ]]; then
+          if [[ -z "${FACTORYOS_SUPABASE_PROJECT_REF:-}" || -z "${FACTORYOS_SUPABASE_URL:-}" || -z "${NOTIFICATION_DISPATCH_SECRET:-}" ]]; then
             echo 'FactoryOS push dispatch is not configured yet; skipping.'
             exit 0
           fi
           curl --fail-with-body --silent --show-error \
+            --connect-timeout 10 --max-time 60 \
             --request POST \
-            "https://${SUPABASE_PROJECT_REF}.supabase.co/functions/v1/send-notifications" \
+            "$FACTORYOS_SUPABASE_URL/functions/v1/send-notifications" \
             --header "x-notification-secret: ${NOTIFICATION_DISPATCH_SECRET}" \
             --header 'Content-Type: application/json' \
             --data '{}'
