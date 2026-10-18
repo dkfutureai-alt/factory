@@ -7,7 +7,6 @@ import re
 import sys
 from urllib.parse import urlsplit
 
-ORG_RE = re.compile(r"[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+")
 BASE_RE = re.compile(r"/(?:[a-zA-Z0-9_-]+/)*")
 
 
@@ -51,10 +50,6 @@ def validate_configuration(env: dict[str, str], target: str) -> list[str]:
         path = env.get("FACTORYOS_ADMIN_BASE_HREF", "").strip()
         if not BASE_RE.fullmatch(path):
             errors.append("Web base href must be '/' or an absolute path ending with '/'.")
-    else:
-        org = env.get("FACTORYOS_ANDROID_ORG", "").strip()
-        if not ORG_RE.fullmatch(org) or org in {"com.example", "org.example", "com.placeholder"}:
-            errors.append("Android org must be the approved reverse-domain ID, not com.example.")
     return errors
 
 

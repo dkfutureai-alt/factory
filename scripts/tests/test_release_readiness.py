@@ -18,7 +18,6 @@ class ReleaseConfigurationTests(unittest.TestCase):
             "FACTORYOS_SUPABASE_URL": "https://factory-staging.supabase.co",
             "FACTORYOS_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_0123456789abcdef",
             "FACTORYOS_ADMIN_BASE_HREF": "/factoryos/",
-            "FACTORYOS_ANDROID_ORG": "com.approvedbrand",
         }
 
     def bad(self, **updates):
@@ -71,13 +70,27 @@ class ReleaseConfigurationTests(unittest.TestCase):
     def test_unknown_target(self):
         self.assertTrue(validate_configuration(self.env, "ios"))
 
-    def test_android_example_package(self):
-        self.env["FACTORYOS_ANDROID_ORG"] = "com.example"
-        self.assertTrue(validate_configuration(self.env, "android-qa"))
+    def test_android_qa_requires_no_runtime_brand_override(self):
+        # Package identity is fixed in the committed Gradle project.
+        self.assertNotIn("FACTORYOS_ANDROID_ORG", self.env)
+        self.assertEqual(validate_configuration(self.env, "android-qa"), [])
 
-    def test_android_bad_package(self):
-        self.env["FACTORYOS_ANDROID_ORG"] = "Company Name"
-        self.assertTrue(validate_configuration(self.env, "android-qa"))
+
+
+class NativeIdentityTests(unittest.TestCase):
+    def test_qa_workflow_reuses_committed_native_package(self):
+        root = Path(__file__).resolve().parents[2]
+        workflow = (root / ".github/workflows/release-candidate.yml").read_text()
+        gradle = (root / "apps/mobile/android/app/build.gradle.kts").read_text()
+        app_id = 'applicationId = "com.dkappsstudio.factoryos"'
+        namespace = 'namespace = "com.dkappsstudio.factoryos"'
+        self.assertNotIn("flutter create", workflow)
+        self.assertNotIn("FACTORYOS_ANDROID_ORG", workflow)
+        self.assertIn(app_id, workflow)
+        self.assertIn(namespace, workflow)
+        self.assertIn(app_id, gradle)
+        self.assertIn(namespace, gradle)
+
 
 
 class AndroidPermissionsTests(unittest.TestCase):
