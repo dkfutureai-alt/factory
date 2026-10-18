@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
     const { data: queue, error: queueError } = await service
       .from('notification_deliveries')
       .select('id,notification_id,attempts,claim_token,notifications(organization_id,recipient_user_id,title,body,action_route,action_entity_id,priority,category,metadata)')
-      .in('id', claims.map((claim) => claim.id))
+      .in('id', claims.map((claim: { id: string }) => claim.id))
       .eq('status', 'processing');
     if (queueError) throw queueError;
     if (!queue?.length) return json(200, { processed: 0, sent: 0, failed: 0, skipped: 0 });
