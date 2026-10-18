@@ -26,7 +26,7 @@ def validate_configuration(env: dict[str, str], target: str) -> list[str]:
         if (
             parsed.scheme != "https"
             or not host
-            or host in {"localhost", "127.0.0.1", "0.0.0.0", "::1"}
+            or host in {"localhost", "127.0.0.1", "0.0.0.0", "::1", "example.supabase.co"}
             or host.endswith((".localhost", ".example", ".example.com"))
             or "placeholder" in host
             or parsed.username is not None
