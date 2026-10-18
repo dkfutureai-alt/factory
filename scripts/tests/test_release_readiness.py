@@ -46,6 +46,9 @@ class ReleaseConfigurationTests(unittest.TestCase):
     def test_url_query(self):
         self.bad(FACTORYOS_SUPABASE_URL="https://factory.supabase.co/?key=x")
 
+    def test_url_path(self):
+        self.bad(FACTORYOS_SUPABASE_URL="https://factory.supabase.co/rest/v1")
+
     def test_service_secret_rejected(self):
         self.bad(FACTORYOS_SUPABASE_PUBLISHABLE_KEY="sb_secret_0123456789abcdef")
 
