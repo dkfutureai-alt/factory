@@ -36,7 +36,7 @@ Frontend build constants are visible in compiled web/mobile code by design. Neve
 ## Required live production gates (not yet passed)
 
 1. Connect/create a **separate** FactoryOS Supabase project and have the human owner verify its ref and organization. Set up staging and backup/restore plans.
-2. Review migrations 0001–0040, apply to staging, review live RLS/security/storage policies and only then plan a controlled production migration. Do not run local supabase db reset or sample seeds against a live client database.
+2. Review migrations 0001–0041, apply to staging, review live RLS/security/storage policies and only then plan a controlled production migration. Do not run local supabase db reset or sample seeds against a live client database.
 3. Configure Auth site URL, redirect allowlist, email confirmation/SMTP and invite-user Edge Function secrets. Verify user invitations, expiration, onboarding, login and factory assignment with test accounts.
 4. Set up send-notifications Edge Function with FCM HTTP v1 server credentials and Android/iOS Firebase platform registration. Keep FCM secrets server-side.
 5. Verify cross-factory/cross-org restrictions, private maintenance/POD media, SECURITY DEFINER grants, audit immutability, reporting and notification rules against the actual remote project.
