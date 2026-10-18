@@ -252,3 +252,8 @@ These account-level steps are release ownership/configuration, not missing Facto
 ## Production rule
 
 Never point FactoryOS release automation at an unrelated Supabase or Firebase project. Always verify the project reference/package/bundle identity before running a guarded production workflow.
+
+
+## Independent release-candidate tooling from main
+
+The previously merged `release-candidate.yml` and the accompanying Python release-preflight and manifest regression tests are preserved alongside the Phase 16 production workflows. They provide an alternate manual web hosting artifact or Android QA APK build, not a production deployment or a signed store release. See [`PHASE_16_RELEASE_CANDIDATE.md`](PHASE_16_RELEASE_CANDIDATE.md) for the original release-candidate configuration and gates. The Android/iOS platform shells already checked into `apps/mobile` remain the production release source.

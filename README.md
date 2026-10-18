@@ -54,6 +54,7 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 14: Audit & Security Hardening — assignment-correct factory scope, member/profile/audit RLS hardening, tamper-evident audit hash chain, immutable app-level audit history, privileged-function hardening, Security Admin workspace, Access Review and Audit Explorer complete and CI validated.
 - Phase 15: Full QA & Performance — complete, merged and CI validated; cross-app RBAC regression tests, reporting indexes, hardened RPCs and release bundle budgets.
 - Phase 16: Production Release — active on `work/phase16-production-release`; Android/iOS release projects, Firebase client registration, shared-device notification security, production release workflows, release workflow lint and guarded cloud smoke checks are implemented. Live deployment is still blocked pending a dedicated FactoryOS production project, release credentials and owner-controlled store accounts.
+- Optional CI-only release-candidate tooling — `release-candidate.yml` builds web hosting artifacts or Android QA APKs using validated environment variables and offline Python preflight tests; this is separate from the guarded production publish/deploy workflows. See `docs/PHASE_16_RELEASE_CANDIDATE.md`.
 
 Latest validated checks through the Phase 15 substantive source head:
 
