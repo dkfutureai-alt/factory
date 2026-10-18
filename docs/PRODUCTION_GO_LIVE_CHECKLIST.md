@@ -26,6 +26,7 @@
 - [ ] Set Android/iOS Firebase app-specific defines and configure `FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL`, `FCM_PRIVATE_KEY` and `NOTIFICATION_DISPATCH_SECRET`.
 - [ ] Configure iOS APNs key and entitlement with the same app team/Bundle ID.
 - [ ] Check sign-in → token registration → received notification → correct authorized deep link → sign-out disables token, including a shared device changing users.
+- [ ] Set `FACTORYOS_SUPABASE_PROJECT_REF`, its exact matching `FACTORYOS_SUPABASE_URL` and `NOTIFICATION_DISPATCH_SECRET` for scheduled dispatch. Confirm all-missing configuration safely skips, partial/mismatched configuration fails without outbound calls, and the configured job reaches only the approved FactoryOS project.
 - [ ] After merge and release configuration, verify scheduled `Notification Push Dispatch` succeeds; scheduling is best effort and may be delayed by the GitHub Actions service.
 
 ## Admin and mobile
