@@ -169,7 +169,9 @@ Required repository secrets:
 
 `.github/workflows/notification-dispatch.yml`
 
-On the default branch, the workflow invokes `send-notifications` every five minutes using the same dispatch secret configured in Supabase. If the FactoryOS project ref/dispatch secret are not configured yet, it exits successfully without contacting any project.
+On the default branch, the workflow invokes `send-notifications` every five minutes using the same dispatch secret configured in Supabase. Before sending the secret, an offline Python guard validates `FACTORYOS_SUPABASE_PROJECT_REF` as 20 lowercase letters/digits and requires `FACTORYOS_SUPABASE_URL` to match exactly `https://<ref>.supabase.co`.
+
+When **all three** dispatch settings (project ref, project URL and dispatch secret) are absent, the workflow skips without making a request. Partially configured, malformed or cross-project settings fail the job **before any outbound request**. Secret values are never written to logs by the guard. The regression tests run in the existing release-tool CI job (`python3 -m unittest discover -s scripts/tests -v`).
 
 This provides a zero-infrastructure scheduler for queued external push delivery. In-app notifications remain immediate and do not depend on this scheduler.
 
