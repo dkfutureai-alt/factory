@@ -30,6 +30,8 @@ jobs:
         run: deno check supabase/functions/invite-user/index.ts
       - name: Check notification delivery Edge Function
         run: deno check supabase/functions/send-notifications/index.ts
+      - name: Test notification worker response handling
+        run: deno test supabase/functions/send-notifications/worker_helpers_test.ts
       - name: Start local Supabase
         run: supabase start
       - name: Reset and apply migrations + seed
