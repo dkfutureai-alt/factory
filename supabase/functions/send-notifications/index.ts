@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { firstRelatedRow, shouldDeactivateFcmDevice } from './worker_helpers.ts';
 
 const jsonHeaders = { 'Content-Type': 'application/json' };
 
@@ -121,9 +122,7 @@ Deno.serve(async (req) => {
     let skipped = 0;
 
     for (const raw of queue as QueueRow[]) {
-      const notification = Array.isArray(raw.notifications)
-        ? raw.notifications[0]
-        : raw.notifications;
+      const notification = firstRelatedRow(raw.notifications);
       if (!notification) {
         await finish(raw, { status: 'failed', error_message: 'Notification row missing' });
         failed++;
@@ -170,9 +169,14 @@ Deno.serve(async (req) => {
           providerMessageId = data.name ?? providerMessageId;
           deliverySent = true;
         } else {
-          lastError = `${response.status} ${await response.text()}`.slice(0, 1000);
-          if (response.status === 404 || response.status === 400) {
-            await service.from('notification_devices').update({ is_active: false }).eq('id', device.id);
+          const errorBody = await response.text();
+          lastError = `${response.status} ${errorBody}`.slice(0, 1000);
+          if (shouldDeactivateFcmDevice(response.status, errorBody)) {
+            const { error: deactivateError } = await service
+              .from('notification_devices')
+              .update({ is_active: false })
+              .eq('id', device.id);
+            if (deactivateError) throw deactivateError;
           }
         }
       }
