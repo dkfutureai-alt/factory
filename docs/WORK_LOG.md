@@ -217,3 +217,21 @@ Core Warehouse is complete and validated through **Dispatch Handoff**. Physical 
 ### Next
 
 Start Phase 9: Vehicles, Drivers, Trips & Fuel — vehicle/driver masters -> assignments -> trip lifecycle -> odometer/fuel controls -> driver mobile workflow -> route/dispatch linkage -> service reminders -> fleet reports.
+
+## 2026-10-18 — Phase 16 Production Release hardening
+
+- Inspected the existing Phase 16 branch, native Android/iOS shells, Firebase client, migration `0040`, and previously successful Flutter, mobile-native and Supabase quality runs.
+- Confirmed the connected Supabase account has no dedicated FactoryOS production project; existing Salon/Janseva projects remain untouched.
+- Added an independent exact project-ref confirmation and matching FactoryOS URL requirement to guarded production migration/deploy, Android signing and production smoke workflows.
+- Added a project URL/ref consistency check to Admin Pages publishing, and moved the web base-href input into a shell environment variable to avoid expression injection; the base href is validated as a normalized safe path.
+- Tightened production smoke membership checks to the authenticated test user's own active membership.
+- Retired the temporary write-enabled native project generation workflow after committing platform shells.
+- Added a pinned actionlint CI gate for release workflows.
+- Updated release documentation and status. No production cloud data was mutated.
+
+### Remaining external go-live blockers
+
+- Establish and connect a dedicated FactoryOS production Supabase project, obtain cost/organization approval, configure Auth redirect/SMTP and upload scoped release secrets.
+- Set up a production Firebase project/platform registration and configure trusted FCM + APNs.
+- Configure GitHub `factoryos-production` environment reviewers, production Admin Pages, signed Android bundle / iOS distribution and store records.
+- Run remote migrations, authenticated production smoke and end-to-end user acceptance on that dedicated environment.
