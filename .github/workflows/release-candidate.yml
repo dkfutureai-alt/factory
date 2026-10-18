@@ -1,0 +1,132 @@
+name: FactoryOS Release Candidate
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/release-candidate.yml'
+  push:
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/release-candidate.yml'
+  workflow_dispatch:
+    inputs:
+      release_environment:
+        description: 'Configured GitHub environment with approved FactoryOS variables'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      release_target:
+        description: 'Web hosting bundle or Android QA APK (not a store release)'
+        required: true
+        type: choice
+        options:
+          - web
+          - android-qa
+      admin_base_href:
+        description: 'Web path prefix, / or /factoryos/ (web only)'
+        required: false
+        default: '/'
+        type: string
+      android_org:
+        description: 'Approved reverse-domain org (Android QA only)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: factoryos-release-${{ github.ref }}-${{ github.event.inputs.release_environment || 'ci' }}
+  cancel-in-progress: false
+
+jobs:
+  release-tool-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify release tooling
+        run: python3 -m unittest discover -s scripts/tests -v
+
+  build-candidate:
+    if: github.event_name == 'workflow_dispatch' && (inputs.release_environment != 'production' || github.ref == 'refs/heads/main')
+    needs: release-tool-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.release_environment }}
+    env:
+      FACTORYOS_RELEASE_ENV: ${{ inputs.release_environment }}
+      FACTORYOS_SUPABASE_URL: ${{ vars.FACTORYOS_SUPABASE_URL }}
+      FACTORYOS_SUPABASE_PUBLISHABLE_KEY: ${{ vars.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
+      FACTORYOS_ADMIN_BASE_HREF: ${{ inputs.admin_base_href }}
+      FACTORYOS_ANDROID_ORG: ${{ inputs.android_org }}
+      RELEASE_TARGET: ${{ inputs.release_target }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stop on missing/unsafe environment settings
+        run: python3 scripts/release_preflight.py --target "$RELEASE_TARGET"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - name: Check shared core
+        working-directory: packages/factoryos_core
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+      - name: Analyze and build Admin release candidate
+        if: inputs.release_target == 'web'
+        working-directory: apps/admin_web
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter analyze
+          flutter build web --release \
+            --base-href "$FACTORYOS_ADMIN_BASE_HREF" \
+            --dart-define="SUPABASE_URL=$FACTORYOS_SUPABASE_URL" \
+            --dart-define="SUPABASE_PUBLISHABLE_KEY=$FACTORYOS_SUPABASE_PUBLISHABLE_KEY"
+      - name: Enforce Admin bundle budgets
+        if: inputs.release_target == 'web'
+        working-directory: apps/admin_web
+        run: |
+          set -euo pipefail
+          test "$(stat -c%s build/web/main.dart.js)" -le 5242880
+          test "$(du -sb build/web | cut -f1)" -le 52428800
+      - name: Store web hosting bundle (manual deployment)
+        if: inputs.release_target == 'web'
+        uses: actions/upload-artifact@v4
+        with:
+          name: factoryos-admin-${{ inputs.release_environment }}-${{ github.run_number }}
+          path: apps/admin_web/build/web/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Analyze and generate Android QA platform
+        if: inputs.release_target == 'android-qa'
+        working-directory: apps/mobile
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter analyze
+          flutter test
+          flutter create . --platforms=android --org "$FACTORYOS_ANDROID_ORG" --project-name factoryos_mobile
+          python3 ../../scripts/android_permissions.py android/app/src/main/AndroidManifest.xml
+      - name: Build Android QA APK (NOT signed for Play Store)
+        if: inputs.release_target == 'android-qa'
+        working-directory: apps/mobile
+        run: |
+          flutter build apk --release \
+            --dart-define="SUPABASE_URL=$FACTORYOS_SUPABASE_URL" \
+            --dart-define="SUPABASE_PUBLISHABLE_KEY=$FACTORYOS_SUPABASE_PUBLISHABLE_KEY"
+      - name: Store Android QA artifact (NOT Play Store ready)
+        if: inputs.release_target == 'android-qa'
+        uses: actions/upload-artifact@v4
+        with:
+          name: factoryos-android-QA-NOT-STORE-${{ inputs.release_environment }}-${{ github.run_number }}
+          path: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
