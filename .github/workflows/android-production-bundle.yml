@@ -7,6 +7,10 @@ on:
         description: 'Type BUILD to create a signed production AAB'
         required: true
         default: 'REVIEW'
+      confirm_project_ref:
+        description: 'Independently type the FactoryOS production Supabase project ref'
+        required: true
+        default: ''
 
 permissions:
   contents: read
@@ -16,7 +20,10 @@ jobs:
     if: ${{ inputs.confirm == 'BUILD' }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    environment: factoryos-production
     env:
+      CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
+      SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
       SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
       SUPABASE_PUBLISHABLE_KEY: ${{ secrets.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
       FIREBASE_API_KEY: ${{ secrets.FACTORYOS_FIREBASE_API_KEY }}
@@ -42,6 +49,7 @@ jobs:
           set -euo pipefail
           required=(
             SUPABASE_URL
+            SUPABASE_PROJECT_REF
             SUPABASE_PUBLISHABLE_KEY
             FIREBASE_API_KEY
             FIREBASE_APP_ID
@@ -60,6 +68,16 @@ jobs:
             fi
           done
           test "$missing" -eq 0
+          if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{20}$ ]] || \
+             [[ "$CONFIRMED_PROJECT_REF" != "$SUPABASE_PROJECT_REF" ]] || \
+             [[ "${SUPABASE_URL%/}" != "https://${SUPABASE_PROJECT_REF}.supabase.co" ]]; then
+            echo 'Production Android target mismatch; refusing to package a store bundle.'
+            exit 1
+          fi
+          if [[ "$FIREBASE_APP_ID" != *:android:* ]]; then
+            echo 'Firebase app ID must be the registered Android Firebase app.'
+            exit 1
+          fi
       - name: Restore Android release keystore
         shell: bash
         env:
