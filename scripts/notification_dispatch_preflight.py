@@ -15,8 +15,8 @@ PROJECT_REF_RE = re.compile(r"[a-z0-9]{20}")
 
 def validate_dispatch_environment(env: Mapping[str, str]) -> tuple[str, str]:
     """Return (state, non-secret diagnostic) without network I/O."""
-    project_ref = env.get("FACTORYOS_SUPABASE_PROJECT_REF", "").strip()
-    project_url = env.get("FACTORYOS_SUPABASE_URL", "").strip()
+    project_ref = env.get("FACTORYOS_SUPABASE_PROJECT_REF", "")
+    project_url = env.get("FACTORYOS_SUPABASE_URL", "")
     dispatch_secret = env.get("NOTIFICATION_DISPATCH_SECRET", "")
 
     if not any((project_ref, project_url, dispatch_secret)):
