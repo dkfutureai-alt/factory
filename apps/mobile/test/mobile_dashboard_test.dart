@@ -100,4 +100,39 @@ void main() {
     expect(find.text('Fleet'), findsNothing);
     expect(find.text('Unfinished Module'), findsNothing);
   });
+
+  testWidgets('dashboard supports large accessibility text in RTL on a phone',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 760));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const data = MobileData(
+      organizationName: 'A Long Factory Organization Name',
+      role: AppRole.factoryManager,
+      factories: [
+        {'name': 'Large Manufacturing Plant', 'code': 'F-001'},
+      ],
+      modules: [
+        AppModule(key: 'production', name: 'Production Management', sortOrder: 1),
+        AppModule(key: 'inventory', name: 'Inventory Tracking', sortOrder: 2),
+      ],
+    );
+    await tester.pumpWidget(MaterialApp(
+      theme: FactoryTheme.light(),
+      home: MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: FactoryHomeDashboard(
+              data: data,
+              onOpenModule: (_, _) {},
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('A Long Factory Organization Name'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
