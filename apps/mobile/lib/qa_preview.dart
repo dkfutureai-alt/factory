@@ -99,17 +99,14 @@ class _FactoryOsQaPreviewShellState extends State<FactoryOsQaPreviewShell> {
                 horizontal: FactorySpacing.md,
                 vertical: FactorySpacing.xs,
               ),
-              child: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: FactorySpacing.md,
-                runSpacing: FactorySpacing.xxs,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.visibility_outlined, size: 18),
                       SizedBox(width: FactorySpacing.xs),
-                      Flexible(
+                      Expanded(
                         child: Text(
                           'OFFLINE UI PREVIEW · NO LIVE DATA',
                           style: TextStyle(
@@ -120,6 +117,7 @@ class _FactoryOsQaPreviewShellState extends State<FactoryOsQaPreviewShell> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: FactorySpacing.xxs),
                   DropdownButton<AppRole>(
                     value: role,
                     isDense: true,
