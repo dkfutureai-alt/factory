@@ -2,6 +2,7 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 
 import 'main_phase11.dart' show MobileData;
+import 'mobile_work_hub.dart' show FactoryWorkHubPolicy;
 
 typedef FactoryModuleOpener = void Function(
   BuildContext context,
@@ -20,7 +21,9 @@ class FactoryHomeDashboard extends StatelessWidget {
   final FactoryModuleOpener onOpenModule;
 
   @override
-  Widget build(BuildContext context) => SafeArea(
+  Widget build(BuildContext context) {
+    final launchable = FactoryWorkHubPolicy.available(data);
+    return SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1040),
@@ -35,7 +38,7 @@ class FactoryHomeDashboard extends StatelessWidget {
                     FactorySpacing.xl + 12,
                   ),
                   children: [
-                    FactoryReveal(child: _WorkspaceHero(data: data)),
+                    FactoryReveal(child: _WorkspaceHero(data: data, workspaceCount: launchable.length)),
                     const SizedBox(height: FactorySpacing.md),
                     _FactoryAssignment(factories: data.factories),
                     const SizedBox(height: FactorySpacing.xl),
@@ -48,7 +51,7 @@ class FactoryHomeDashboard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${data.modules.length} available',
+                          '${launchable.length} available',
                           style: const TextStyle(
                             color: FactoryColors.muted,
                             fontWeight: FontWeight.w600,
@@ -77,7 +80,7 @@ class FactoryHomeDashboard extends StatelessWidget {
                           spacing: gap,
                           runSpacing: gap,
                           children: [
-                            for (final module in data.modules)
+                            for (final module in launchable)
                               SizedBox(
                                 width: tileWidth,
                                 child: _ModuleTile(
@@ -89,7 +92,7 @@ class FactoryHomeDashboard extends StatelessWidget {
                         );
                       },
                     ),
-                    if (data.modules.isEmpty) ...[
+                    if (launchable.isEmpty) ...[
                       const SizedBox(height: FactorySpacing.md),
                       const _EmptyWorkspace(),
                     ],
@@ -101,11 +104,13 @@ class FactoryHomeDashboard extends StatelessWidget {
           ),
         ),
       );
+  }
 }
 
 class _WorkspaceHero extends StatelessWidget {
-  const _WorkspaceHero({required this.data});
+  const _WorkspaceHero({required this.data, required this.workspaceCount});
   final MobileData data;
+  final int workspaceCount;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -204,7 +209,7 @@ class _WorkspaceHero extends StatelessWidget {
                     children: [
                       _HeroPill(
                         icon: Icons.apps_outlined,
-                        label: '${data.modules.length} workspaces',
+                        label: '$workspaceCount workspaces',
                       ),
                       _HeroPill(
                         icon: Icons.location_on_outlined,
