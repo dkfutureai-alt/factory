@@ -22,7 +22,7 @@ class FactoryWorkHub extends StatefulWidget {
 abstract final class FactoryWorkHubPolicy {
   static const _supported = <String>{
     'hr', 'inventory', 'production', 'quality', 'warehouse',
-    'purchase', 'sales', 'commercial', 'maintenance', 'reports',
+    'purchase', 'sales', 'maintenance', 'reports',
     'notifications', 'delivery', 'vehicles',
   };
 
