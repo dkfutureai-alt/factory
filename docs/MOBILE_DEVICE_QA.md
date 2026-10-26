@@ -22,7 +22,7 @@ adb install -r app-debug.apk
 adb shell pm list packages | grep com.dkappsstudio.factoryos.qapreview
 ```
 
-The checksum file was generated using a path relative to the workflow working directory; to check it locally from the extracted artifact, compare the hash with `sha256sum app-debug.apk` if the extracted ZIP changed its paths. Do not install a QA preview over a production application.
+The checksum file uses the APK's basename and can be validated in the extracted artifact directory. The QA package uses its own `.qapreview` application ID and cannot be mistaken for a signed production build.
 
 For development workstations that already have a Flutter/Android setup:
 
