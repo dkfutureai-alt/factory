@@ -306,40 +306,106 @@ class _ProfileTabPhase16State extends State<_ProfileTabPhase16> {
 
   @override
   Widget build(BuildContext context) => SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(FactorySpacing.lg),
-          children: [
-            Text(
-              'Profile',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: FactorySpacing.lg),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.business_outlined),
-                title: Text(widget.data.organizationName),
-                subtitle: Text(widget.data.role.label),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: FactoryReveal(
+              child: ListView(
+                padding: const EdgeInsets.all(FactorySpacing.lg),
+                children: [
+                  Text(
+                    'My profile',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: FactorySpacing.xs),
+                  const Text(
+                    'Workspace access and assigned locations',
+                    style: TextStyle(color: FactoryColors.muted),
+                  ),
+                  const SizedBox(height: FactorySpacing.lg),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(FactorySpacing.md),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 54,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              color: FactoryColors.softBlue,
+                              borderRadius:
+                                  BorderRadius.circular(FactoryRadius.md),
+                            ),
+                            child: const Icon(
+                              Icons.business_outlined,
+                              color: FactoryColors.blue,
+                            ),
+                          ),
+                          const SizedBox(width: FactorySpacing.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.data.organizationName,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  widget.data.role.label,
+                                  style: const TextStyle(
+                                    color: FactoryColors.muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: FactorySpacing.xl),
+                  Text(
+                    'Assigned factories',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: FactorySpacing.sm),
+                  if (widget.data.factories.isEmpty)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(FactorySpacing.lg),
+                        child: Text('No factory assignments are available.'),
+                      ),
+                    ),
+                  for (final factory in widget.data.factories) ...[
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.factory_outlined,
+                          color: FactoryColors.blue,
+                        ),
+                        title: Text(factory['name'] as String? ?? 'Factory'),
+                        subtitle: Text(factory['code'] as String? ?? ''),
+                      ),
+                    ),
+                    const SizedBox(height: FactorySpacing.xs),
+                  ],
+                  const SizedBox(height: FactorySpacing.lg),
+                  OutlinedButton.icon(
+                    onPressed: signingOut ? null : _signOut,
+                    icon: signingOut
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.logout),
+                    label: Text(signingOut ? 'Signing out…' : 'Sign out'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: FactorySpacing.md),
-            for (final factory in widget.data.factories)
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.factory_outlined),
-                  title: Text(factory['name'] as String),
-                  subtitle: Text(factory['code'] as String),
-                ),
-              ),
-            const SizedBox(height: FactorySpacing.lg),
-            FilledButton.tonalIcon(
-              onPressed: signingOut ? null : _signOut,
-              icon: const Icon(Icons.logout),
-              label: Text(signingOut ? 'Signing out…' : 'Sign out'),
-            ),
-          ],
+          ),
         ),
       );
 }
