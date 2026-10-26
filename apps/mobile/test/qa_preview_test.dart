@@ -1,3 +1,4 @@
+import 'package:factoryos_core/factoryos_core.dart';
 import 'package:factoryos_mobile/qa_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,7 +41,7 @@ void main() {
       (tester) async {
     await tester.pumpWidget(const FactoryOsQaPreviewApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(DropdownButton).first);
+    await tester.tap(find.byType(DropdownButton<AppRole>).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Driver').last);
     await tester.pumpAndSettle();
