@@ -67,4 +67,37 @@ void main() {
     expect(find.text('No modules are enabled for this role.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('dashboard excludes unsupported and role-blocked modules',
+      (tester) async {
+    const data = MobileData(
+      organizationName: 'Example Works',
+      role: AppRole.employee,
+      factories: [],
+      modules: [
+        AppModule(key: 'hr', name: 'Human Resources', sortOrder: 1),
+        AppModule(key: 'reports', name: 'Reports', sortOrder: 2),
+        AppModule(key: 'vehicles', name: 'Fleet', sortOrder: 3),
+        AppModule(key: 'unknown', name: 'Unfinished Module', sortOrder: 4),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: FactoryTheme.light(),
+        home: Scaffold(
+          body: FactoryHomeDashboard(
+            data: data,
+            onOpenModule: (_, _) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('1 workspace'), findsOneWidget);
+    expect(find.text('1 available'), findsOneWidget);
+    expect(find.text('Human Resources'), findsOneWidget);
+    expect(find.text('Reports'), findsNothing);
+    expect(find.text('Fleet'), findsNothing);
+    expect(find.text('Unfinished Module'), findsNothing);
+  });
 }
