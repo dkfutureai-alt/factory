@@ -11,6 +11,7 @@ import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
 import 'maintenance_technician.dart';
 import 'mobile_dashboard.dart';
+import 'mobile_work_hub.dart';
 import 'main_phase11.dart' as phase11;
 import 'notification_inbox.dart';
 import 'production_execution.dart';
@@ -212,6 +213,9 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
     Navigator.of(context).push(FactoryMotion.page<void>(context, page));
   }
 
+  void _openAssignedModule(BuildContext context, AppModule module) =>
+      _HomeTabPhase12(data: widget.data).openModule(context, module);
+
   void _selectTab(int value) {
     if (value == index) return;
     setState(() {
@@ -228,20 +232,20 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
     );
     final pages = <Widget>[
       _HomeTabPhase12(data: widget.data),
-      const phase11.SimpleTab(title: 'Tasks', icon: Icons.task_alt),
-      hasInventory
-          ? const InventoryScannerPage()
-          : const phase11.SimpleTab(
-              title: 'Scan',
-              icon: Icons.qr_code_scanner,
-            ),
+      FactoryWorkHub(
+        data: widget.data,
+        onOpenModule: _openAssignedModule,
+      ),
+      if (hasInventory) const InventoryScannerPage(),
       NotificationInboxPage(onOpenRoute: _openNotificationRoute),
       _ProfileTabPhase16(data: widget.data),
     ];
+    final scannerIndex = hasInventory ? 2 : null;
     return Scaffold(
       body: AnimatedSwitcher(
-        duration: (index == 2 || previousIndex == 2)
-            ? Duration.zero // Never retain an active scanner behind an animation.
+        duration: (scannerIndex != null &&
+                (index == scannerIndex || previousIndex == scannerIndex))
+            ? Duration.zero // Never retain a camera view during transition.
             : FactoryMotion.duration(context, FactoryMotion.standard),
         switchInCurve: Curves.easeOutCubic,
         switchOutCurve: Curves.easeInCubic,
@@ -257,23 +261,28 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
         onDestinationSelected: _selectTab,
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
-          NavigationDestination(icon: Icon(Icons.task_alt), label: 'Tasks'),
-          NavigationDestination(
-            icon: Icon(Icons.qr_code_scanner),
-            label: 'Scan',
+          const NavigationDestination(
+            icon: Icon(Icons.grid_view_outlined),
+            selectedIcon: Icon(Icons.grid_view_rounded),
+            label: 'Work',
           ),
-          NavigationDestination(
+          if (hasInventory)
+            const NavigationDestination(
+              icon: Icon(Icons.qr_code_scanner),
+              label: 'Scan',
+            ),
+          const NavigationDestination(
             icon: Icon(Icons.notifications_none),
             selectedIcon: Icon(Icons.notifications),
             label: 'Alerts',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: 'Profile',
