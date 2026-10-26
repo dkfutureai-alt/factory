@@ -132,53 +132,107 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(FactorySpacing.lg),
-        children: [
-          const SizedBox(height: 64),
-          const Icon(Icons.factory, size: 68, color: FactoryColors.blue),
-          const SizedBox(height: FactorySpacing.md),
-          Text(
-            'FactoryOS',
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const Text(
-            'Sign in to your factory workspace',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: FactorySpacing.xl),
-          TextField(
-            controller: email,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'Email'),
-          ),
-          const SizedBox(height: FactorySpacing.md),
-          TextField(
-            controller: password,
-            obscureText: true,
-            onSubmitted: (_) => signIn(),
-            decoration: const InputDecoration(labelText: 'Password'),
-          ),
-          if (error != null) ...[
-            const SizedBox(height: FactorySpacing.sm),
-            Text(
-              error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: FactoryReveal(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(FactorySpacing.lg),
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: FactoryColors.softBlue,
+                          borderRadius: BorderRadius.circular(FactoryRadius.lg),
+                        ),
+                        child: const Icon(
+                          Icons.factory_outlined,
+                          size: 38,
+                          color: FactoryColors.blue,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: FactorySpacing.lg),
+                    Text(
+                      'Welcome to FactoryOS',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: FactorySpacing.xs),
+                    const Text(
+                      'Sign in to your secure factory workspace',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: FactoryColors.muted),
+                    ),
+                    const SizedBox(height: FactorySpacing.xl),
+                    AutofillGroup(
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: email,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.username, AutofillHints.email],
+                            decoration: const InputDecoration(
+                              labelText: 'Work email',
+                              prefixIcon: Icon(Icons.alternate_email),
+                            ),
+                          ),
+                          const SizedBox(height: FactorySpacing.md),
+                          TextField(
+                            controller: password,
+                            obscureText: true,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: const [AutofillHints.password],
+                            onSubmitted: (_) {
+                              if (!busy) signIn();
+                            },
+                            decoration: const InputDecoration(
+                              labelText: 'Password',
+                              prefixIcon: Icon(Icons.lock_outline),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (error != null) ...[
+                      const SizedBox(height: FactorySpacing.md),
+                      Text(
+                        error!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: FactorySpacing.lg),
+                    FilledButton(
+                      onPressed: busy ? null : signIn,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: busy
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Sign in securely'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-          const SizedBox(height: FactorySpacing.lg),
-          FilledButton(
-            onPressed: busy ? null : signIn,
-            child: Text(busy ? 'Signing in…' : 'Sign in'),
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class MobileData {
