@@ -64,7 +64,7 @@ jobs:
           aapt_bin=$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -n 1)
           test -n "$aapt_bin"
           "$aapt_bin" dump badging "$apk" | grep -Fq "package: name='com.dkappsstudio.factoryos.qapreview'"
-          sha256sum "$apk" > build/app/outputs/flutter-apk/QA_PREVIEW_SHA256.txt
+          (cd build/app/outputs/flutter-apk && sha256sum app-debug.apk > QA_PREVIEW_SHA256.txt)
           echo 'Offline QA preview: fixture data only, no Supabase or Firebase.'
           echo 'Not a signed store release. Does not test live backend workflows.'
       - name: Save installable Android UI-only QA artifact
