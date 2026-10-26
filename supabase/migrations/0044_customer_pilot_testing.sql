@@ -26,6 +26,7 @@ create table public.pilot_feedback (
     references public.pilot_participants (organization_id, user_id) on delete cascade
 );
 
+create index pilot_feedback_participant_fk_idx on public.pilot_feedback (organization_id, user_id);
 create index pilot_feedback_org_recent_idx on public.pilot_feedback (organization_id, created_at desc);
 create index pilot_feedback_user_recent_idx on public.pilot_feedback (user_id, created_at desc);
 
