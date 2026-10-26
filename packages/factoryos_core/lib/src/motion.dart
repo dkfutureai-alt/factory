@@ -20,10 +20,8 @@ abstract final class FactoryMotion {
         pageBuilder: (_, _, _) => child,
         transitionsBuilder: (routeContext, animation, secondary, page) {
           if (reduceMotion(routeContext)) return page;
-          final eased = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
+          final eased = animation.drive(
+            CurveTween(curve: Curves.easeOutCubic),
           );
           return FadeTransition(
             opacity: eased,
