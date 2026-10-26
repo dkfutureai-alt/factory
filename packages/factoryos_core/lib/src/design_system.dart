@@ -41,6 +41,9 @@ abstract final class FactoryTheme {
       onSurface: FactoryColors.navy,
     );
 
+    // Preserve every built-in Material text style; customize only the
+    // hierarchy needed for operational screens.
+    final baseText = ThemeData(useMaterial3: true, colorScheme: scheme).textTheme;
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
@@ -59,22 +62,24 @@ abstract final class FactoryTheme {
           letterSpacing: -0.3,
         ),
       ),
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(
+      textTheme: baseText.copyWith(
+        headlineMedium: baseText.headlineMedium?.copyWith(
           color: FactoryColors.navy,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.7,
         ),
-        titleLarge: TextStyle(
+        titleLarge: baseText.titleLarge?.copyWith(
           color: FactoryColors.navy,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.35,
         ),
-        titleMedium: TextStyle(
+        titleMedium: baseText.titleMedium?.copyWith(
           color: FactoryColors.navy,
           fontWeight: FontWeight.w700,
         ),
-        bodyMedium: TextStyle(color: FactoryColors.navy),
+        bodyMedium: baseText.bodyMedium?.copyWith(
+          color: FactoryColors.navy,
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
