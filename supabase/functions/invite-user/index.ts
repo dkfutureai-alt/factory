@@ -1,17 +1,9 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { InviteInputError, parseInviteRequest, resolveInviteRedirect } from './invite_helpers.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-type InviteBody = {
-  organization_id?: string;
-  email?: string;
-  full_name?: string;
-  phone?: string;
-  role?: string;
-  factory_ids?: string[];
 };
 
 function json(status: number, body: unknown) {
@@ -29,9 +21,10 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const authHeader = req.headers.get('Authorization') ?? '';
-    if (!supabaseUrl || !serviceRoleKey || !authHeader.startsWith('Bearer ')) {
-      return json(401, { error: 'Authentication required' });
-    }
+    if (!supabaseUrl || !serviceRoleKey) return json(503, { error: 'Invitation service not configured' });
+    if (!authHeader.startsWith('Bearer ')) return json(401, { error: 'Authentication required' });
+    const redirectTo = resolveInviteRedirect(Deno.env.get('FACTORYOS_INVITE_REDIRECT_URL'), supabaseUrl);
+    if (!redirectTo) return json(503, { error: 'Invitation redirect not configured securely' });
 
     const service = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -40,22 +33,18 @@ Deno.serve(async (req) => {
     const { data: authData, error: authError } = await service.auth.getUser(token);
     if (authError || !authData.user) return json(401, { error: 'Invalid session' });
 
-    const body = (await req.json()) as InviteBody;
-    const organizationId = body.organization_id?.trim() ?? '';
-    const email = body.email?.trim().toLowerCase() ?? '';
-    const fullName = body.full_name?.trim() ?? '';
-    const phone = body.phone?.trim() || null;
-    const role = body.role?.trim() ?? '';
-    const factoryIds = [...new Set(body.factory_ids ?? [])];
-
-    if (!organizationId || !email.includes('@') || fullName.length < 2 || !role) {
-      return json(400, { error: 'Organization, valid email, full name and role are required' });
+    let body: unknown;
+    try { body = await req.json(); }
+    catch { return json(400, { error: 'A valid JSON invitation body is required' }); }
+    let invite;
+    try { invite = parseInviteRequest(body); }
+    catch (error) {
+      if (error instanceof InviteInputError) return json(400, { error: error.message });
+      throw error;
     }
+    const { organizationId, email, fullName, phone, role, factoryIds } = invite;
 
-    const allowedRoles = ['org_admin', 'factory_manager', 'supervisor', 'employee', 'driver', 'viewer'];
-    if (!allowedRoles.includes(role)) return json(400, { error: 'Invalid invitation role' });
-
-    const { data: ownerMembership } = await service
+    const { data: ownerMembership, error: ownerError } = await service
       .from('organization_members')
       .select('role')
       .eq('user_id', authData.user.id)
@@ -63,22 +52,19 @@ Deno.serve(async (req) => {
       .eq('is_active', true)
       .limit(1)
       .maybeSingle();
+    if (ownerError) throw ownerError;
     const isPlatformOwner = ownerMembership?.role === 'platform_owner';
 
-    const { data: orgMembership } = await service
+    const { data: orgMembership, error: orgError } = await service
       .from('organization_members')
       .select('role')
       .eq('organization_id', organizationId)
       .eq('user_id', authData.user.id)
       .eq('is_active', true)
       .maybeSingle();
+    if (orgError) throw orgError;
     const isOrgAdmin = orgMembership?.role === 'org_admin';
     if (!isPlatformOwner && !isOrgAdmin) return json(403, { error: 'Organization admin access required' });
-
-    const factoryRole = ['factory_manager', 'supervisor', 'employee', 'driver'].includes(role);
-    if (factoryRole && factoryIds.length === 0) {
-      return json(400, { error: 'This role requires at least one factory assignment' });
-    }
 
     if (factoryIds.length > 0) {
       const { data: validFactories, error: factoryError } = await service
@@ -92,6 +78,13 @@ Deno.serve(async (req) => {
         return json(400, { error: 'One or more factory assignments are invalid' });
       }
     }
+
+    // Free the partial unique email constraint only for this organization's expired invites.
+    // Migration 0043 must precede deployment of this Edge Function.
+    const { error: expiryError } = await service.rpc('expire_stale_user_invitations', {
+      p_organization_id: organizationId, p_email: email,
+    });
+    if (expiryError) throw expiryError;
 
     const { data: invitation, error: invitationError } = await service
       .from('user_invitations')
@@ -119,10 +112,14 @@ Deno.serve(async (req) => {
           factory_id: factoryId,
         })),
       );
-      if (assignmentError) throw assignmentError;
+      if (assignmentError) {
+        const { error: cleanupError } = await service.from('user_invitations')
+          .update({ status: 'failed' }).eq('id', invitation.id).eq('status', 'pending');
+        if (cleanupError) console.error('Could not release failed factory invitation');
+        throw assignmentError;
+      }
     }
 
-    const redirectTo = Deno.env.get('FACTORYOS_INVITE_REDIRECT_URL') ?? 'http://localhost:3000';
     const { data: invited, error: inviteError } = await service.auth.admin.inviteUserByEmail(email, {
       redirectTo,
       data: {
@@ -132,21 +129,21 @@ Deno.serve(async (req) => {
     });
 
     if (inviteError) {
-      await service
-        .from('user_invitations')
+      const { error: stateError } = await service.from('user_invitations')
         .update({ status: 'failed', delivery_error: inviteError.message })
         .eq('id', invitation.id);
-      return json(400, { error: inviteError.message });
+      if (stateError) console.error('Could not record invitation mail failure');
+      return json(502, { error: 'Invitation email delivery failed. Check email settings and retry.' });
     }
 
-    await service
-      .from('user_invitations')
+    const { error: sentError } = await service.from('user_invitations')
       .update({ status: 'sent', auth_user_id: invited.user?.id ?? null, delivery_error: null })
       .eq('id', invitation.id);
+    if (sentError) throw sentError;
 
     return json(200, { invitation_id: invitation.id, status: 'sent' });
   } catch (error) {
-    console.error(error);
-    return json(500, { error: error instanceof Error ? error.message : 'Invitation failed' });
+    console.error('Invitation failed', error instanceof Error ? error.name : 'unknown error');
+    return json(500, { error: 'Invitation could not be completed. Please retry or contact support.' });
   }
 });

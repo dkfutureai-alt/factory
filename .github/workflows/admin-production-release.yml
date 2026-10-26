@@ -11,6 +11,10 @@ on:
         description: 'Flutter web base href (for this repository Pages site use /factory/)'
         required: true
         default: '/factory/'
+      confirm_project_ref:
+        description: 'Independently type the exact FactoryOS Supabase project ref'
+        required: true
+        default: ''
 
 permissions:
   contents: read
@@ -23,13 +27,15 @@ concurrency:
 
 jobs:
   build:
-    if: ${{ inputs.confirm == 'PUBLISH' }}
+    if: ${{ inputs.confirm == 'PUBLISH' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    environment: factoryos-production
     env:
       SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
       SUPABASE_PUBLISHABLE_KEY: ${{ secrets.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
       SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
       BASE_HREF: ${{ inputs.base_href }}
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +50,12 @@ jobs:
           test -n "${SUPABASE_URL:-}"
           test -n "${SUPABASE_PUBLISHABLE_KEY:-}"
           test -n "${SUPABASE_PROJECT_REF:-}"
-          [[ "${SUPABASE_URL%/}" == "https://${SUPABASE_PROJECT_REF}.supabase.co" ]]
+          if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{20}$ ]] || \
+             [[ "$CONFIRMED_PROJECT_REF" != "$SUPABASE_PROJECT_REF" ]] || \
+             [[ "${SUPABASE_URL%/}" != "https://${SUPABASE_PROJECT_REF}.supabase.co" ]]; then
+            echo "Production Admin target mismatch; refusing to build/publish."
+            exit 1
+          fi
           if [[ ! "$BASE_HREF" =~ ^/[A-Za-z0-9._/-]*/$ ]] || [[ "$BASE_HREF" == *'..'* ]]; then
             echo 'Invalid base href; use a normalized path such as /factory/ or /.'
             exit 1
@@ -62,7 +73,7 @@ jobs:
           path: apps/admin_web/build/web
 
   deploy:
-    if: ${{ inputs.confirm == 'PUBLISH' }}
+    if: ${{ inputs.confirm == 'PUBLISH' && github.ref == 'refs/heads/main' }}
     needs: build
     runs-on: ubuntu-latest
     environment:
