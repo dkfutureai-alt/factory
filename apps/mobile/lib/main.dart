@@ -499,7 +499,7 @@ class _HomeTabPhase12 extends StatelessWidget {
       _notice(context, '${module.name} is available through the FactoryOS workspace.');
       return;
     }
-    Navigator.of(context).push(FactoryMotion.page<void>(context, page!));
+    Navigator.of(context).push(FactoryMotion.page<void>(context, page));
   }
 
   void _notice(BuildContext context, String text) {
