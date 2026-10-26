@@ -1,3 +1,4 @@
+# Validate every production-workflow change, including manual main/ref release safeguards.
 name: Release Workflow Lint
 
 on:
