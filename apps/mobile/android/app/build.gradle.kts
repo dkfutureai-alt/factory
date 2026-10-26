@@ -54,6 +54,13 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            // Unique package ID for an explicit offline QA preview build only.
+            // Standard debug and release identities remain unchanged.
+            if (System.getenv("FACTORYOS_QA_PREVIEW_BUILD") == "true") {
+                applicationIdSuffix = ".qapreview"
+            }
+        }
         release {
             // CI can compile with the debug key to prove the release project builds.
             // Store publishing must set FACTORYOS_REQUIRE_RELEASE_SIGNING=true,

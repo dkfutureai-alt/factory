@@ -11,6 +11,8 @@ import 'fleet_driver.dart';
 import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
 import 'maintenance_technician.dart';
+import 'mobile_dashboard.dart';
+import 'mobile_work_hub.dart';
 import 'main_phase11.dart' as phase11;
 import 'notification_inbox.dart';
 import 'production_execution.dart';
@@ -157,6 +159,7 @@ class _MobileHomePhase12 extends StatefulWidget {
 
 class _MobileHomePhase12State extends State<_MobileHomePhase12> {
   int index = 0;
+  int previousIndex = 0;
   late final ValueChanged<String> _pushRouteHandler;
 
   @override
@@ -209,7 +212,18 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
       );
       return;
     }
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
+    Navigator.of(context).push(FactoryMotion.page<void>(context, page));
+  }
+
+  void _openAssignedModule(BuildContext context, AppModule module) =>
+      _HomeTabPhase12(data: widget.data).openModule(context, module);
+
+  void _selectTab(int value) {
+    if (value == index) return;
+    setState(() {
+      previousIndex = index;
+      index = value;
+    });
   }
 
   @override
@@ -220,38 +234,57 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
     );
     final pages = <Widget>[
       _HomeTabPhase12(data: widget.data),
-      const phase11.SimpleTab(title: 'Tasks', icon: Icons.task_alt),
-      hasInventory
-          ? const InventoryScannerPage()
-          : const phase11.SimpleTab(
-              title: 'Scan',
-              icon: Icons.qr_code_scanner,
-            ),
+      FactoryWorkHub(
+        data: widget.data,
+        onOpenModule: _openAssignedModule,
+      ),
+      if (hasInventory) const InventoryScannerPage(),
       NotificationInboxPage(onOpenRoute: _openNotificationRoute),
       _ProfileTabPhase16(data: widget.data),
     ];
+    final scannerIndex = hasInventory ? 2 : null;
     return Scaffold(
-      body: pages[index],
+      body: AnimatedSwitcher(
+        duration: (scannerIndex != null &&
+                (index == scannerIndex || previousIndex == scannerIndex))
+            ? Duration.zero // Never retain a camera view during transition.
+            : FactoryMotion.duration(context, FactoryMotion.standard),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: child,
+        ),
+        child: KeyedSubtree(
+          key: ValueKey<int>(index),
+          child: pages[index],
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
-        onDestinationSelected: (value) => setState(() => index = value),
-        destinations: const [
-          NavigationDestination(
+        onDestinationSelected: _selectTab,
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
-          NavigationDestination(icon: Icon(Icons.task_alt), label: 'Tasks'),
-          NavigationDestination(
-            icon: Icon(Icons.qr_code_scanner),
-            label: 'Scan',
+          const NavigationDestination(
+            icon: Icon(Icons.grid_view_outlined),
+            selectedIcon: Icon(Icons.grid_view_rounded),
+            label: 'Work',
           ),
-          NavigationDestination(
+          if (hasInventory)
+            const NavigationDestination(
+              icon: Icon(Icons.qr_code_scanner),
+              label: 'Scan',
+            ),
+          const NavigationDestination(
             icon: Icon(Icons.notifications_none),
             selectedIcon: Icon(Icons.notifications),
             label: 'Alerts',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: 'Profile',
@@ -284,56 +317,121 @@ class _ProfileTabPhase16State extends State<_ProfileTabPhase16> {
 
   @override
   Widget build(BuildContext context) => SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(FactorySpacing.lg),
-          children: [
-            Text(
-              'Profile',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: FactorySpacing.lg),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.business_outlined),
-                title: Text(widget.data.organizationName),
-                subtitle: Text(widget.data.role.label),
-              ),
-            ),
-            const SizedBox(height: FactorySpacing.md),
-            for (final factory in widget.data.factories)
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.factory_outlined),
-                  title: Text(factory['name'] as String),
-                  subtitle: Text(factory['code'] as String),
-                ),
-              ),
-            const SizedBox(height: FactorySpacing.lg),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.fact_check_outlined),
-                title: const Text('Customer pilot'),
-                subtitle: const Text('Join a test and report real workflow results'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => CustomerPilotPage(
-                      organizationId: widget.data.organizationId,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: FactoryReveal(
+              child: ListView(
+                padding: const EdgeInsets.all(FactorySpacing.lg),
+                children: [
+                  Text(
+                    'My profile',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: FactorySpacing.xs),
+                  const Text(
+                    'Workspace access and assigned locations',
+                    style: TextStyle(color: FactoryColors.muted),
+                  ),
+                  const SizedBox(height: FactorySpacing.lg),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(FactorySpacing.md),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 54,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              color: FactoryColors.softBlue,
+                              borderRadius:
+                                  BorderRadius.circular(FactoryRadius.md),
+                            ),
+                            child: const Icon(
+                              Icons.business_outlined,
+                              color: FactoryColors.blue,
+                            ),
+                          ),
+                          const SizedBox(width: FactorySpacing.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.data.organizationName,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  widget.data.role.label,
+                                  style: const TextStyle(
+                                    color: FactoryColors.muted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: FactorySpacing.xl),
+                  Text(
+                    'Assigned factories',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: FactorySpacing.sm),
+                  if (widget.data.factories.isEmpty)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(FactorySpacing.lg),
+                        child: Text('No factory assignments are available.'),
+                      ),
+                    ),
+                  for (final factory in widget.data.factories) ...[
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.factory_outlined,
+                          color: FactoryColors.blue,
+                        ),
+                        title: Text(factory['name'] as String? ?? 'Factory'),
+                        subtitle: Text(factory['code'] as String? ?? ''),
+                      ),
+                    ),
+                    const SizedBox(height: FactorySpacing.xs),
+                  ],
+                  const SizedBox(height: FactorySpacing.lg),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.fact_check_outlined),
+                      title: const Text('Customer pilot'),
+                      subtitle: const Text('Join a test and report real workflow results'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                        FactoryMotion.page<void>(
+                          context,
+                          CustomerPilotPage(organizationId: widget.data.organizationId),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: FactorySpacing.md),
+                  OutlinedButton.icon(
+                    onPressed: signingOut ? null : _signOut,
+                    icon: signingOut
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.logout),
+                    label: Text(signingOut ? 'Signing out…' : 'Sign out'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: FactorySpacing.md),
-            FilledButton.tonalIcon(
-              onPressed: signingOut ? null : _signOut,
-              icon: const Icon(Icons.logout),
-              label: Text(signingOut ? 'Signing out…' : 'Sign out'),
-            ),
-          ],
+          ),
         ),
       );
 }
@@ -427,7 +525,7 @@ class _HomeTabPhase12 extends StatelessWidget {
       _notice(context, '${module.name} is available through the FactoryOS workspace.');
       return;
     }
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page!));
+    Navigator.of(context).push(FactoryMotion.page<void>(context, page));
   }
 
   void _notice(BuildContext context, String text) {
@@ -435,119 +533,8 @@ class _HomeTabPhase12 extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final primaryFactory = data.factories.isEmpty ? null : data.factories.first;
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(FactorySpacing.md),
-        children: [
-          Row(
-            children: [
-              const CircleAvatar(child: Icon(Icons.factory_outlined)),
-              const SizedBox(width: FactorySpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      data.organizationName,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    Text(data.role.label),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: FactorySpacing.lg),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.location_on_outlined),
-              title: Text(
-                primaryFactory == null
-                    ? 'No factory assigned'
-                    : primaryFactory['name'] as String,
-              ),
-              subtitle: primaryFactory == null
-                  ? null
-                  : Text(
-                      [
-                        primaryFactory['code'],
-                        primaryFactory['city'],
-                        primaryFactory['state'],
-                      ].whereType<String>().join(' · '),
-                    ),
-            ),
-          ),
-          const SizedBox(height: FactorySpacing.lg),
-          Text(
-            'Your modules',
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: FactorySpacing.md),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: data.modules.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.35,
-              crossAxisSpacing: FactorySpacing.sm,
-              mainAxisSpacing: FactorySpacing.sm,
-            ),
-            itemBuilder: (context, moduleIndex) {
-              final module = data.modules[moduleIndex];
-              final icon = switch (module.key) {
-                'hr' => Icons.groups_2_outlined,
-                'inventory' => Icons.inventory_2_outlined,
-                'production' => Icons.precision_manufacturing_outlined,
-                'quality' => Icons.verified_user_outlined,
-                'warehouse' => Icons.warehouse_outlined,
-                'vehicles' => Icons.local_shipping_outlined,
-                'delivery' => Icons.route_outlined,
-                'maintenance' => Icons.build_circle_outlined,
-                'reports' => Icons.bar_chart_outlined,
-                'notifications' => Icons.notifications_active_outlined,
-                'dashboard' => Icons.dashboard_outlined,
-                _ => Icons.widgets_outlined,
-              };
-              return Card(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(FactoryRadius.lg),
-                  onTap: () => openModule(context, module),
-                  child: Padding(
-                    padding: const EdgeInsets.all(FactorySpacing.md),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(icon, color: FactoryColors.blue),
-                        const SizedBox(height: FactorySpacing.sm),
-                        Text(
-                          module.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          if (data.modules.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(FactorySpacing.lg),
-                child: Text('No modules are available for this role.'),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => FactoryHomeDashboard(
+        data: data,
+        onOpenModule: openModule,
+      );
 }

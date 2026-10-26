@@ -19,7 +19,7 @@ concurrency:
 jobs:
   android-release-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -45,6 +45,37 @@ jobs:
           bytes=$(stat -c%s "$bundle")
           echo "Android AAB bytes: $bytes"
           test "$bytes" -le 104857600
+
+      - name: Build isolated offline Android QA preview
+        working-directory: apps/mobile
+        env:
+          FACTORYOS_QA_PREVIEW_BUILD: 'true'
+        run: >-
+          flutter build apk --debug
+          --target lib/qa_preview.dart
+          --dart-define=FACTORYOS_QA_PREVIEW=true
+      - name: Verify offline QA APK identity and checksum
+        working-directory: apps/mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk='build/app/outputs/flutter-apk/app-debug.apk'
+          test -s "$apk"
+          aapt_bin=$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name aapt | sort -V | tail -n 1)
+          test -n "$aapt_bin"
+          "$aapt_bin" dump badging "$apk" | grep -Fq "package: name='com.dkappsstudio.factoryos.qapreview'"
+          (cd build/app/outputs/flutter-apk && sha256sum app-debug.apk > QA_PREVIEW_SHA256.txt)
+          echo 'Offline QA preview: fixture data only, no Supabase or Firebase.'
+          echo 'Not a signed store release. Does not test live backend workflows.'
+      - name: Save installable Android UI-only QA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FACTORYOS-OFFLINE-UI-PREVIEW-NOT-FOR-STORE
+          path: |
+            apps/mobile/build/app/outputs/flutter-apk/app-debug.apk
+            apps/mobile/build/app/outputs/flutter-apk/QA_PREVIEW_SHA256.txt
+          if-no-files-found: error
+          retention-days: 7
 
   ios-release-build:
     runs-on: macos-latest
