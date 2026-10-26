@@ -2,6 +2,15 @@
 
 > Applies only to the FactoryOS project. Never reuse the Salon, Janseva or other application's Supabase/Firebase resources.
 
+## Verified remote environment checkpoint (October 26, 2026)
+
+The connected Supabase account has a dedicated active `factoryos-production` project. Read-only inspection reported **no public application tables, zero applied migrations and zero deployed Edge Functions**. This is a newly created, uninitialized project, **not a production FactoryOS deployment**.
+
+- [ ] Confirm release owner, project access and expected region and billing plan for the existing dedicated project.
+- [ ] Provision a distinct FactoryOS staging environment for destructive tests and mobile pilots; never use Salon/Janseva projects.
+- [ ] Compare the full migration sequence `0001`–`0044` against staging, run a staged database dry-run and two-tenant role/security tests before any production deploy.
+- [ ] Do not run the guarded production migration workflow until an owner explicitly approves the exact project reference, backup/recovery plan and applied migration list.
+
 ## Release ownership and environment
 
 - [ ] Select the dedicated FactoryOS Supabase organization, region and cost plan; get approval before creating a billable project.
@@ -17,7 +26,7 @@
 - [ ] Confirm database backup/PITR capabilities for the chosen plan, record a recovery owner and trial a restore in a nonproduction environment where supported.
 - [ ] Verify the final PR's Flutter, Mobile Release, Supabase Foundation and Release Workflow Lint checks are green.
 - [ ] Confirm pending migration list and assess any destructive SQL before manually invoking **Supabase Production Release** with `confirm=DEPLOY` and a separately typed `confirm_project_ref`.
-- [ ] Confirm migrations through `0040`, Edge Functions, and private POD/Maintenance storage policies exist; do not run remote `db reset` or production fictional seeds.
+- [ ] Confirm all 44 checked-in migrations (`0001` through `0044`) in exact order, Edge Functions, and private POD/Maintenance storage policies exist; do not run remote `db reset` or production fictional seeds.
 - [ ] Inspect Supabase security/performance advisors and fix actionable findings before onboarding customers.
 
 ## Push delivery
