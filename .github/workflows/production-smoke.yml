@@ -17,9 +17,10 @@ permissions:
 
 jobs:
   smoke:
-    if: ${{ inputs.confirm == 'VERIFY' }}
+    if: ${{ inputs.confirm == 'VERIFY' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: factoryos-production
     env:
       SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
       SUPABASE_PUBLISHABLE_KEY: ${{ secrets.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
