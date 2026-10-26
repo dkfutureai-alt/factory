@@ -209,7 +209,7 @@ class _WorkspaceHero extends StatelessWidget {
                     children: [
                       _HeroPill(
                         icon: Icons.apps_outlined,
-                        label: '$workspaceCount workspaces',
+                        label: '$workspaceCount ${workspaceCount == 1 ? 'workspace' : 'workspaces'}',
                       ),
                       _HeroPill(
                         icon: Icons.location_on_outlined,
