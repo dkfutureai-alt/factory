@@ -10,6 +10,7 @@ import 'inventory_management.dart';
 import 'maintenance_management.dart';
 import 'main_phase11.dart' as phase11;
 import 'notification_center.dart';
+import 'pilot_testing.dart';
 import 'production_management.dart';
 import 'purchase_sales_management.dart';
 import 'quality_management.dart';
@@ -285,6 +286,12 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
             actorRole: w.role,
             factories: w.factories,
           ),
+        ),
+      if (w.role.canManageAccess)
+        _Phase12Tab(
+          'Pilot Testing',
+          Icons.fact_check_outlined,
+          PilotTestingPage(organizationId: w.orgId),
         ),
       if (w.role.canManageAccess)
         _Phase12Tab(
