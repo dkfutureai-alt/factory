@@ -28,6 +28,8 @@ jobs:
           deno-version: v2.x
       - name: Check invitation Edge Function
         run: deno check supabase/functions/invite-user/index.ts
+      - name: Test invitation input and redirect handling
+        run: deno test supabase/functions/invite-user/invite_helpers_test.ts
       - name: Check notification delivery Edge Function
         run: deno check supabase/functions/send-notifications/index.ts
       - name: Test notification worker response handling

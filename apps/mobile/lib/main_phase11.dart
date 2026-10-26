@@ -237,11 +237,13 @@ class _SignInPageState extends State<SignInPage> {
 
 class MobileData {
   const MobileData({
+    this.organizationId = '',
     required this.organizationName,
     required this.role,
     required this.factories,
     required this.modules,
   });
+  final String organizationId;
   final String organizationName;
   final AppRole role;
   final List<Map<String, dynamic>> factories;
@@ -308,6 +310,7 @@ class MobileRepository {
 
     return MobileBootstrapData(
       workspace: MobileData(
+        organizationId: organizationId,
         organizationName: organization['name'] as String,
         role: role,
         factories: List<Map<String, dynamic>>.from(factories),

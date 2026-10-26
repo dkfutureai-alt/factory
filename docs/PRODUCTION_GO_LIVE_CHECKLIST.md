@@ -15,7 +15,7 @@ The connected Supabase account has a dedicated active `factoryos-production` pro
 
 - [ ] Select the dedicated FactoryOS Supabase organization, region and cost plan; get approval before creating a billable project.
 - [ ] Create/connect the dedicated FactoryOS project and record its 20-character project ref and exact `https://<ref>.supabase.co` URL.
-- [ ] Set a protected GitHub environment named `factoryos-production` with required reviewers.
+- [ ] Set a protected GitHub environment named `factoryos-production` with required reviewers; restrict it and production workflow dispatches to `main`.
 - [ ] Set `SUPABASE_ACCESS_TOKEN`, `FACTORYOS_SUPABASE_PROJECT_REF`, `FACTORYOS_SUPABASE_DB_PASSWORD`, `FACTORYOS_SUPABASE_URL`, `FACTORYOS_SUPABASE_PUBLISHABLE_KEY`, and `FACTORYOS_INVITE_REDIRECT_URL` as repository/environment secrets. Never commit service-role or DB credentials.
 - [ ] Verify `FACTORYOS_SUPABASE_URL` resolves to precisely the configured project ref, not just to any valid Supabase project.
 
@@ -41,7 +41,7 @@ The connected Supabase account has a dedicated active `factoryos-production` pro
 ## Admin and mobile
 
 - [ ] Configure Pages or approved static web hosting and confirm Supabase Auth redirect allowlist includes its URL.
-- [ ] Run **Admin Production Release** with `confirm=PUBLISH`, correct `base_href` (repository default: `/factory/`), and approved target configuration. Verify Admin sign-in and workspace access.
+- [ ] Run **Admin Production Release** from `main` with `confirm=PUBLISH`, independently typed `confirm_project_ref`, correct `base_href` (repository default: `/factory/`), and an approved FactoryOS target. Verify Admin sign-in and workspace access.
 - [ ] Supply production Android keystore, key alias and signing credentials from the release owner; require release signing. Run **Android Production Bundle** with `confirm=BUILD` and the exact typed FactoryOS project ref.
 - [ ] Confirm package ID, release version, signing identity, and generated AAB checksum before any Google Play upload.
 - [ ] Configure Apple Developer Team ID, production signing, App Store Connect and final iOS capability/provisioning. The CI `--no-codesign` build is **not** an App Store deliverable.

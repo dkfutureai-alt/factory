@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'commercial_operations.dart';
+import 'customer_pilot.dart';
 import 'delivery_driver.dart';
 import 'fleet_driver.dart';
 import 'hr_self_service.dart';
@@ -103,6 +104,7 @@ class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12> {
         .toList();
     return phase11.MobileBootstrapData(
       workspace: phase11.MobileData(
+        organizationId: workspace.organizationId,
         organizationName: workspace.organizationName,
         role: workspace.role,
         factories: workspace.factories,
@@ -400,6 +402,21 @@ class _ProfileTabPhase16State extends State<_ProfileTabPhase16> {
                     const SizedBox(height: FactorySpacing.xs),
                   ],
                   const SizedBox(height: FactorySpacing.lg),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.fact_check_outlined),
+                      title: const Text('Customer pilot'),
+                      subtitle: const Text('Join a test and report real workflow results'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                        FactoryMotion.page<void>(
+                          context,
+                          CustomerPilotPage(organizationId: widget.data.organizationId),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: FactorySpacing.md),
                   OutlinedButton.icon(
                     onPressed: signingOut ? null : _signOut,
                     icon: signingOut
