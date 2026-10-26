@@ -128,13 +128,10 @@ class _PilotTestingPageState extends State<PilotTestingPage> {
                 leading: const CircleAvatar(child: Icon(Icons.person_outline)),
                 title: Text(pilot.names[tester['user_id']] ?? 'Tester'),
                 subtitle: Text(
-                  'Consent recorded: ' + (tester['consented_at'] as String),
+                  'Consent recorded: ${tester['consented_at']}',
                 ),
                 trailing: Text(
-                  pilot.feedback
-                      .where((r) => r['user_id'] == tester['user_id'])
-                      .length
-                      .toString() + ' reports',
+                  '${pilot.feedback.where((r) => r['user_id'] == tester['user_id']).length} reports',
                 ),
               ),
             ),
@@ -149,14 +146,10 @@ class _PilotTestingPageState extends State<PilotTestingPage> {
                   _ => Icons.pause_circle_outline,
                 }),
                 title: Text(
-                  (report['scenario'] as String) +
-                  ' · ' +
-                  (report['result'] as String),
+                  '${report['scenario']} · ${report['result']}',
                 ),
                 subtitle: Text(
-                  (pilot.names[report['user_id']] ?? 'Tester') +
-                  ' · ' +
-                  (report['notes'] as String? ?? ''),
+                  '${pilot.names[report['user_id']] ?? 'Tester'} · ${report['notes'] ?? ''}',
                 ),
               ),
             ),

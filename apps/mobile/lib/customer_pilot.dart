@@ -270,9 +270,7 @@ class _CustomerPilotPageState extends State<CustomerPilotPage> {
                     }),
                     title: Text(pilotScenarios[report['scenario']] ?? 'Test'),
                     subtitle: Text(
-                      (report['result'] as String) +
-                      ' · ' +
-                      (report['notes'] as String? ?? ''),
+                      '${report['result']} · ${report['notes'] ?? ''}',
                     ),
                   ),
                 ),
