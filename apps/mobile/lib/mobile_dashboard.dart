@@ -160,17 +160,23 @@ class _WorkspaceHero extends StatelessWidget {
                         size: 22,
                       ),
                       const SizedBox(width: FactorySpacing.xs),
-                      const Text(
-                        'FACTORYOS',
-                        style: TextStyle(
-                          color: Color(0xFFD7E9FF),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.5,
+                      const Flexible(
+                        flex: 2,
+                        child: Text(
+                          'FACTORYOS',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Color(0xFFD7E9FF),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.5,
+                          ),
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: FactorySpacing.xs),
                       Flexible(
+                        flex: 3,
                         child: Text(
                           data.role.label,
                           maxLines: 1,
