@@ -112,8 +112,8 @@ class _WorkspaceHero extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            begin: Alignment.topLeading,
-            end: Alignment.bottomTrailing,
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
             colors: [Color(0xFF163D60), FactoryColors.navy],
           ),
           borderRadius: BorderRadius.circular(FactoryRadius.lg + 8),
