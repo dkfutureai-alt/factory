@@ -51,7 +51,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Fleet');
     await tester.pumpAndSettle();
-    expect(find.text('Fleet'), findsOneWidget);
+    expect(\n      find.descendant(\n        of: find.byType(FactoryPressCard),\n        matching: find.text('Fleet'),\n      ),\n      findsOneWidget,\n    );
   });
 
   testWidgets('offline QA banner is responsive at 320px and large text',
