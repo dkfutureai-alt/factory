@@ -2,6 +2,8 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'workspace_guard.dart';
+
 class ProductionExecutionPage extends StatefulWidget {
   const ProductionExecutionPage({super.key});
   @override
@@ -27,11 +29,11 @@ class _ProductionExecutionPageState extends State<ProductionExecutionPage> {
         .select('organization_id,role')
         .eq('user_id', uid)
         .eq('is_active', true)
-        .limit(1);
+        .limit(2);
     if (memberships.isEmpty) {
       throw StateError('No active organization membership.');
     }
-    final membership = Map<String, dynamic>.from(memberships.first);
+    final membership = requireSingleActiveMembership(memberships);
     final orgId = membership['organization_id'] as String;
     final role = AppRole.fromWireName(membership['role'] as String);
     final results = await Future.wait<dynamic>([

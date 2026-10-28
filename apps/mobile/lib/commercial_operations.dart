@@ -2,6 +2,8 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'workspace_guard.dart';
+
 class CommercialOperationsPage extends StatefulWidget {
   const CommercialOperationsPage({super.key});
   @override
@@ -34,11 +36,13 @@ class _CommercialOperationsPageState extends State<CommercialOperationsPage> {
         .select('organization_id')
         .eq('user_id', client.auth.currentUser!.id)
         .eq('is_active', true)
-        .limit(1);
+        .limit(2);
     if (membershipRows.isEmpty) {
       throw StateError('No active organization membership.');
     }
-    final orgId = membershipRows.first['organization_id'] as String;
+    final orgId = requireSingleActiveMembership(
+      membershipRows,
+    )['organization_id'] as String;
     final values = await Future.wait<dynamic>([
       client
           .from('purchase_orders')

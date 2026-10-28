@@ -2,6 +2,8 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'workspace_guard.dart';
+
 class WarehouseOperationsPage extends StatefulWidget {
   const WarehouseOperationsPage({super.key});
 
@@ -22,16 +24,13 @@ class _WarehouseOperationsPageState extends State<WarehouseOperationsPage> {
   SupabaseClient get client => Supabase.instance.client;
 
   Future<_WarehouseMobileData> _load() async {
-    final membership = await client
+    final memberships = await client
         .from('organization_members')
         .select('organization_id,role')
         .eq('user_id', client.auth.currentUser!.id)
         .eq('is_active', true)
-        .limit(1)
-        .maybeSingle();
-    if (membership == null) {
-      throw Exception('No active organization membership.');
-    }
+        .limit(2);
+    final membership = requireSingleActiveMembership(memberships);
     final orgId = membership['organization_id'] as String;
     final role = AppRole.fromWireName(membership['role'] as String);
     final factories = _rows(
