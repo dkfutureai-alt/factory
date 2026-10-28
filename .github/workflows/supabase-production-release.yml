@@ -86,6 +86,7 @@ jobs:
           test -f supabase/migrations/0044_customer_pilot_testing.sql
           test -f supabase/migrations/0047_gas_container_serial_registry.sql
           test -f supabase/migrations/0048_gas_serial_transaction_links.sql
+          test -f supabase/migrations/0049_gas_serial_attestation_coverage.sql
       - name: Link exact FactoryOS production project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
       - name: Check linked migration history before any writes
