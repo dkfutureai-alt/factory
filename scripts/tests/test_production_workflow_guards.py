@@ -50,6 +50,7 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertNotIn('supabase db reset', s)
         self.assertIn('test -f supabase/migrations/0044_customer_pilot_testing.sql', s)
         self.assertIn('test -f supabase/migrations/0048_gas_serial_transaction_links.sql', s)
+        self.assertIn('test -f supabase/migrations/0049_gas_serial_attestation_coverage.sql', s)
 
     def test_smoke_is_read_only(self):
         s = self.content('production-smoke.yml')
@@ -59,6 +60,9 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertIn('Verify Phase 21A/21B serial registry and transaction evidence API (read-only)', s)
         self.assertIn('gas_container_assets gas_container_asset_events gas_container_transaction_links', s)
         self.assertIn('Gas registry $table anonymous access not denied', s)
+        self.assertIn('Verify Phase 21C serial coverage RPC access (read-only)', s)
+        self.assertIn('gas_serial_attestation_coverage', s)
+        self.assertIn('Anonymous cylinder serial coverage RPC was not denied', s)
         self.assertIn('for table in pilot_participants pilot_feedback; do', s)
         self.assertIn('Anonymous customer-pilot API access unexpectedly succeeded:', s)
         self.assertIn('type == "array"', s)

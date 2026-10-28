@@ -190,6 +190,44 @@ jobs:
           done
           echo 'Serialized gas registry and transaction evidence API read permissions passed; no data changed.'
 
+      - name: Verify Phase 21C serial coverage RPC access (read-only)
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          uid_json=$(curl --fail-with-body --silent --show-error --max-time 20 \
+            "$SUPABASE_URL/auth/v1/user" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $ACCESS_TOKEN")
+          user_id=$(jq -r '.id // empty' <<<"$uid_json")
+          test -n "$user_id"
+          memberships=$(curl --fail-with-body --silent --show-error --max-time 20 \
+            "$SUPABASE_URL/rest/v1/organization_members?select=organization_id&user_id=eq.${user_id}&is_active=eq.true&limit=1" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $ACCESS_TOKEN")
+          org_id=$(jq -r '.[0].organization_id // empty' <<<"$memberships")
+          test -n "$org_id"
+          payload=$(jq -nc --arg organization "$org_id" \
+            '{p_organization_id:$organization,p_factory_id:null,p_limit:1}')
+          response=$(curl --fail-with-body --silent --show-error --max-time 20 \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/gas_serial_attestation_coverage" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H 'Content-Type: application/json' --data "$payload")
+          jq -e 'type=="array"' <<<"$response" >/dev/null
+
+          anon_status=$(curl --silent --show-error --max-time 20 \
+            -o /dev/null -w '%{http_code}' \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/gas_serial_attestation_coverage" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H 'Content-Type: application/json' --data "$payload")
+          if [[ "$anon_status" != 4* ]]; then
+            echo 'Anonymous cylinder serial coverage RPC was not denied (expected 4xx).' >&2
+            exit 1
+          fi
+          echo 'Phase 21C authenticated coverage and anonymous denial passed; no data changed.'
+
       - name: Verify Admin portal when configured
         if: ${{ env.ADMIN_URL != '' }}
         shell: bash
