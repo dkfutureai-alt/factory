@@ -27,6 +27,16 @@ class ReleaseConfigurationTests(unittest.TestCase):
         self.assertEqual(validate_configuration(self.env, "web"), [])
         self.assertEqual(validate_configuration(self.env, "android-qa"), [])
 
+    def test_production_candidate_must_use_pinned_factoryos_project(self):
+        env = {**self.env, "FACTORYOS_RELEASE_ENV": "production",
+               "FACTORYOS_SUPABASE_URL": "https://zevrmvhnibztbxizswgu.supabase.co"}
+        self.assertEqual(validate_configuration(env, "web"), [])
+        self.assertEqual(validate_configuration(env, "android-qa"), [])
+        for foreign in ("https://abcdefghijklmnopqrst.supabase.co",
+                        "https://zevrmvhnibztbxizswgu.supabase.co/"):
+            with self.subTest(foreign=foreign):
+                self.assertTrue(validate_configuration({**env, "FACTORYOS_SUPABASE_URL": foreign}, "web"))
+
     def test_missing_release_env(self):
         self.bad(FACTORYOS_RELEASE_ENV="")
 
