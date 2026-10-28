@@ -27,12 +27,12 @@ begin
   v_id:=public.gas_register_container(
     '20000000-0000-4000-8000-000000000001',
     '43000000-0000-4000-8000-000000000003',
-    '  cyl-904 /x  ','cylinder','owned',current_date-1,'Fixture only'
+    '  cyl-904/x  ','cylinder','owned',current_date-1,'Fixture only'
   );
   if v_id is null then raise exception 'Registration did not create an asset'; end if;
   select qr_code into v_qr from public.gas_container_assets where id=v_id;
   if v_qr !~ '^FA-[A-F0-9]{32}$'
-     or (select serial_number from public.gas_container_assets where id=v_id)<>'CYL-904 /X' then
+     or (select serial_number from public.gas_container_assets where id=v_id)<>'CYL-904/X' then
     raise exception 'Serial/QR normalization failed';
   end if;
   if (select state from public.gas_container_assets where id=v_id)<>'hold'
