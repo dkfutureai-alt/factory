@@ -2,6 +2,8 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'workspace_guard.dart';
+
 import 'commercial_operations.dart';
 import 'delivery_driver.dart';
 import 'fleet_driver.dart';
@@ -213,7 +215,7 @@ class MobileRepository {
         .select('organization_id,role,organizations(name)')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .limit(1);
+        .limit(2);
 
     if (memberships.isEmpty) {
       final pending = await client.rpc('pending_invitation_for_current_user');
@@ -229,7 +231,7 @@ class MobileRepository {
       );
     }
 
-    final membership = Map<String, dynamic>.from(memberships.first);
+    final membership = requireSingleActiveMembership(memberships);
     final organizationId = membership['organization_id'] as String;
     final organization = Map<String, dynamic>.from(
       membership['organizations'] as Map,

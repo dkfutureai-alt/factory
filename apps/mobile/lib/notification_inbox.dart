@@ -2,6 +2,8 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'workspace_guard.dart';
+
 class NotificationMobileSnapshot {
   const NotificationMobileSnapshot({
     required this.organizationId,
@@ -26,9 +28,11 @@ class NotificationMobileRepository {
         .select('organization_id')
         .eq('user_id', client.auth.currentUser!.id)
         .eq('is_active', true)
-        .limit(1);
+        .limit(2);
     if (memberships.isEmpty) throw StateError('No active organization membership found.');
-    final organizationId = memberships.first['organization_id'] as String;
+    final organizationId = requireSingleActiveMembership(
+      memberships,
+    )['organization_id'] as String;
     final inboxRaw = await client.rpc(
       'notification_inbox',
       params: {'p_limit': 100, 'p_unread_only': unreadOnly},
