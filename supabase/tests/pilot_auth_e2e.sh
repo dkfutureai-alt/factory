@@ -8,7 +8,7 @@ DB_URL='postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 ORG_ID='41000000-0000-4000-8000-000000000001'
 ANON_KEY="$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"/\1/p')"
 if [[ -z "$ANON_KEY" ]]; then echo 'Local Supabase API key unavailable.' >&2; exit 1; fi
-B_ORG='61000000-0000-4000-8000-000000000001'
+B_ORG='9c777777-7700-4000-8000-777777777001'
 B_EMAIL='e2e-pilot-other-tenant@factoryos.test'
 B_PASSWORD='PilotOtherTenant123!'
 api() {
