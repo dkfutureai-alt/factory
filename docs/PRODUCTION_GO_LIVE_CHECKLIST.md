@@ -12,12 +12,14 @@
 
 ## Authentication, database and storage
 
+- [ ] On the new FactoryOS-only Supabase project, verify public-table Data API exposure uses explicit grants, not project-specific legacy defaults. The October 2026 Supabase privilege change means a successful migration alone is not a working Admin/Mobile API. See `supabase/migrations/0045_explicit_data_api_grants.sql` and `supabase/tests/0045_explicit_data_api_grants_smoke.sql`.
+
 - [ ] Configure Auth Site URL, allowlisted invitation redirects, and a functional custom SMTP provider.
 - [ ] Create a dedicated least-privilege production smoke identity and set `FACTORYOS_SMOKE_EMAIL` and `FACTORYOS_SMOKE_PASSWORD` secrets.
 - [ ] Confirm database backup/PITR capabilities for the chosen plan, record a recovery owner and trial a restore in a nonproduction environment where supported.
 - [ ] Verify the final PR's Flutter, Mobile Release, Supabase Foundation and Release Workflow Lint checks are green.
 - [ ] Confirm pending migration list and assess any destructive SQL before manually invoking **Supabase Production Release** with `confirm=DEPLOY` and a separately typed `confirm_project_ref`.
-- [ ] Confirm migrations through `0043` (including 0041 outbox, 0042 structural QA and 0043 invitation reissue), Edge Functions, and private POD/Maintenance storage policies exist; do not run remote `db reset` or production fictional seeds.
+- [ ] Confirm migrations through `0045` (including 0041 push outbox, 0042 structural QA, 0043 invitation reissue, 0044 opt-in customer pilot and 0045 explicit Data API grants), Edge Functions and private POD/Maintenance storage policies exist. Verify `authenticated` and `service_role` permissions plus RLS, deny `anon` access and check actual PostgREST reads; never run remote `db reset` or production fictional seeds.
 - [ ] Inspect Supabase security/performance advisors and fix actionable findings before onboarding customers.
 
 ## Push delivery
