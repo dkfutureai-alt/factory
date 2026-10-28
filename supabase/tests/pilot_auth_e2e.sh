@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Local CI fixtures only. Run after auth_login_e2e.sh and security_auth_e2e.sh.
-: "${API_URL:?Source auth_login_e2e.sh first}"
-: "${DB_URL:?Source auth_login_e2e.sh first}"
-: "${ANON_KEY:?Source auth_login_e2e.sh first}"
-: "${ACCESS_TOKEN:?Source auth_login_e2e.sh first}"
-: "${USER_ID:?Source auth_login_e2e.sh first}"
-: "${ORG_ID:?Source auth_login_e2e.sh first}"
+# Those scripts run in separate shells. Re-authenticate rather than depend on
+# non-exported variables or create duplicate accounts in a shared CI database.
+API_URL='http://127.0.0.1:54321'
+DB_URL='postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+ORG_ID='41000000-0000-4000-8000-000000000001'
+ANON_KEY="$(supabase status -o env | sed -n 's/^ANON_KEY="\\(.*\\)"/\\1/p')"
+if [[ -z "$ANON_KEY" ]]; then echo 'Local Supabase API key unavailable.' >&2; exit 1; fi
 B_ORG='61000000-0000-4000-8000-000000000001'
 B_EMAIL='e2e-pilot-other-tenant@factoryos.test'
 B_PASSWORD='PilotOtherTenant123!'
@@ -39,6 +40,9 @@ login() {
     -H "apikey: $ANON_KEY" -H 'Content-Type: application/json' \
     -d "{\"email\":\"$1\",\"password\":\"$2\"}"
 }
+A_LOGIN="$(login e2e-login@factoryos.test 'Password123!')"
+USER_ID="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["user"]["id"])' <<<"$A_LOGIN")"
+ACCESS_TOKEN="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])' <<<"$A_LOGIN")"
 B_SIGNUP="$(curl -fsS -X POST "$API_URL/auth/v1/signup" \
   -H "apikey: $ANON_KEY" -H 'Content-Type: application/json' \
   -d "{\"email\":\"$B_EMAIL\",\"password\":\"$B_PASSWORD\"}")"
