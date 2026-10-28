@@ -54,6 +54,7 @@ jobs:
           set -euo pipefail
           source supabase/tests/auth_login_e2e.sh
           source supabase/tests/inventory_auth_e2e.sh
+          bash supabase/tests/gas_asset_auth_e2e.sh
           bash supabase/tests/production_auth_e2e.sh
           bash supabase/tests/quality_auth_e2e.sh
           bash supabase/tests/purchase_sales_auth_e2e.sh
