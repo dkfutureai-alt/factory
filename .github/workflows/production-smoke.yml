@@ -190,6 +190,46 @@ jobs:
           done
           echo 'Serialized gas registry and transaction evidence API read permissions passed; no data changed.'
 
+      - name: Verify Phase 21C serial-evidence coverage API (read-only)
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          # Signed-in identity is already validated. Retrieve only its own
+          # organization ID; the report itself applies tenant/factory scope.
+          user=$(curl --fail-with-body --silent --show-error --max-time 20 \
+            "$SUPABASE_URL/auth/v1/user" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Authorization: Bearer $ACCESS_TOKEN")
+          user_id=$(jq -r '.id // empty' <<<"$user")
+          test -n "$user_id"
+          memberships=$(curl --fail-with-body --silent --show-error --max-time 20 \
+            "$SUPABASE_URL/rest/v1/organization_members?select=organization_id&user_id=eq.${user_id}&is_active=eq.true&limit=1" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Authorization: Bearer $ACCESS_TOKEN")
+          org_id=$(jq -r '.[0].organization_id // empty' <<<"$memberships")
+          test -n "$org_id"
+          body=$(jq -nc --arg org "$org_id" \
+            '{p_organization_id:$org,p_factory_id:null,p_limit:1}')
+          data=$(curl --fail-with-body --silent --show-error --max-time 20 \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/gas_serial_attestation_coverage" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Authorization: Bearer $ACCESS_TOKEN" \
+            --header 'Content-Type: application/json' --data "$body")
+          jq -e 'type == "array"' <<<"$data" >/dev/null
+
+          anon_status=$(curl --silent --show-error --max-time 20 \
+            --output /dev/null --write-out '%{http_code}' \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/gas_serial_attestation_coverage" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header 'Content-Type: application/json' --data "$body")
+          if [[ "$anon_status" != 4* ]]; then
+            echo "Anonymous serial coverage API not denied (expected HTTP 4xx)." >&2
+            exit 1
+          fi
+          echo 'Scoped serial-evidence report API is readable by smoke member and denied to anon; no data changed.'
+
       - name: Verify Admin portal when configured
         if: ${{ env.ADMIN_URL != '' }}
         shell: bash
