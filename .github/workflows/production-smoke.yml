@@ -164,7 +164,7 @@ jobs:
           done
           echo 'FactoryOS pilot API read grants and anonymous denial passed; no data changed.'
 
-      - name: Verify Phase 21A serialized gas registry API (read-only)
+      - name: Verify Phase 21A/21B serial registry and transaction evidence API (read-only)
         shell: bash
         env:
           ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
@@ -172,7 +172,7 @@ jobs:
           set -euo pipefail
           # Read only: no registration, inspection, mutation or test customer.
           # A successful empty [] is valid, but anonymous API reads are not.
-          for table in gas_container_assets gas_container_asset_events; do
+          for table in gas_container_assets gas_container_asset_events gas_container_transaction_links; do
             data=$(curl --fail-with-body --silent --show-error --max-time 20 \
               "$SUPABASE_URL/rest/v1/${table}?select=id,organization_id&limit=1" \
               --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
@@ -188,7 +188,7 @@ jobs:
               exit 1
             fi
           done
-          echo 'Serialized gas registry API read permissions passed; no data changed.'
+          echo 'Serialized gas registry and transaction evidence API read permissions passed; no data changed.'
 
       - name: Verify Admin portal when configured
         if: ${{ env.ADMIN_URL != '' }}
