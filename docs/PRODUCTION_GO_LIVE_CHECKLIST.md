@@ -48,6 +48,7 @@
 - [ ] Run **Production Smoke Verification** with `confirm=VERIFY` and exact typed FactoryOS project ref; require authenticated smoke membership and successful scoped factory read.
 - [ ] Test with real authorized pilot accounts: invitations, factory assignment, attendance, purchasing/receipts, Inventory ledger, Production/Quality, sales allocation, Warehouse, dispatch/POD/customer returnables **and completed vehicle-to-warehouse intake**, Fleet/fuel, Maintenance, reporting, notifications and audit access.
 - [ ] Verify returned cylinders route from the vehicle to receiving/quarantine by condition; check original vehicle stock debit, no double-intake on retry, inspection gate and rejection of Sales allocation from receiving/quarantine.
+- [ ] Run the separate, protected **FactoryOS Cross-Tenant Production Smoke** with two consenting real organizations/users and active factories; require reciprocal JWT/RLS denial. See `docs/PHASE_28_TWO_TENANT_LIVE_SMOKE.md`. This covers three core tables only, not all module policies.
 - [ ] Include cross-tenant and cross-factory denial tests; confirm a low-privilege user cannot mutate manager-only records.
 - [ ] Confirm no customer-facing dashboard displays fictional seed data.
 - [ ] Record a release owner, test evidence, deployment time, app/web commit SHA and smoke results.
