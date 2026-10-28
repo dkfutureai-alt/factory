@@ -53,7 +53,14 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
     def test_smoke_is_read_only(self):
         s = self.content('production-smoke.yml')
         self.assertIn('Verify authenticated identity and tenant RLS', s)
+        self.assertIn('Verify Phase 20 returnable-intake API permissions (read-only)', s)
+        self.assertIn('dispatch_returnable_intakes dispatch_returnable_intake_lines', s)
+        self.assertIn('Anonymous ${table} access unexpectedly succeeded.', s)
+        self.assertIn('select=id&limit=1', s)
         self.assertNotIn('supabase db push', s)
+        self.assertNotIn('supabase db reset', s)
+        self.assertNotIn('--request PATCH', s)
+        self.assertNotIn('--request DELETE', s)
 
 if __name__ == '__main__':
     unittest.main()
