@@ -487,7 +487,7 @@ class _MobileHomeState extends State<MobileHome> {
       HomeTab(data: widget.data),
       const SimpleTab(title: 'Tasks', icon: Icons.task_alt),
       hasInventory
-          ? const InventoryScannerPage()
+          ? InventoryScannerPage(organizationId: widget.data.organizationId)
           : const SimpleTab(title: 'Scan', icon: Icons.qr_code_scanner),
       const SimpleTab(title: 'Alerts', icon: Icons.notifications_none),
       ProfileTab(data: widget.data),
@@ -536,7 +536,9 @@ class HomeTab extends StatelessWidget {
     }
     if (module.key == 'inventory') {
       Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const InventoryScannerPage()),
+        MaterialPageRoute<void>(
+          builder: (_) => InventoryScannerPage(organizationId: data.organizationId),
+        ),
       );
       return;
     }
