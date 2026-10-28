@@ -105,6 +105,17 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertIn('(.organization_id == $org)', s)
         self.assertNotIn("jq -e 'type == \"array\"' <<<\"$factories\"", s)
 
+    def test_scheduled_push_dispatch_reports_skips_and_fails_bad_batches(self):
+        schedule = self.content('notification-dispatch.yml')
+        self.assertIn("      - name: Validate destination before sending the push secret", schedule)
+        self.assertIn("        id: preflight", schedule)
+        self.assertIn("echo 'ready=false' >> \"$GITHUB_OUTPUT\"", schedule)
+        self.assertIn("if: steps.preflight.outputs.ready == 'true'", schedule)
+        self.assertIn("scripts/validate_notification_dispatch_result.py --input", schedule)
+        self.assertIn('--output "$response_file"', schedule)
+        self.assertNotIn("echo '$response_file'", schedule)
+        self.assertNotIn('--location', schedule)
+
     def test_smoke_is_read_only(self):
         s = self.content('production-smoke.yml')
         self.assertIn('Verify authenticated identity and tenant RLS', s)
