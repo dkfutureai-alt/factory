@@ -279,17 +279,19 @@ class PushNotificationService {
   }
 
   Future<void> signOut() async {
+    // Invalidate token-refresh registration and any late FCM navigation
+    // immediately, before waiting for remote device-disable I/O.
+    ++_registrationEpoch;
+    _organizationIds.clear();
+    _registeredUserId = null;
+    _routeMailbox.clear();
+    _routeHandler = null;
+    _activeRouteOrganizationId = null;
+    _activeRouteUserId = null;
     try {
       await disableCurrentDevice();
     } finally {
-      ++_registrationEpoch;
-      _organizationIds.clear();
-      _registeredUserId = null;
       _currentToken = null;
-      _routeMailbox.clear();
-      _routeHandler = null;
-      _activeRouteOrganizationId = null;
-      _activeRouteUserId = null;
       await Supabase.instance.client.auth.signOut();
     }
   }
