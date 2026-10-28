@@ -85,4 +85,24 @@ if [[ "$ANON_CODE" == 2* ]]; then
   echo 'Anonymous serialized transaction history read unexpectedly succeeded' >&2
   exit 1
 fi
+
+# Phase 21C: verify the already-merged coverage RPC with REAL local Auth/JWT.
+# A posted Inventory issue without a serial link must be reported as
+# not_attested, never as a lost or safely released physical cylinder.
+COVERAGE_PAYLOAD="$(printf '{"p_organization_id":"%s","p_factory_id":"%s","p_limit":500}' "$ORG_ID" "$FACTORY_ALLOWED")"
+COVERAGE_ROWS="$(gas_tx_rpc "$ACCESS_TOKEN" gas_serial_attestation_coverage "$COVERAGE_PAYLOAD")"
+python3 -c 'import json,sys; rows=json.load(sys.stdin); by_tx={r["transaction_id"]:r for r in rows}; receipt,move,issue=sys.argv[1:4]; assert by_tx[receipt]["coverage_status"]=="fully_attested" and by_tx[receipt]["linked_serial_count"]==1,by_tx[receipt]; assert by_tx[move]["coverage_status"]=="fully_attested" and float(by_tx[move]["unattested_quantity"])==0,by_tx[move]; assert by_tx[issue]["coverage_status"]=="not_attested" and float(by_tx[issue]["unattested_quantity"])==1,by_tx[issue]; print("real JWT gas serial attestation coverage complete/unlinked passed")' "$RECEIPT" "$TRANSFER" "$ISSUE" <<<"$COVERAGE_ROWS"
+
+CROSS_FACTORY_COVERAGE="$(printf '{"p_organization_id":"%s","p_factory_id":"%s","p_limit":100}' "$ORG_ID" "$FACTORY_BLOCKED")"
+gas_tx_denied "$ACCESS_TOKEN" gas_serial_attestation_coverage "$CROSS_FACTORY_COVERAGE"
+ANON_COVERAGE_STATUS="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+  -X POST "$API_URL/rest/v1/rpc/gas_serial_attestation_coverage" \
+  -H "apikey: $ANON_KEY" -H 'Content-Type: application/json' \
+  --data "$COVERAGE_PAYLOAD")"
+if [[ "$ANON_COVERAGE_STATUS" == 2* ]]; then
+  echo 'Anonymous cylinder coverage report unexpectedly succeeded.' >&2
+  exit 1
+fi
+echo 'Phase 21C real Auth/JWT coverage RLS and anonymous denial passed'
+
 echo 'Phase 21B JWT serial receipt→transfer, capacity, idempotency, POD and RLS passed'
