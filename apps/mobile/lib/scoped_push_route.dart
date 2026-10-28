@@ -12,10 +12,16 @@ class ScopedPushRoute {
   final String recipientUserId;
   final String actionRoute;
 
-  static ScopedPushRoute? fromData(Map<String, String> data) {
-    final organizationId = data['organization_id']?.trim() ?? '';
-    final recipientUserId = data['recipient_user_id']?.trim() ?? '';
-    final route = data['action_route']?.trim() ?? '';
+  static ScopedPushRoute? fromData(Map<String, dynamic> data) {
+    final organizationId = data['organization_id'] is String
+        ? (data['organization_id'] as String).trim()
+        : '';
+    final recipientUserId = data['recipient_user_id'] is String
+        ? (data['recipient_user_id'] as String).trim()
+        : '';
+    final route = data['action_route'] is String
+        ? (data['action_route'] as String).trim()
+        : '';
     // Legacy and partially populated notifications are intentionally not
     // navigable. Users can still open the signed-in in-app alert inbox.
     if (organizationId.isEmpty || recipientUserId.isEmpty || route.isEmpty) {
