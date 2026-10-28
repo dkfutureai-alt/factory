@@ -74,6 +74,7 @@ jobs:
           done
           test "$missing" -eq 0
           if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{20}$ ]] || \
+             [[ "$SUPABASE_PROJECT_REF" != "zevrmvhnibztbxizswgu" ]] || \
              [[ "$CONFIRMED_PROJECT_REF" != "$SUPABASE_PROJECT_REF" ]] || \
              [[ "${FACTORYOS_SUPABASE_URL%/}" != "https://${SUPABASE_PROJECT_REF}.supabase.co" ]]; then
             echo 'Production project confirmation or URL mismatch; refusing to deploy.'
