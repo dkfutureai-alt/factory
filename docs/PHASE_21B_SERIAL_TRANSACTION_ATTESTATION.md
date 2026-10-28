@@ -25,7 +25,7 @@ Phase 21A establishes unique cylinder/Dura serial identity. Phase 21B creates a 
 
 ## Automated tests
 
-`supabase/tests/0048_gas_serial_transaction_links_smoke.sql` runs rollback-only runtime checks for first-receipt requirement, QR/serial validation, safe retries, 1-unit transaction capacity, warehouse-to-vehicle continuity, customer issue without POD rejection, tamper-evident audit and RLS/write denials. The full Supabase Foundation suite must replay migrations through `0048`; Flutter quality must pass the Admin UI.
+`supabase/tests/0048_gas_serial_transaction_links_smoke.sql` runs rollback-only runtime checks for first-receipt requirement, QR/serial validation, safe retries, 1-unit transaction capacity, warehouse-to-vehicle continuity, customer issue without POD rejection, tamper-evident audit and RLS/write denials. The workflow also runs `supabase/tests/gas_asset_transaction_auth_e2e.sh` against real local Auth/JWT/PostgREST sessions, proving manager-only serial linkage, factory staff read scope, 1-unit capacity, idempotent retry, warehouse transfer and the rejection of a customer issue without POD. The full Supabase Foundation suite must replay migrations through `0048`; Flutter quality must pass the Admin UI.
 
 ## Limitations and release gates
 
