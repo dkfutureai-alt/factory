@@ -51,6 +51,7 @@ jobs:
           test -n "${SUPABASE_PUBLISHABLE_KEY:-}"
           test -n "${SUPABASE_PROJECT_REF:-}"
           if [[ ! "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{20}$ ]] || \
+             [[ "$SUPABASE_PROJECT_REF" != "zevrmvhnibztbxizswgu" ]] || \
              [[ "$CONFIRMED_PROJECT_REF" != "$SUPABASE_PROJECT_REF" ]] || \
              [[ "${SUPABASE_URL%/}" != "https://${SUPABASE_PROJECT_REF}.supabase.co" ]]; then
             echo "Production Admin target mismatch; refusing to build/publish."
