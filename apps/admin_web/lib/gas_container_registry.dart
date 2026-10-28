@@ -129,6 +129,7 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
                 const SizedBox(height: FactorySpacing.md),
                 TextField(
                   controller: notes,
+                  onChanged: (_) => update(() {}),
                   maxLength: 500,
                   minLines: 2,
                   maxLines: 4,
