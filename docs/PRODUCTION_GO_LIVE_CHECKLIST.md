@@ -48,6 +48,7 @@
 
 - [ ] Run **Production Smoke Verification** with `confirm=VERIFY` and exact typed FactoryOS project ref; require authenticated smoke membership and successful scoped factory read.
 - [ ] Test with real authorized pilot accounts: invitations, factory assignment, attendance, purchasing/receipts, Inventory ledger, Production/Quality, sales allocation, Warehouse, dispatch/POD/customer returnables **and completed vehicle-to-warehouse intake**, Fleet/fuel, Maintenance, reporting, notifications and audit access.
+- [ ] After two distinct consenting organizations complete genuine workflows, execute the protected **FactoryOS Real Customer Pilot Acceptance** (`confirm=VERIFY_PILOT`, separately typed FactoryOS ref). Require latest passed reports for all 14 scenarios per pilot admin, actual visible operational records, and reciprocal Data API tenant denial. See `docs/PHASE_29_REAL_CUSTOMER_PILOT_ACCEPTANCE.md`. This read-only gate is **not** a replacement for device/role/manual outcome validation.
 - [ ] Verify returned cylinders route from the vehicle to receiving/quarantine by condition; check original vehicle stock debit, no double-intake on retry, inspection gate and rejection of Sales allocation from receiving/quarantine.
 - [ ] Include cross-tenant and cross-factory denial tests; confirm a low-privilege user cannot mutate manager-only records.
 - [ ] Confirm no customer-facing dashboard displays fictional seed data.

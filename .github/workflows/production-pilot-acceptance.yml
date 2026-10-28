@@ -1,0 +1,62 @@
+name: FactoryOS Real Customer Pilot Acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type VERIFY_PILOT only after BOTH pilot administrators consent and complete all 14 workflows'
+        required: true
+        default: 'REVIEW'
+      confirm_project_ref:
+        description: 'Independently enter the dedicated FactoryOS production Supabase project ref'
+        required: true
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    if: ${{ inputs.confirm == 'VERIFY_PILOT' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: factoryos-production
+    env:
+      CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
+      SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
+      PILOT_ADMIN_A_EMAIL: ${{ secrets.FACTORYOS_PILOT_ADMIN_A_EMAIL }}
+      PILOT_ADMIN_A_PASSWORD: ${{ secrets.FACTORYOS_PILOT_ADMIN_A_PASSWORD }}
+      PILOT_ADMIN_B_EMAIL: ${{ secrets.FACTORYOS_PILOT_ADMIN_B_EMAIL }}
+      PILOT_ADMIN_B_PASSWORD: ${{ secrets.FACTORYOS_PILOT_ADMIN_B_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse non-FactoryOS project before any authentication
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRMED_PROJECT_REF" != 'zevrmvhnibztbxizswgu' ]] || \
+             [[ "$SUPABASE_PROJECT_REF" != "$CONFIRMED_PROJECT_REF" ]] || \
+             [[ "$SUPABASE_URL" != 'https://zevrmvhnibztbxizswgu.supabase.co' ]]; then
+            echo 'Pilot acceptance blocked: incorrect target project.' >&2
+            exit 1
+          fi
+      - name: Validate real opt-in pilot reports and reciprocal tenant boundaries
+        run: python3 scripts/verify_production_pilot_acceptance.py
+      - name: Summarize verified scope and remaining release gates
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo '### FactoryOS live pilot report / Data API checks succeeded'
+            echo "Source commit: $GITHUB_SHA"
+            echo "Run ID: $GITHUB_RUN_ID"
+            echo 'Project: zevrmvhnibztbxizswgu (FactoryOS only)'
+            echo 'Both consented pilot admin accounts had recent latest-passed reports for all 14 scenarios,'
+            echo 'and visible positive operational records with reciprocal foreign-tenant read denials.'
+            echo ''
+            echo '**Not a production sign-off.** Owner must independently verify physical devices,'
+            echo 'role-based writes, actual push/email delivery, custody scans, recovery/backup,'
+            echo 'hosting/signing and completed real-user workflows.'
+          } >> "$GITHUB_STEP_SUMMARY"
