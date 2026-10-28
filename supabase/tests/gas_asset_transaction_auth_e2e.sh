@@ -86,3 +86,26 @@ if [[ "$ANON_CODE" == 2* ]]; then
   exit 1
 fi
 echo 'Phase 21B JWT serial receipt→transfer, capacity, idempotency, POD and RLS passed'
+
+# Phase 21C: actual JWT/PostgREST evidence report must never present an
+# unscanned customer issue as complete cylinder custody.
+COVERAGE_BODY="$(printf '{"p_organization_id":"%s","p_factory_id":"%s","p_limit":200}' "$ORG_ID" "$FACTORY_ALLOWED")"
+COVERAGE="$(gas_tx_rpc "$ACCESS_TOKEN" gas_serial_attestation_coverage "$COVERAGE_BODY")"
+python3 -c 'import json,sys; rows=json.load(sys.stdin); receipt,transfer,issue=sys.argv[1:4]; by={x["transaction_id"]:x for x in rows}; assert all(x in by for x in (receipt,transfer,issue)),by; assert by[receipt]["coverage_status"]=="fully_attested" and float(by[receipt]["unattested_quantity"])==0,by[receipt]; assert by[transfer]["coverage_status"]=="fully_attested" and float(by[transfer]["linked_serial_count"])==1,by[transfer]; assert by[issue]["coverage_status"]=="not_attested" and float(by[issue]["unattested_quantity"])==1,by[issue]; print("real JWT report: fully linked receipt/transfer and unlinked customer issue passed")' "$RECEIPT" "$TRANSFER" "$ISSUE" <<<"$COVERAGE"
+
+BLOCKED_COVERAGE="$(printf '{"p_organization_id":"%s","p_factory_id":"%s","p_limit":200}' "$ORG_ID" "$FACTORY_BLOCKED")"
+gas_tx_denied "$ACCESS_TOKEN" gas_serial_attestation_coverage "$BLOCKED_COVERAGE"
+
+ANON_COVERAGE_FILE="$(mktemp)"
+ANON_COVERAGE_STATUS="$(curl --silent --show-error -o "$ANON_COVERAGE_FILE" -w '%{http_code}' \
+ -X POST "$API_URL/rest/v1/rpc/gas_serial_attestation_coverage" \
+ -H "apikey: $ANON_KEY" -H 'Content-Type: application/json' \
+ --data "$COVERAGE_BODY")"
+if [[ "$ANON_COVERAGE_STATUS" == 2* ]]; then
+  echo 'Anonymous serial attestation coverage API unexpectedly succeeded' >&2
+  cat "$ANON_COVERAGE_FILE" >&2
+  rm -f "$ANON_COVERAGE_FILE"
+  exit 1
+fi
+rm -f "$ANON_COVERAGE_FILE"
+echo 'Phase 21C JWT serial evidence coverage and access denial passed'
