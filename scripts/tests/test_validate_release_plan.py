@@ -117,6 +117,8 @@ class PlanAuthorizationTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[2]
         file = (root / ".github/workflows/supabase-production-release.yml").read_text()
         self.assertIn("approved_plan_run_id:", file)
+        self.assertIn("group: factoryos-production-database-migrations", file)
+        self.assertIn("cancel-in-progress: false", file)
         self.assertIn("  actions: read", file)
         self.assertIn("python3 scripts/validate_release_plan.py", file)
         self.assertIn("python3 scripts/check_migration_versions.py", file)
@@ -134,6 +136,8 @@ class PlanAuthorizationTests(unittest.TestCase):
         self.assertIn("inputs.confirm == 'PLAN' && github.ref == 'refs/heads/main'", file)
         self.assertIn("name: FactoryOS read-only migration plan", file)
         self.assertIn("environment: factoryos-production", file)
+        self.assertIn("group: factoryos-production-database-migrations", file)
+        self.assertIn("cancel-in-progress: false", file)
         self.assertIn("zevrmvhnibztbxizswgu", file)
         self.assertIn("python3 scripts/check_migration_versions.py", file)
         self.assertIn("--stage preflight", file)
