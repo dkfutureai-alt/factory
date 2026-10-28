@@ -3,6 +3,9 @@ import 'dart:math';
 import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:printing/printing.dart';
+
+import 'gas_container_qr_label.dart';
 
 /// Identity and inspection evidence only. Stock and customer custody remain
 /// controlled by the existing quantity-based workflows.
@@ -304,6 +307,25 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
     }
   }
 
+  Future<void> printQrLabel(Map<String, dynamic> asset) async {
+    try {
+      final bytes = await buildGasContainerQrLabel(
+        qrCode: asset['qr_code'] as String,
+        serialNumber: asset['serial_number'] as String,
+        containerType: asset['container_type'] as String,
+      );
+      if (!mounted) return;
+      await Printing.layoutPdf(
+        onLayout: (_) async => bytes,
+        name: 'FactoryOS-QR-${asset['serial_number']}',
+      );
+      // Printing opens the OS/browser dialog; a user may cancel and there
+      // is no proof that the physical label was applied or scanned.
+    } catch (error) {
+      showMessage(_error(error), error: true);
+    }
+  }
+
   Future<void> showHistory(Map<String, dynamic> asset) async {
     try {
       final events = List<Map<String, dynamic>>.from(await client
@@ -466,11 +488,13 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
                   ? PopupMenuButton<String>(
                       tooltip: 'Container actions',
                       onSelected: (action) {
+                        if (action == 'label') printQrLabel(asset);
                         if (action == 'inspect') inspect(asset);
                         if (action == 'link') linkTransaction(asset, data);
                         if (action == 'retire') retire(asset);
                       },
                       itemBuilder: (_) => const [
+                        PopupMenuItem(value: 'label', child: Text('Print QR identity label')),
                         PopupMenuItem(value: 'inspect', child: Text('Record inspection')),
                         PopupMenuItem(value: 'link', child: Text('Attach serial to movement')),
                         PopupMenuItem(value: 'retire', child: Text('Retire')),
