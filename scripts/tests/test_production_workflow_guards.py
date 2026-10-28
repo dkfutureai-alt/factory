@@ -14,6 +14,11 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
     def content(self, name):
         return (ROOT / '.github' / 'workflows' / name).read_text(encoding='utf-8')
 
+    def test_release_lint_on_script_and_workflow_changes(self):
+        s = self.content("release-workflow-lint.yml")
+        self.assertEqual(s.count("      - '.github/workflows/**'"), 2)
+        self.assertEqual(s.count("      - 'scripts/**'"), 2)
+
     def test_main_only_confirmation(self):
         for name, confirmation in WORKFLOWS.items():
             with self.subTest(name=name):
@@ -59,6 +64,13 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertIn('test -f supabase/migrations/0048_gas_serial_transaction_links.sql', s)
         self.assertIn('test -f supabase/migrations/0049_gas_serial_attestation_coverage.sql', s)
 
+    def test_smoke_fails_closed_on_ambiguous_membership_and_anon_errors(self):
+        s = self.content("production-smoke.yml")
+        self.assertIn('type == "array" and length == 1 and all(.[];', s)
+        self.assertIn('organization_id&user_id=eq.${user_id}&is_active=eq.true&limit=2', s)
+        self.assertIn('type == "array" and length == 1 and (.[0].organization_id | type == "string")', s)
+        self.assertIn('Anonymous ${table} access was not explicitly denied (expected 4xx).', s)
+
     def test_smoke_is_read_only(self):
         s = self.content('production-smoke.yml')
         self.assertIn('Verify authenticated identity and tenant RLS', s)
@@ -75,7 +87,7 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertIn('type == "array"', s)
         self.assertIn('no data changed', s)
         self.assertIn('dispatch_returnable_intakes dispatch_returnable_intake_lines', s)
-        self.assertIn('Anonymous ${table} access unexpectedly succeeded.', s)
+        self.assertIn('Anonymous ${table} access was not explicitly denied (expected 4xx).', s)
         self.assertIn('select=id&limit=1', s)
         self.assertNotIn('supabase db push', s)
         self.assertNotIn('supabase db reset', s)
