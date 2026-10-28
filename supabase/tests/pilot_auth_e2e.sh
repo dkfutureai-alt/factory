@@ -6,7 +6,7 @@ set -euo pipefail
 API_URL='http://127.0.0.1:54321'
 DB_URL='postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 ORG_ID='41000000-0000-4000-8000-000000000001'
-ANON_KEY="$(supabase status -o env | sed -n 's/^ANON_KEY="\\(.*\\)"/\\1/p')"
+ANON_KEY="$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"/\1/p')"
 if [[ -z "$ANON_KEY" ]]; then echo 'Local Supabase API key unavailable.' >&2; exit 1; fi
 B_ORG='61000000-0000-4000-8000-000000000001'
 B_EMAIL='e2e-pilot-other-tenant@factoryos.test'
