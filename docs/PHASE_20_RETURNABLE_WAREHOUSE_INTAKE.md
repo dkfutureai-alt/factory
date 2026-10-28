@@ -36,7 +36,7 @@ The receiving area is intentionally **not a refill release or sales-available bi
 - Cross-tenant read and RPC denial under a different JWT identity.
 - Anonymous denial, read-only authenticated table grants and trusted service-role grants.
 
-Run the existing `Supabase Foundation Checks` workflow on the precise source head. Live tests need actual opt-in users, a real returned-cylinder delivery, authorized factory roles, vehicle/warehouse scan evidence and separate physical inspection sign-off. Never seed production with fictional SQL fixture rows.
+The extended `supabase/tests/dispatch_auth_e2e.sh` also uses real local Auth/JWT REST calls to prove driver intake denial, manager receipt, exact ledger posting, idempotent replay, authenticated intake visibility and anonymous rejection. Run the existing `Supabase Foundation Checks` workflow on the precise source head. Live tests need actual opt-in users, a real returned-cylinder delivery, authorized factory roles, vehicle/warehouse scan evidence and separate physical inspection sign-off. Never seed production with fictional SQL fixture rows.
 
 ## Release limits
 
