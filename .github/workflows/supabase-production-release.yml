@@ -86,6 +86,12 @@ jobs:
           test -f supabase/migrations/0044_customer_pilot_testing.sql
       - name: Link exact FactoryOS production project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Check linked migration history before any writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --linked 2>&1 | tee /tmp/factoryos-migrations-before.txt
+          python3 scripts/verify_production_migrations.py --stage preflight --input /tmp/factoryos-migrations-before.txt
       - name: Preview pending production migrations
         run: supabase db push --dry-run
       - name: Apply pending production migrations
@@ -105,5 +111,9 @@ jobs:
       - name: Deploy FactoryOS Edge Functions
         if: inputs.release_scope == 'full'
         run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF"
-      - name: Show migration state after deployment
-        run: supabase migration list
+      - name: Verify all committed migrations reached exact FactoryOS project
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --linked 2>&1 | tee /tmp/factoryos-migrations-after.txt
+          python3 scripts/verify_production_migrations.py --stage postdeploy --input /tmp/factoryos-migrations-after.txt
