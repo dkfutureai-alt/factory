@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Reject duplicate or malformed migration versions before database startup
+        run: python3 scripts/check_migration_versions.py
       - uses: supabase/setup-cli@v1
         with:
           version: 2.121.0
