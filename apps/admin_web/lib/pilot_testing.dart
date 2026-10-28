@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'pilot_coverage.dart';
+
 class PilotTestingPage extends StatefulWidget {
   const PilotTestingPage({required this.organizationId, super.key});
   final String organizationId;
@@ -29,9 +31,10 @@ class _PilotTestingPageState extends State<PilotTestingPage> {
         .order('consented_at', ascending: false);
     final feedback = await client
         .from('pilot_feedback')
-        .select('user_id,scenario,result,notes,created_at')
+        .select('id,user_id,scenario,result,notes,created_at')
         .eq('organization_id', widget.organizationId)
         .order('created_at', ascending: false)
+        .order('id', ascending: false)
         .limit(250);
     final membership = await client.rpc(
       'list_organization_members',
@@ -72,9 +75,7 @@ class _PilotTestingPageState extends State<PilotTestingPage> {
         );
       }
       final pilot = snapshot.requireData;
-      final passed = pilot.feedback.where((r) => r['result'] == 'passed').length;
-      final failed = pilot.feedback.where((r) => r['result'] == 'failed').length;
-      final blocked = pilot.feedback.where((r) => r['result'] == 'blocked').length;
+      final coverage = PilotCoverageSummary.fromRecentFeedback(pilot.feedback);
       return ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -105,12 +106,49 @@ class _PilotTestingPageState extends State<PilotTestingPage> {
             runSpacing: 10,
             children: [
               _Metric(label: 'Joined testers', count: pilot.testers.length),
-              _Metric(label: 'Passed reports', count: passed),
-              _Metric(label: 'Failed reports', count: failed),
-              _Metric(label: 'Blocked reports', count: blocked),
+              _Metric(label: 'Pass-reported scenarios', count: coverage.passedScenarios),
+              _Metric(label: 'Scenarios with failures', count: coverage.failedScenarios),
+              _Metric(label: 'Scenarios blocked', count: coverage.blockedScenarios),
+              _Metric(label: 'No recent evidence', count: coverage.unreportedScenarios),
             ],
           ),
           const SizedBox(height: 20),
+          const Text(
+            'These results use each tester\'s latest report for each workflow, '
+            'rather than counting historical passes. A failure or blocker '
+            'reported by any tester takes priority. Feedback is not release approval.',
+          ),
+          const SizedBox(height: 12),
+          Text('Workflow coverage', style: Theme.of(context).textTheme.titleLarge),
+          if (coverage.isHistoryLimited)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Only the latest 250 entries are loaded. Older test reports '
+                'may be excluded. Do not use this limited view to approve release.',
+              ),
+            ),
+          for (final scenario in coverage.scenarios)
+            ListTile(
+              dense: true,
+              leading: Icon(switch (scenario.status) {
+                PilotScenarioStatus.failed => Icons.error_outline,
+                PilotScenarioStatus.blocked => Icons.pause_circle_outline,
+                PilotScenarioStatus.passReported => Icons.check_circle_outline,
+                PilotScenarioStatus.notReported => Icons.radio_button_unchecked,
+              }),
+              title: Text(scenario.label),
+              subtitle: Text(
+                '${scenario.testersReporting} tester reports in recent sample',
+              ),
+              trailing: Text(switch (scenario.status) {
+                PilotScenarioStatus.failed => 'Failed',
+                PilotScenarioStatus.blocked => 'Blocked',
+                PilotScenarioStatus.passReported => 'Pass reported',
+                PilotScenarioStatus.notReported => 'Not reported',
+              }),
+            ),
+          const SizedBox(height: 16),
           Text('Consenting customers', style: Theme.of(context).textTheme.titleLarge),
           if (pilot.testers.isEmpty)
             const Card(
@@ -131,12 +169,12 @@ class _PilotTestingPageState extends State<PilotTestingPage> {
                   'Consent recorded: ${tester['consented_at']}',
                 ),
                 trailing: Text(
-                  '${pilot.feedback.where((r) => r['user_id'] == tester['user_id']).length} reports',
+                  '${pilot.feedback.where((r) => r['user_id'] == tester['user_id']).length} recent reports',
                 ),
               ),
             ),
           const SizedBox(height: 20),
-          Text('Recent test feedback', style: Theme.of(context).textTheme.titleLarge),
+          Text('Recent test feedback (up to 250)', style: Theme.of(context).textTheme.titleLarge),
           for (final report in pilot.feedback)
             Card(
               child: ListTile(
