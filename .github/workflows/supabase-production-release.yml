@@ -22,6 +22,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   deploy:
@@ -43,6 +44,10 @@ jobs:
       FCM_PRIVATE_KEY: ${{ secrets.FCM_PRIVATE_KEY }}
     steps:
       - uses: actions/checkout@v4
+      - name: Verify latest green exact-SHA database integration CI before production release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/require_exact_head_database_ci.py
       - uses: supabase/setup-cli@v1
         with:
           version: 2.121.0
