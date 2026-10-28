@@ -23,30 +23,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate destination before sending the push secret
+        id: preflight
         shell: bash
         run: |
           set -euo pipefail
           if python3 scripts/notification_dispatch_preflight.py; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
             echo 'FactoryOS dispatch target is verified.'
           else
             status=$?
             if [[ "$status" -eq 3 ]]; then
+              echo 'ready=false' >> "$GITHUB_OUTPUT"
+              echo 'FactoryOS push dispatch: **SKIPPED — no credentials are configured**. No notification was sent.' >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             exit "$status"
           fi
-      - name: Dispatch queued push notifications
+      - name: Dispatch queued push notifications and verify worker accounting
+        if: steps.preflight.outputs.ready == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "${FACTORYOS_SUPABASE_PROJECT_REF:-}" || -z "${FACTORYOS_SUPABASE_URL:-}" || -z "${NOTIFICATION_DISPATCH_SECRET:-}" ]]; then
-            echo 'FactoryOS push dispatch is not configured yet; skipping.'
-            exit 0
-          fi
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          # Never print the raw worker body: provider errors may contain
+          # customer text or backend diagnostics. Never follow redirects.
           curl --fail-with-body --silent --show-error \
             --connect-timeout 10 --max-time 60 \
+            --output "$response_file" \
             --request POST \
             "$FACTORYOS_SUPABASE_URL/functions/v1/send-notifications" \
             --header "x-notification-secret: ${NOTIFICATION_DISPATCH_SECRET}" \
             --header 'Content-Type: application/json' \
             --data '{}'
+          python3 scripts/validate_notification_dispatch_result.py --input "$response_file"
