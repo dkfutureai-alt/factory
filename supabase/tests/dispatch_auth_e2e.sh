@@ -17,6 +17,8 @@ INV_UNIT_ID='51000000-0000-4000-8000-000000000001'
 INV_ITEM_ID='52000000-0000-4000-8000-000000000001'
 INV_SOURCE_ID='53000000-0000-4000-8000-000000000001'
 STAGING_ID='99100000-0000-4000-8000-000000000001'
+RETURN_RECEIVING_ID='99200000-0000-4000-8000-000000000001'
+RETURN_QUARANTINE_ID='99200000-0000-4000-8000-000000000002'
 RETURN_ITEM_ID='99100000-0000-4000-8000-000000000002'
 CUSTOMER_ID='99100000-0000-4000-8000-000000000003'
 SALES_ORDER_ID='99100000-0000-4000-8000-000000000004'
@@ -86,6 +88,13 @@ fi
 psql "$DB_URL" -v ON_ERROR_STOP=1 <<SQL
 insert into public.stock_locations(id,organization_id,factory_id,name,code,location_type,is_active)
 values('$STAGING_ID','$ORG_ID','$FACTORY_ID','Dispatch E2E Staging','DSP-E2E','staging',true);
+insert into public.stock_locations(
+  id, organization_id, factory_id, name, code, location_type, is_active
+) values
+  ('$RETURN_RECEIVING_ID','$ORG_ID','$FACTORY_ID',
+   'Return Warehouse Receiving','E2E-RET-RCV','receiving',true),
+  ('$RETURN_QUARANTINE_ID','$ORG_ID','$FACTORY_ID',
+   'Return Warehouse Quarantine','E2E-RET-QRT','quarantine',true);
 
 insert into public.inventory_items(
   id,organization_id,category_id,unit_id,sku,name,item_type,is_returnable,is_active
@@ -197,6 +206,38 @@ rpc_checked "$DRIVER_TOKEN" dispatch_complete_returnables "{\"p_delivery_id\":\"
 RETURN_BAL="$(psql "$DB_URL" -Atc "select coalesce(sum(quantity_delta),0) from public.stock_ledger_entries where item_id='$RETURN_ITEM_ID' and location_id='$VEHICLE_LOCATION_ID'")"
 RETURN_STATUS="$(psql "$DB_URL" -Atc "select status from public.dispatch_returnable_pickups where delivery_id='$DELIVERY_ID'")"
 python3 -c 'import sys; assert float(sys.argv[1])==1, sys.argv; assert sys.argv[2]=="completed", sys.argv; print("customer returnable → vehicle inventory receipt passed")' "$RETURN_BAL" "$RETURN_STATUS"
+
+
+# Phase 20: actual Auth/JWT/PostgREST warehouse intake after driver pickup.
+# A driver cannot unload into the warehouse; a manager can accept the exact
+# returned inventory amount. No app service-role credential is used.
+PICKUP_ID="$(psql "$DB_URL" -Atc "select id from public.dispatch_returnable_pickups where delivery_id='$DELIVERY_ID'")"
+[[ -n "$PICKUP_ID" ]]
+RETURN_INTAKE_PARAMS="$(printf '{"p_pickup_id":"%s","p_receiving_location_id":"%s","p_quarantine_location_id":"%s"}' "$PICKUP_ID" "$RETURN_RECEIVING_ID" "$RETURN_QUARANTINE_ID")"
+expect_denied "$DRIVER_TOKEN" dispatch_intake_returnables "$RETURN_INTAKE_PARAMS" 'driver warehouse returnable intake'
+
+INTAKE_ID="$(rpc_checked "$MANAGER_TOKEN" dispatch_intake_returnables "$RETURN_INTAKE_PARAMS" | python3 -c 'import json,sys; print(json.load(sys.stdin))')"
+[[ -n "$INTAKE_ID" ]]
+INTAKE_AGAIN="$(rpc_checked "$MANAGER_TOKEN" dispatch_intake_returnables "$RETURN_INTAKE_PARAMS" | python3 -c 'import json,sys; print(json.load(sys.stdin))')"
+[[ "$INTAKE_ID" == "$INTAKE_AGAIN" ]]
+
+RETURN_BAL="$(psql "$DB_URL" -Atc "select coalesce(sum(quantity_delta),0) from public.stock_ledger_entries where item_id='$RETURN_ITEM_ID' and location_id='$VEHICLE_LOCATION_ID'")"
+RECEIVING_BAL="$(psql "$DB_URL" -Atc "select coalesce(sum(quantity_delta),0) from public.stock_ledger_entries where item_id='$RETURN_ITEM_ID' and location_id='$RETURN_RECEIVING_ID'")"
+QUARANTINE_BAL="$(psql "$DB_URL" -Atc "select coalesce(sum(quantity_delta),0) from public.stock_ledger_entries where item_id='$RETURN_ITEM_ID' and location_id='$RETURN_QUARANTINE_ID'")"
+INTAKE_LINES="$(psql "$DB_URL" -Atc "select count(*) from public.dispatch_returnable_intake_lines where intake_id='$INTAKE_ID'")"
+python3 -c 'import sys; vals=list(map(float,sys.argv[1:])); assert vals==[0,1,0,1], vals; print("authenticated vehicle-to-warehouse return intake ledger passed")' "$RETURN_BAL" "$RECEIVING_BAL" "$QUARANTINE_BAL" "$INTAKE_LINES"
+
+INTAKE_ROWS="$(curl -fsS "$API_URL/rest/v1/dispatch_returnable_intakes?select=id,pickup_id&id=eq.$INTAKE_ID" -H "apikey: $ANON_KEY" -H "Authorization: Bearer $MANAGER_TOKEN")"
+python3 -c 'import json,sys; rows=json.load(sys.stdin); assert len(rows)==1 and rows[0]["id"]==sys.argv[1], rows; print("manager intake RLS visibility passed")' "$INTAKE_ID" <<<"$INTAKE_ROWS"
+INTAKE_MISMATCH="$(printf '{"p_pickup_id":"%s","p_receiving_location_id":"%s","p_quarantine_location_id":"%s"}' "$PICKUP_ID" "$RETURN_QUARANTINE_ID" "$RETURN_RECEIVING_ID")"
+expect_denied "$MANAGER_TOKEN" dispatch_intake_returnables "$INTAKE_MISMATCH" 'mismatched retry returnable intake'
+
+ANON_INTAKE_HTTP="$(curl -sS -o /dev/null -w '%{http_code}' "$API_URL/rest/v1/dispatch_returnable_intakes?select=id" -H "apikey: $ANON_KEY")"
+if [[ "$ANON_INTAKE_HTTP" == 2* ]]; then
+  echo 'Anonymous warehouse returnable intake read unexpectedly succeeded.' >&2
+  exit 1
+fi
+echo 'Phase 20 authenticated returnables → segregated warehouse intake passed'
 
 EXCEPTION_ID="$(rpc_checked "$DRIVER_TOKEN" dispatch_report_exception "{\"p_delivery_id\":\"$DELIVERY_ID\",\"p_exception_type\":\"other\",\"p_details\":\"E2E proof note follow-up\",\"p_item_id\":null,\"p_quantity\":null}" | python3 -c 'import json,sys; print(json.load(sys.stdin))')"
 [[ -n "$EXCEPTION_ID" ]]
