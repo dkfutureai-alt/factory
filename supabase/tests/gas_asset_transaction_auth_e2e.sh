@@ -85,4 +85,24 @@ if [[ "$ANON_CODE" == 2* ]]; then
   echo 'Anonymous serialized transaction history read unexpectedly succeeded' >&2
   exit 1
 fi
+
+# Phase 21C: real JWT/API evidence coverage is separate from physical custody.
+COVERAGE_JSON="$(printf '{"p_factory_id":"%s","p_limit":200,"p_missing_only":false}' "$FACTORY_ALLOWED")"
+COVERAGE_ROWS="$(gas_tx_rpc "$ACCESS_TOKEN" gas_serial_transaction_coverage "$COVERAGE_JSON")"
+python3 -c 'import json,sys; rows=json.load(sys.stdin); items={r["transaction_id"]:r for r in rows}; receive,transfer,issue=sys.argv[1:4]; assert items[receive]["coverage_status"]=="complete" and items[receive]["linked_serial_count"]==1, items[receive]; assert items[transfer]["coverage_status"]=="complete", items[transfer]; assert items[issue]["coverage_status"]=="missing" and float(items[issue]["unlinked_quantity"])==1, items[issue]; print("JWT serial transaction coverage complete/missing passed")' "$RECEIPT" "$TRANSFER" "$ISSUE" <<<"$COVERAGE_ROWS"
+GAPS_JSON="$(printf '{"p_factory_id":"%s","p_limit":200,"p_missing_only":true}' "$FACTORY_ALLOWED")"
+GAP_ROWS="$(gas_tx_rpc "$MANAGER_ACCESS_TOKEN" gas_serial_transaction_coverage "$GAPS_JSON")"
+python3 -c 'import json,sys; rows=json.load(sys.stdin); ids={r["transaction_id"] for r in rows}; assert sys.argv[1] in ids and sys.argv[2] not in ids, ids; print("JWT missing-only serial filter passed")' "$ISSUE" "$RECEIPT" <<<"$GAP_ROWS"
+BLOCKED_COVERAGE="$(printf '{"p_factory_id":"%s","p_limit":100,"p_missing_only":false}' "$FACTORY_BLOCKED")"
+gas_tx_denied "$ACCESS_TOKEN" gas_serial_transaction_coverage "$BLOCKED_COVERAGE"
+ANON_COVERAGE="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+  -X POST "$API_URL/rest/v1/rpc/gas_serial_transaction_coverage" \
+  -H "apikey: $ANON_KEY" -H 'Content-Type: application/json' \
+  --data "$COVERAGE_JSON")"
+if [[ "$ANON_COVERAGE" == 2* ]]; then
+  echo 'Anonymous serial evidence reconciliation unexpectedly succeeded' >&2
+  exit 1
+fi
+echo 'Phase 21C local JWT serial evidence coverage and factory isolation passed'
+
 echo 'Phase 21B JWT serial receipt→transfer, capacity, idempotency, POD and RLS passed'
