@@ -12,12 +12,14 @@
 
 ## Authentication, database and storage
 
+- [ ] Verify explicit 2026 Supabase Data API grants from migration `0045`, not legacy defaults: authenticated table reads obey tenant/factory RLS; anonymous users have no public-table privileges; trusted service role can perform its authorized server-only operations. Check an actual PostgREST authenticated read.
+
 - [ ] Configure Auth Site URL, allowlisted invitation redirects, and a functional custom SMTP provider.
 - [ ] Create a dedicated least-privilege production smoke identity and set `FACTORYOS_SMOKE_EMAIL` and `FACTORYOS_SMOKE_PASSWORD` secrets.
 - [ ] Confirm database backup/PITR capabilities for the chosen plan, record a recovery owner and trial a restore in a nonproduction environment where supported.
 - [ ] Verify the final PR's Flutter, Mobile Release, Supabase Foundation and Release Workflow Lint checks are green.
 - [ ] Confirm pending migration list and assess any destructive SQL before manually invoking **Supabase Production Release** with `confirm=DEPLOY` and a separately typed `confirm_project_ref`.
-- [ ] Apply migrations through `0044` (including 0043 invitation reissue and 0044 real customer pilot) through the **protected** `Supabase Production Release` workflow, first with `release_scope=database-only`. Confirm recorded migration history matches the committed files; never run remote `db reset` or production fictional seeds.
+- [ ] Apply migrations through `0045` (including 0043 invitation reissue, 0044 real customer pilot and 0045 explicit Data API grants) through the **protected** `Supabase Production Release` workflow, first with `release_scope=database-only`. Confirm recorded migration history matches the committed files; never run remote `db reset` or production fictional seeds.
 - [ ] After an approved HTTPS Auth redirect, SMTP and Firebase secrets are configured, run the same workflow with `release_scope=full` to deploy the Edge Functions, then verify private POD/Maintenance storage policies and production RLS.
 - [ ] Inspect Supabase security/performance advisors and fix actionable findings before onboarding customers.
 
