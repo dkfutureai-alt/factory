@@ -99,12 +99,17 @@ jobs:
           jq -e --arg uid "$user_id" 'type == "array" and length == 1 and all(.[]; (.organization_id | type == "string") and (.role | type == "string") and .user_id == $uid)' \
             <<<"$memberships" >/dev/null
 
+          org_id=$(jq -er '.[0].organization_id' <<<"$memberships")
           factories=$(curl --fail-with-body --silent --show-error \
-            "$SUPABASE_URL/rest/v1/factories?select=id,name,code&is_active=eq.true&limit=5" \
+            "$SUPABASE_URL/rest/v1/factories?select=id,organization_id,name,code&is_active=eq.true&limit=100" \
             --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
             --header "Authorization: Bearer $ACCESS_TOKEN")
-          jq -e 'type == "array"' <<<"$factories" >/dev/null
-          echo "Authenticated production Auth + RLS smoke passed."
+          # A syntactically valid but empty result is NOT a successful factory read.
+          # Compare every returned factory with the one active smoke organization.
+          jq -e --arg org "$org_id" \
+            'type == "array" and length > 0 and all(.[]; (.id | type == "string") and (.organization_id == $org) and (.name | type == "string") and (.code | type == "string"))' \
+            <<<"$factories" >/dev/null
+          echo "Authenticated FactoryOS Auth + populated same-tenant factory smoke passed."
 
       - name: Verify two populated test organizations deny each other's data (read-only)
         shell: bash

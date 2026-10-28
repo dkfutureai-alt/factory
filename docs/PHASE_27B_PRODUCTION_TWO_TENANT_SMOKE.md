@@ -18,6 +18,8 @@ Configure protected GitHub environment secrets:
 
 Both identities use normal Supabase Auth password sign-in. The script checks individual user identity, single active organization membership, distinct account/organization IDs, own organization visibility, own membership visibility, and own active factory visibility. It then checks that **both users** see **no rows** in the other organization's `organizations`, `organization_members`, `factories`, or `factory_members`. Only the sign-in calls are POST; every table check is GET. No fixture creation, changes, invitations or enrollment happen in the smoke run. Identifiers, emails, passwords, response bodies and access tokens are not logged.
 
+The smoke runner now rejects service-role, secret and legacy/non-publishable keys. Supply a `sb_publishable_...` client key only. The initial single-account production smoke also requires at least one active factory visible in the same tenant; an empty factory response is never considered a pass.
+
 ## Limits and acceptance
 
 - This is a targeted, positive-control/negative-control authorization smoke for the **four core tables**, not comprehensive cross-tenant E2E for all FactoryOS modules.
