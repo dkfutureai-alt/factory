@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { firstRelatedRow, shouldDeactivateFcmDevice } from './worker_helpers.ts';
+import { firstRelatedRow, scopedPushRouteData, shouldDeactivateFcmDevice } from './worker_helpers.ts';
 
 const jsonHeaders = { 'Content-Type': 'application/json' };
 
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
               notification: { title: notification.title, body: notification.body },
               data: {
                 notification_id: raw.notification_id,
-                action_route: notification.action_route ?? '',
+                ...scopedPushRouteData(notification),
                 action_entity_id: notification.action_entity_id ?? '',
                 priority: notification.priority,
                 category: notification.category,
