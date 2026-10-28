@@ -24,6 +24,11 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertIn('    environment: factoryos-production\n', self.content(name))
 
+    def test_all_production_workflows_pin_factoryos_ref_not_just_user_secrets(self):
+        for name in WORKFLOWS:
+            with self.subTest(name=name):
+                self.assertIn('[[ "$SUPABASE_PROJECT_REF" != "zevrmvhnibztbxizswgu" ]]', self.content(name))
+
     def test_admin_human_project_confirmation(self):
         s = self.content('admin-production-release.yml')
         self.assertIn('      confirm_project_ref:\n', s)
