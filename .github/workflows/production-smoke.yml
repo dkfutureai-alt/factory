@@ -97,12 +97,17 @@ jobs:
           jq -e --arg uid "$user_id" 'type == "array" and length == 1 and all(.[]; (.organization_id | type == "string") and (.role | type == "string") and .user_id == $uid)' \
             <<<"$memberships" >/dev/null
 
+          org_id=$(jq -er '.[0].organization_id' <<<"$memberships")
           factories=$(curl --fail-with-body --silent --show-error \
-            "$SUPABASE_URL/rest/v1/factories?select=id,name,code&is_active=eq.true&limit=5" \
+            "$SUPABASE_URL/rest/v1/factories?select=id,organization_id,name,code&is_active=eq.true&limit=100" \
             --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
             --header "Authorization: Bearer $ACCESS_TOKEN")
-          jq -e 'type == "array"' <<<"$factories" >/dev/null
-          echo "Authenticated production Auth + RLS smoke passed."
+          # A successful [] is NOT acceptance: the smoke user must see an
+          # actual active factory, and returned rows must be from their tenant.
+          jq -e --arg org "$org_id" \
+            'type == "array" and length > 0 and all(.[]; (.id | type == "string") and (.organization_id == $org) and (.name | type == "string") and (.code | type == "string"))' \
+            <<<"$factories" >/dev/null
+          echo "Authenticated FactoryOS Auth + visible same-tenant factory smoke passed."
 
       - name: Verify Phase 20 returnable-intake API permissions (read-only)
         shell: bash
