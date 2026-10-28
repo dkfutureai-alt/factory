@@ -27,6 +27,21 @@ class ReleaseConfigurationTests(unittest.TestCase):
         self.assertEqual(validate_configuration(self.env, "web"), [])
         self.assertEqual(validate_configuration(self.env, "android-qa"), [])
 
+    def test_dedicated_factoryos_production_candidate_accepted(self):
+        config = {**self.env,
+                  "FACTORYOS_RELEASE_ENV": "production",
+                  "FACTORYOS_SUPABASE_URL": "https://zevrmvhnibztbxizswgu.supabase.co"}
+        self.assertEqual(validate_configuration(config, "web"), [])
+        self.assertEqual(validate_configuration(config, "android-qa"), [])
+
+    def test_self_consistent_other_production_project_is_rejected(self):
+        config = {**self.env,
+                  "FACTORYOS_RELEASE_ENV": "production",
+                  "FACTORYOS_SUPABASE_URL": "https://abcdefghijklmnopqrst.supabase.co"}
+        for target in ("web", "android-qa"):
+            with self.subTest(target=target):
+                self.assertTrue(validate_configuration(config, target))
+
     def test_missing_release_env(self):
         self.bad(FACTORYOS_RELEASE_ENV="")
 
