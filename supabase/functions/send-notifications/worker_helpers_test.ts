@@ -1,4 +1,4 @@
-import { firstRelatedRow, scopedPushRouteData, shouldDeactivateFcmDevice } from './worker_helpers.ts';
+import { claimedQueueMatches, firstRelatedRow, scopedPushRouteData, shouldDeactivateFcmDevice } from './worker_helpers.ts';
 
 function expectTrue(condition: boolean, explanation: string) {
   if (!condition) throw new Error(explanation);
@@ -61,4 +61,23 @@ Deno.test('push navigation carries authoritative organization and recipient iden
     action_route: null,
   });
   expectTrue(withoutRoute.action_route === '', 'nullable route must not navigate');
+});
+
+Deno.test('claimed queue lease validation accepts only a complete matching batch', () => {
+  const claimed = [
+    { id: 'a', claim_token: 'token-a' },
+    { id: 'b', claim_token: 'token-b' },
+  ];
+  expectTrue(claimedQueueMatches(claimed, [...claimed].reverse()), 'matching reordered queue should pass');
+  expectTrue(!claimedQueueMatches(claimed, [claimed[0]]), 'missing queue row must fail');
+  expectTrue(!claimedQueueMatches(claimed, [claimed[0], claimed[0]]), 'duplicate queue row must fail');
+  expectTrue(!claimedQueueMatches(claimed, [
+    claimed[0], { id: 'b', claim_token: 'stale-token' },
+  ]), 'superseded lease must fail');
+  expectTrue(!claimedQueueMatches([claimed[0], claimed[0]], claimed), 'duplicate claim must fail');
+  expectTrue(!claimedQueueMatches(
+    [{ id: 'a', claim_token: '' }],
+    [{ id: 'a', claim_token: '' }],
+  ), 'empty token must fail');
+  expectTrue(claimedQueueMatches([], []), 'zero queue rows should match zero claims');
 });

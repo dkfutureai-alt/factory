@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { firstRelatedRow, scopedPushRouteData, shouldDeactivateFcmDevice } from './worker_helpers.ts';
+import { claimedQueueMatches, firstRelatedRow, scopedPushRouteData, shouldDeactivateFcmDevice } from './worker_helpers.ts';
 
 const jsonHeaders = { 'Content-Type': 'application/json' };
 
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
     const { data: claims, error: claimError } = await service
       .rpc('notification_claim_push_deliveries', { p_batch_size: 20 });
     if (claimError) throw claimError;
-    if (!claims?.length) return json(200, { processed: 0, sent: 0, failed: 0, skipped: 0 });
+    if (!claims?.length) return json(200, { claimed: 0, processed: 0, sent: 0, failed: 0, skipped: 0 });
 
     const { data: queue, error: queueError } = await service
       .from('notification_deliveries')
@@ -102,7 +102,9 @@ Deno.serve(async (req) => {
       .in('id', claims.map((claim: { id: string }) => claim.id))
       .eq('status', 'processing');
     if (queueError) throw queueError;
-    if (!queue?.length) return json(200, { processed: 0, sent: 0, failed: 0, skipped: 0 });
+    if (!queue || !claimedQueueMatches(claims, queue)) {
+      throw new Error('Claimed push queue rows do not match active delivery leases');
+    }
 
     // Lease-token fencing prevents an expired worker from overwriting a newer
     // worker's result. Push delivery remains at-least-once after a worker crash.
@@ -189,7 +191,7 @@ Deno.serve(async (req) => {
       if (deliverySent) sent++; else failed++;
     }
 
-    return json(200, { processed: queue.length, sent, failed, skipped });
+    return json(200, { claimed: claims.length, processed: queue.length, sent, failed, skipped });
   } catch (error) {
     return json(500, { error: error instanceof Error ? error.message : String(error) });
   }

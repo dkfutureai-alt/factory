@@ -41,3 +41,32 @@ export function scopedPushRouteData(row: {
     action_route: row.action_route ?? '',
   };
 }
+
+/**
+ * All rows claimed in this batch must still hold exactly those lease tokens.
+ * Reject missing, duplicate or superseded claims before a single FCM send.
+ * This is a defensive check in addition to the DB's fenced completion update.
+ */
+export function claimedQueueMatches(
+  claimed: Array<{ id: string; claim_token: string }>,
+  queue: Array<{ id: string; claim_token: string }>,
+): boolean {
+  if (claimed.length !== queue.length) return false;
+  const byId = new Map<string, string>();
+  for (const row of claimed) {
+    if (!row || typeof row.id !== 'string' || !row.id ||
+        typeof row.claim_token !== 'string' || !row.claim_token ||
+        byId.has(row.id)) return false;
+    byId.set(row.id, row.claim_token);
+  }
+  const observed = new Set<string>();
+  for (const row of queue) {
+    if (!row || typeof row.id !== 'string' ||
+        typeof row.claim_token !== 'string' ||
+        observed.has(row.id) || byId.get(row.id) !== row.claim_token) {
+      return false;
+    }
+    observed.add(row.id);
+  }
+  return true;
+}
