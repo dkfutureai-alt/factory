@@ -11,6 +11,14 @@ on:
         description: 'Independently type the exact FactoryOS production Supabase project ref'
         required: true
         default: ''
+      release_scope:
+        description: 'Database schema first, or schema plus configured Edge Functions'
+        required: true
+        type: choice
+        options:
+          - database-only
+          - full
+        default: database-only
 
 permissions:
   contents: read
@@ -23,6 +31,7 @@ jobs:
     environment: factoryos-production
     env:
       CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
+      RELEASE_SCOPE: ${{ inputs.release_scope }}
       FACTORYOS_SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
@@ -46,11 +55,17 @@ jobs:
             SUPABASE_PROJECT_REF
             SUPABASE_DB_PASSWORD
             FACTORYOS_SUPABASE_URL
-            FACTORYOS_INVITE_REDIRECT_URL
-            NOTIFICATION_DISPATCH_SECRET
-            FCM_PROJECT_ID
-            FCM_CLIENT_EMAIL
-            FCM_PRIVATE_KEY
+          )
+          if [[ "$RELEASE_SCOPE" == 'full' ]]; then
+            required+=(
+              FACTORYOS_INVITE_REDIRECT_URL
+              NOTIFICATION_DISPATCH_SECRET
+              FCM_PROJECT_ID
+              FCM_CLIENT_EMAIL
+              FCM_PRIVATE_KEY
+            )
+          fi
+          required+=(
           )
           missing=0
           for name in "${required[@]}"; do
@@ -66,7 +81,11 @@ jobs:
             echo 'Production project confirmation or URL mismatch; refusing to deploy.'
             exit 1
           fi
-          [[ "$FACTORYOS_INVITE_REDIRECT_URL" == https://* ]]
+          if [[ "$RELEASE_SCOPE" == 'full' ]]; then
+            [[ "$FACTORYOS_INVITE_REDIRECT_URL" == https://* ]]
+          fi
+          # Never use the GitHub release workflow to seed production data.
+          test -f supabase/migrations/0044_customer_pilot_testing.sql
       - name: Link exact FactoryOS production project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
       - name: Preview pending production migrations
@@ -74,6 +93,7 @@ jobs:
       - name: Apply pending production migrations
         run: supabase db push
       - name: Configure Edge Function production secrets
+        if: inputs.release_scope == 'full'
         shell: bash
         run: |
           set -euo pipefail
@@ -85,6 +105,7 @@ jobs:
             "FCM_CLIENT_EMAIL=$FCM_CLIENT_EMAIL" \
             "FCM_PRIVATE_KEY=$FCM_PRIVATE_KEY"
       - name: Deploy FactoryOS Edge Functions
+        if: inputs.release_scope == 'full'
         run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF"
       - name: Show migration state after deployment
         run: supabase migration list
