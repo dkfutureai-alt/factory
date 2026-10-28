@@ -2,6 +2,8 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'returnable_intake_dialog.dart';
+
 class DispatchManagementPage extends StatefulWidget {
   const DispatchManagementPage({
     required this.organizationId,
@@ -176,6 +178,27 @@ class _DispatchManagementPageState extends State<DispatchManagementPage> {
     );
   }
 
+  Future<void> intakeReturnables(
+    DispatchSnapshot data,
+    Map<String, dynamic> pickup,
+  ) async {
+    try {
+      final selection = await askReturnableIntake(context, data.locations);
+      if (!mounted || selection == null) return;
+      await run(
+        () => repository.intakeReturnables(
+          pickup['id'] as String,
+          selection.receivingLocationId,
+          selection.quarantineLocationId,
+          selection.notes,
+        ),
+        'Returned stock transferred to receiving/quarantine. Inspection is still required.',
+      );
+    } catch (error) {
+      if (mounted) message(_errorText(error), error: true);
+    }
+  }
+
   Future<void> resolveException(Map<String, dynamic> row) async {
     final controller = TextEditingController();
     final accepted = await showDialog<bool>(
@@ -300,6 +323,9 @@ class _DispatchManagementPageState extends State<DispatchManagementPage> {
                                 'Vehicle load confirmed. Inventory moved to vehicle.',
                               ),
                       onResolve: resolveException,
+                      onIntake: selected == null
+                          ? null
+                          : (pickup) => intakeReturnables(data, pickup),
                     ),
                   ),
                 ],
@@ -324,6 +350,9 @@ class _DispatchManagementPageState extends State<DispatchManagementPage> {
                           'Vehicle load confirmed. Inventory moved to vehicle.',
                         ),
                 onResolve: resolveException,
+                      onIntake: selected == null
+                          ? null
+                          : (pickup) => intakeReturnables(data, pickup),
               ),
             ],
           ],
@@ -414,6 +443,20 @@ class DispatchRepository {
           .select('id,delivery_id,status,completed_at')
           .eq('factory_id', factoryId),
     );
+    final intakes = List<Map<String, dynamic>>.from(
+      await client
+          .from('dispatch_returnable_intakes')
+          .select('id,pickup_id,received_at')
+          .eq('factory_id', factoryId),
+    );
+    final locations = List<Map<String, dynamic>>.from(
+      await client
+          .from('stock_locations')
+          .select('id,name,code,location_type')
+          .eq('factory_id', factoryId)
+          .eq('is_active', true)
+          .inFilter('location_type', ['receiving', 'quarantine']),
+    );
     final exceptions = List<Map<String, dynamic>>.from(
       await client
           .from('dispatch_delivery_exceptions')
@@ -434,6 +477,8 @@ class DispatchRepository {
       lines: lines,
       items: items,
       pickups: pickups,
+      intakes: intakes,
+      locations: locations,
       exceptions: exceptions,
     );
   }
@@ -449,6 +494,23 @@ class DispatchRepository {
     await client.rpc(
       'dispatch_confirm_vehicle_load',
       params: {'p_delivery_id': deliveryId},
+    );
+  }
+
+  Future<void> intakeReturnables(
+    String pickupId,
+    String receivingLocationId,
+    String quarantineLocationId,
+    String notes,
+  ) async {
+    await client.rpc(
+      'dispatch_intake_returnables',
+      params: {
+        'p_pickup_id': pickupId,
+        'p_receiving_location_id': receivingLocationId,
+        'p_quarantine_location_id': quarantineLocationId,
+        'p_notes': notes.isEmpty ? null : notes,
+      },
     );
   }
 
@@ -474,6 +536,8 @@ class DispatchSnapshot {
     required this.lines,
     required this.items,
     required this.pickups,
+    required this.intakes,
+    required this.locations,
     required this.exceptions,
   });
 
@@ -489,6 +553,8 @@ class DispatchSnapshot {
   final List<Map<String, dynamic>> lines;
   final List<Map<String, dynamic>> items;
   final List<Map<String, dynamic>> pickups;
+  final List<Map<String, dynamic>> intakes;
+  final List<Map<String, dynamic>> locations;
   final List<Map<String, dynamic>> exceptions;
 
   String customerName(Map<String, dynamic> delivery) {
@@ -518,6 +584,13 @@ class DispatchSnapshot {
 
   List<Map<String, dynamic>> deliveryExceptions(Object? id) =>
       exceptions.where((row) => row['delivery_id'] == id).toList();
+
+  Map<String, dynamic>? intake(Object? pickupId) {
+    for (final row in intakes) {
+      if (row['pickup_id'] == pickupId) return row;
+    }
+    return null;
+  }
 
   Map<String, dynamic>? pickup(Object? id) {
     for (final row in pickups) {
@@ -690,11 +763,13 @@ class _DeliveryDetails extends StatelessWidget {
     required this.delivery,
     required this.onLoad,
     required this.onResolve,
+    required this.onIntake,
   });
   final DispatchSnapshot data;
   final Map<String, dynamic>? delivery;
   final VoidCallback? onLoad;
   final ValueChanged<Map<String, dynamic>> onResolve;
+  final ValueChanged<Map<String, dynamic>>? onIntake;
 
   @override
   Widget build(BuildContext context) {
@@ -710,6 +785,7 @@ class _DeliveryDetails extends StatelessWidget {
     final lines = data.deliveryLines(row['id']);
     final exceptions = data.deliveryExceptions(row['id']);
     final pickup = data.pickup(row['id']);
+    final intake = pickup == null ? null : data.intake(pickup['id']);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(FactorySpacing.lg),
@@ -753,6 +829,20 @@ class _DeliveryDetails extends StatelessWidget {
             const Divider(height: FactorySpacing.xl),
             Text('Returnables', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
             Text(pickup == null ? 'No pickup recorded.' : 'Pickup ${_statusLabel(pickup['status'] as String)}'),
+            if (intake != null)
+              const Text('Warehouse intake completed; stock transferred for inspection.'),
+            if (pickup != null &&
+                pickup['status'] == 'completed' &&
+                intake == null &&
+                onIntake != null)
+              Padding(
+                padding: const EdgeInsets.only(top: FactorySpacing.sm),
+                child: FilledButton.icon(
+                  onPressed: () => onIntake!(pickup),
+                  icon: const Icon(Icons.move_to_inbox_outlined),
+                  label: const Text('Receive at warehouse'),
+                ),
+              ),
             const Divider(height: FactorySpacing.xl),
             Text('Exceptions', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
             if (exceptions.isEmpty)
