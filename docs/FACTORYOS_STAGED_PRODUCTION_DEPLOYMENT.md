@@ -36,3 +36,7 @@ Keep issue #12 open until actual pilot passes, SMTP and FCM deliver on real devi
 - Firebase/FCM app and iOS APNs setup require the relevant account.
 - Customer testing needs opted-in customer identities; no real users have been invited yet.
 - Production domain, SMTP and mobile store signing are not yet confirmed.
+
+## Phase 27B required two-organization RLS proof
+
+The protected `Production Smoke Verification` now additionally requires two approved, non-platform-owner Supabase Auth test users (`FACTORYOS_SMOKE_EMAIL`/`FACTORYOS_SMOKE_PASSWORD` and `FACTORYOS_SMOKE_SECOND_EMAIL`/`FACTORYOS_SMOKE_SECOND_PASSWORD`) in different populated test organizations. Each account must see its own active factory and be denied the other's organization, membership and factory records. These **read-only** checks use the exact FactoryOS project only, require separate owner provisioning, and do not prove module-wide or real customer/device E2E. See `docs/PHASE_27B_PRODUCTION_TWO_TENANT_SMOKE.md`.
