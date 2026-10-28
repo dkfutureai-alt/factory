@@ -25,3 +25,7 @@ Passing repository tests does not prove production SMTP, FCM/APNs, DNS/hosting o
 ### October 2026 Supabase Data API compatibility
 
 Supabase changed new-project Data API defaults: public tables may lack implicit PostgREST permissions, regardless of RLS. FactoryOS migration `0045` restores narrow `authenticated` grants on eight foundation tables and explicit trusted `service_role` DML grants; it also revokes anonymous access. The accompanying SQL smoke check runs after migration replay and must pass before release. The change must be applied only through the safeguarded FactoryOS release path after isolated testing and owner approval. Reference: https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically
+
+### Exact-head database integration gate
+
+Before project linking or any production write, the protected release workflow checks the **current main commit** and requires the latest `Supabase Foundation Checks` push run for that identical commit to have finished successfully. Main now triggers full database CI on every merge. A previous green run or a green PR/lint alone is not enough; absent/failed/in-progress CI blocks the deployment. See `docs/PHASE_28_EXACT_HEAD_DATABASE_RELEASE_GATE.md`. This gate supplements, but never replaces, human approval, migration review, backup/recovery planning and post-deployment authenticated checks.

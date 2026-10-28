@@ -3,13 +3,14 @@ name: Supabase Foundation Checks
 
 on:
   push:
-    paths:
-      - 'supabase/**'
-      - '.github/workflows/supabase-foundation.yml'
+    branches:
+      - main
   pull_request:
     paths:
       - 'supabase/**'
+      - 'scripts/**'
       - '.github/workflows/supabase-foundation.yml'
+      - '.github/workflows/supabase-production-release.yml'
 
 concurrency:
   group: supabase-foundation-${{ github.ref }}
