@@ -1,4 +1,4 @@
-import { firstRelatedRow, shouldDeactivateFcmDevice } from './worker_helpers.ts';
+import { firstRelatedRow, scopedPushRouteData, shouldDeactivateFcmDevice } from './worker_helpers.ts';
 
 function expectTrue(condition: boolean, explanation: string) {
   if (!condition) throw new Error(explanation);
@@ -44,4 +44,21 @@ Deno.test('generic FCM 400/404 and payload errors never deactivate devices', () 
   expectTrue(!shouldDeactivateFcmDevice(404, '{"error":{"status":"NOT_FOUND"}}'), 'generic 404 must preserve device');
   expectTrue(!shouldDeactivateFcmDevice(404, 'not-json'), 'malformed error must preserve device');
   expectTrue(!shouldDeactivateFcmDevice(500, '{}'), 'server error must preserve device');
+});
+
+Deno.test('push navigation carries authoritative organization and recipient identifiers', () => {
+  const data = scopedPushRouteData({
+    organization_id: 'org-a',
+    recipient_user_id: 'user-a',
+    action_route: 'inventory',
+  });
+  expectTrue(data.organization_id === 'org-a', 'tenant scope was lost');
+  expectTrue(data.recipient_user_id === 'user-a', 'recipient scope was lost');
+  expectTrue(data.action_route === 'inventory', 'route was lost');
+  const withoutRoute = scopedPushRouteData({
+    organization_id: 'org-b',
+    recipient_user_id: 'user-b',
+    action_route: null,
+  });
+  expectTrue(withoutRoute.action_route === '', 'nullable route must not navigate');
 });
