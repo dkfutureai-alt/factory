@@ -86,6 +86,11 @@ api "$B_TOKEN" GET 'pilot_feedback?select=result' | rows 1 'Independent tenant p
 api "$ADMIN_TOKEN" GET 'pilot_feedback?select=id' | rows 1 'Org A admin cannot see Org B report'
 api "$ACCESS_TOKEN" DELETE "pilot_participants?organization_id=eq.$ORG_ID&user_id=eq.$USER_ID" >/dev/null
 api "$ACCESS_TOKEN" GET 'pilot_feedback?select=id' | rows 0 'Withdrawal erased pilot feedback'
+denied "$ADMIN_TOKEN" POST 'pilot_participants' \
+  "{\"organization_id\":\"$ORG_ID\",\"user_id\":\"$USER_ID\"}" \
+  'admin forging new consent after withdrawal'
+api "$ACCESS_TOKEN" GET 'pilot_participants?select=user_id' | \
+  rows 0 'Admin was unable to reenroll another user'
 api "$ACCESS_TOKEN" GET "organization_members?select=user_id&user_id=eq.$USER_ID" | \
   rows 1 'Withdrawal preserved normal factory membership'
 denied "$ACCESS_TOKEN" POST 'pilot_feedback' \
