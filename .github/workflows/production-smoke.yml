@@ -103,6 +103,34 @@ jobs:
           jq -e 'type == "array"' <<<"$factories" >/dev/null
           echo "Authenticated production Auth + RLS smoke passed."
 
+      - name: Verify Phase 20 returnable-intake API permissions (read-only)
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          # Both tables must be accessible as the authenticated, least-
+          # privilege smoke member. RLS may return [], which is expected.
+          # No rows are inserted or modified by these probes.
+          for table in dispatch_returnable_intakes dispatch_returnable_intake_lines; do
+            rows=$(curl --fail-with-body --silent --show-error \
+              "$SUPABASE_URL/rest/v1/${table}?select=id&limit=1" \
+              --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+              --header "Authorization: Bearer $ACCESS_TOKEN")
+            jq -e 'type == "array"' <<<"$rows" >/dev/null
+
+            # Do not accept anonymous reads even when the table is empty.
+            anon_status=$(curl --silent --show-error --output /dev/null \
+              --write-out '%{http_code}' \
+              "$SUPABASE_URL/rest/v1/${table}?select=id&limit=1" \
+              --header "apikey: $SUPABASE_PUBLISHABLE_KEY")
+            if [[ "$anon_status" == 2* ]]; then
+              echo "Anonymous ${table} access unexpectedly succeeded."
+              exit 1
+            fi
+          done
+          echo 'FactoryOS returnable intake API grants and anonymous denial verified.'
+
       - name: Verify Admin portal when configured
         if: ${{ env.ADMIN_URL != '' }}
         shell: bash
