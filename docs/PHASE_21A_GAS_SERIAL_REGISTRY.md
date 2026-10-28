@@ -21,6 +21,7 @@
 ## Automated verification
 
 - `supabase/tests/0047_gas_container_serial_registry_smoke.sql` uses fictitious identities in a rollback transaction to test unique serials, normalized QR, unverified hold, good/damaged condition transitions, retirement, event immutability, audit integrity, unauthorized reads and denied RPCs.
+- `supabase/tests/gas_asset_auth_e2e.sh` runs actual local Auth/JWT/PostgREST requests against the registry with a manager and factory employee: authorized Dura registration, employee/other-factory denial, normalized QR lookup, duplicate serial rejection, manager-only quarantine, history, direct PATCH denial and irreversible retirement.
 - Full `Supabase Foundation Checks` must replay migrations `0001–0047`, run SQL structural/auth tests and application workflows. Flutter Application Quality must pass the Admin and Mobile scanner changes.
 - FactoryOS production is **not migrated**; production approval and real-device QR acceptance are distinct gates.
 
