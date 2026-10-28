@@ -19,9 +19,11 @@
 - [ ] Confirm database backup/PITR capabilities for the chosen plan, record a recovery owner and trial a restore in a nonproduction environment where supported.
 - [ ] Verify the final PR's Flutter, Mobile Release, Supabase Foundation and Release Workflow Lint checks are green.
 - [ ] Confirm pending migration list and assess any destructive SQL before manually invoking **Supabase Production Release** with `confirm=DEPLOY` and a separately typed `confirm_project_ref`.
-- [ ] Apply migrations through `0046` (including 0043 invitation reissue, 0044 real customer pilot, 0045 explicit Data API grants and 0046 returnable warehouse intake) through the **protected** `Supabase Production Release` workflow, first with `release_scope=database-only`. Confirm recorded migration history matches the committed files; never run remote `db reset` or production fictional seeds.
+- [ ] Apply migrations through `0047` (including 0043 invitation reissue, 0044 real customer pilot, 0045 explicit Data API grants and 0046 returnable warehouse intake and 0047 serialized gas container identity) through the **protected** `Supabase Production Release` workflow, first with `release_scope=database-only`. Confirm recorded migration history matches the committed files; never run remote `db reset` or production fictional seeds.
 - [ ] After an approved HTTPS Auth redirect, SMTP and Firebase secrets are configured, run the same workflow with `release_scope=full` to deploy the Edge Functions, then verify private POD/Maintenance storage policies and production RLS.
 - [ ] Inspect Supabase security/performance advisors and fix actionable findings before onboarding customers.
+- [ ] Execute the read-only `Production Smoke Verification` checks for `gas_container_assets` and `gas_container_asset_events`, requiring signed-in authorized reads and explicit anonymous denial. Do not register real containers as a substitute for pilot acceptance.
+- [ ] Validate the Phase 21A serial/QR registration, inspection, quarantine and retirement with real factory staff, and separately verify actual per-cylinder custody, physical QR readability and safety review; identity-only recording is not stock or compliance release.
 
 ## Push delivery
 
