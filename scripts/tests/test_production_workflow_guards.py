@@ -57,6 +57,13 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertIn('test -f supabase/migrations/0048_gas_serial_transaction_links.sql', s)
         self.assertIn('test -f supabase/migrations/0049_gas_serial_attestation_coverage.sql', s)
 
+    def test_smoke_requires_unambiguous_org_and_explicit_anonymous_denial(self):
+        s = self.content("production-smoke.yml")
+        self.assertIn("type == \"array\" and length == 1 and all(.[];", s)
+        self.assertIn("organization_id&user_id=eq.${user_id}&is_active=eq.true&limit=2", s)
+        self.assertIn("type == \"array\" and length == 1 and (.[0].organization_id | type == \"string\")", s)
+        self.assertIn("Anonymous ${table} access was not explicitly denied (expected 4xx).", s)
+
     def test_smoke_is_read_only(self):
         s = self.content('production-smoke.yml')
         self.assertIn('Verify authenticated identity and tenant RLS', s)
