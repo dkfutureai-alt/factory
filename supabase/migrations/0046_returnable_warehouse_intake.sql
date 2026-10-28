@@ -258,7 +258,7 @@ for each row execute function public.audit_dispatch_change();
 create or replace function public.commercial_allocate_sales_order(
   p_sales_order_id uuid, p_location_id uuid
 )
-returns void language plpgsql security definer set search_path=public as $
+returns void language plpgsql security definer set search_path=public as $sales_allocation_guard$
 declare
   v_so public.sales_orders%rowtype;
   v_line public.sales_order_lines%rowtype;
@@ -305,7 +305,7 @@ begin
   end loop;
   update public.sales_orders set status='allocated',dispatch_ready_at=null
   where id=p_sales_order_id;
-end; $;
+end; $sales_allocation_guard$;
 revoke all on function public.commercial_allocate_sales_order(uuid,uuid) from public, anon;
 grant execute on function public.commercial_allocate_sales_order(uuid,uuid) to authenticated;
 
