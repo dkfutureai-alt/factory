@@ -67,6 +67,22 @@ class MigrationHistoryTests(unittest.TestCase):
         with self.assertRaisesRegex(HistoryError, "Duplicate remote"):
             cli_versions(table(("0001", "0001"), ("0002", "0001")))
 
+    def test_early_supabase_ci_checks_migration_versions(self):
+        workflow = (Path(__file__).resolve().parents[2]
+                    / ".github/workflows/supabase-foundation.yml").read_text()
+        command = "python3 scripts/check_migration_versions.py"
+        self.assertIn(command, workflow)
+        self.assertLess(workflow.index(command), workflow.index("supabase start"))
+        self.assertLess(workflow.index(command), workflow.index("supabase/setup-cli@v1"))
+
+    def test_fail_fast_script_calls_shared_version_parser(self):
+        script = (Path(__file__).resolve().parents[1]
+                  / "check_migration_versions.py").read_text()
+        self.assertIn("local_versions(directory)", script)
+        self.assertIn("except HistoryError", script)
+        self.assertNotIn("db push", script)
+        self.assertNotIn("db reset", script)
+
     def test_filenames_must_have_unique_exact_versions(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary)
