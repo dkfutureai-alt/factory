@@ -26,3 +26,18 @@ export function shouldDeactivateFcmDevice(httpStatus: number, rawBody: string): 
     return false;
   }
 }
+
+/** Every actionable FCM notification must be bound to its authoritative
+ * organization and recipient. A route string alone is never a workspace key.
+ * Mobile intentionally refuses to open older unscoped push notifications. */
+export function scopedPushRouteData(row: {
+  organization_id: string;
+  recipient_user_id: string;
+  action_route: string | null;
+}): Record<string, string> {
+  return {
+    organization_id: row.organization_id,
+    recipient_user_id: row.recipient_user_id,
+    action_route: row.action_route ?? '',
+  };
+}
