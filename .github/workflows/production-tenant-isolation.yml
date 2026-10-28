@@ -1,0 +1,46 @@
+name: FactoryOS Cross-Tenant Production Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type VERIFY_TENANTS after both pilot users consent and have separate factory memberships'
+        required: true
+        default: 'REVIEW'
+      confirm_project_ref:
+        description: 'Independently type the exact dedicated FactoryOS Supabase project ref'
+        required: true
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  tenant-isolation:
+    if: ${{ inputs.confirm == 'VERIFY_TENANTS' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: factoryos-production
+    env:
+      CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
+      FACTORYOS_SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      FACTORYOS_SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
+      FACTORYOS_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
+      FACTORYOS_TENANT_A_SMOKE_EMAIL: ${{ secrets.FACTORYOS_TENANT_A_SMOKE_EMAIL }}
+      FACTORYOS_TENANT_A_SMOKE_PASSWORD: ${{ secrets.FACTORYOS_TENANT_A_SMOKE_PASSWORD }}
+      FACTORYOS_TENANT_B_SMOKE_EMAIL: ${{ secrets.FACTORYOS_TENANT_B_SMOKE_EMAIL }}
+      FACTORYOS_TENANT_B_SMOKE_PASSWORD: ${{ secrets.FACTORYOS_TENANT_B_SMOKE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify human approval and exact FactoryOS project (before any login)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRMED_PROJECT_REF" != 'zevrmvhnibztbxizswgu' ]] || \
+             [[ "$FACTORYOS_SUPABASE_PROJECT_REF" != 'zevrmvhnibztbxizswgu' ]] || \
+             [[ "$FACTORYOS_SUPABASE_URL" != 'https://zevrmvhnibztbxizswgu.supabase.co' ]]; then
+            echo 'Refusing cross-tenant smoke against unapproved Supabase project.' >&2
+            exit 1
+          fi
+      - name: Run read-only reciprocal JWT tenant isolation probes
+        run: python3 scripts/production_tenant_isolation_smoke.py
