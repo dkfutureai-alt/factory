@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   plan:
+    name: FactoryOS read-only migration plan
     if: ${{ inputs.confirm == 'PLAN' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
