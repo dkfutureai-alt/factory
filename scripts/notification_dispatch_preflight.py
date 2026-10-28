@@ -25,6 +25,8 @@ def validate_dispatch_environment(env: Mapping[str, str]) -> tuple[str, str]:
         return "error", "FactoryOS push dispatch configuration is incomplete."
     if not PROJECT_REF_RE.fullmatch(project_ref):
         return "error", "FactoryOS project reference must be 20 lowercase letters/digits."
+    if project_ref != "zevrmvhnibztbxizswgu":
+        return "error", "FactoryOS dispatch cannot target a different Supabase project."
     if project_url != f"https://{project_ref}.supabase.co":
         return "error", "FactoryOS push URL must exactly match the configured project reference."
 
