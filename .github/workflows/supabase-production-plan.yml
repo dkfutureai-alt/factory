@@ -1,0 +1,83 @@
+name: Supabase Production Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type PLAN to inspect only; this workflow never applies migrations'
+        required: true
+        default: 'REVIEW'
+      confirm_project_ref:
+        description: 'Independently type the exact FactoryOS-only Supabase project ref'
+        required: true
+        default: ''
+
+concurrency:
+  group: factoryos-production-database-migrations
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: FactoryOS read-only migration plan
+    if: ${{ inputs.confirm == 'PLAN' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: factoryos-production
+    env:
+      CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
+      FACTORYOS_SUPABASE_URL: ${{ secrets.FACTORYOS_SUPABASE_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.FACTORYOS_SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify the exact production destination before network access
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in SUPABASE_PROJECT_REF FACTORYOS_SUPABASE_URL SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing FactoryOS planning secret: $name" >&2
+              exit 1
+            fi
+          done
+          if [[ "$SUPABASE_PROJECT_REF" != 'zevrmvhnibztbxizswgu' ]] || \
+             [[ "$CONFIRMED_PROJECT_REF" != "$SUPABASE_PROJECT_REF" ]] || \
+             [[ "$FACTORYOS_SUPABASE_URL" != 'https://zevrmvhnibztbxizswgu.supabase.co' ]]; then
+            echo 'Migration plan refused: incorrect FactoryOS project confirmation.' >&2
+            exit 1
+          fi
+      - name: Reject malformed or duplicate committed migration versions
+        run: python3 scripts/check_migration_versions.py
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - name: Link exact FactoryOS-only project for read-only inspection
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Verify linked migration history before any proposed release
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --linked 2>&1 | tee /tmp/factoryos-plan-history.txt
+          python3 scripts/verify_production_migrations.py \
+            --stage preflight --input /tmp/factoryos-plan-history.txt
+      - name: Preview pending SQL without applying migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push --dry-run
+      - name: Record immutable review scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "### FactoryOS read-only migration plan"
+            echo "Commit SHA: $GITHUB_SHA"
+            echo "Run ID: $GITHUB_RUN_ID"
+            echo "Project: zevrmvhnibztbxizswgu (FactoryOS only)"
+            echo "Result: migration history inspected; db push --dry-run completed; NO SQL applied by this job."
+            echo "For release, review these steps and supply this run ID to the separately approved deployment workflow within 24 hours."
+          } >> "$GITHUB_STEP_SUMMARY"
