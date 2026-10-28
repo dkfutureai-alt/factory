@@ -4,8 +4,8 @@
 
 ## Release ownership and environment
 
-- [ ] Select the dedicated FactoryOS Supabase organization, region and cost plan; get approval before creating a billable project.
-- [ ] Create/connect the dedicated FactoryOS project and record its 20-character project ref and exact `https://<ref>.supabase.co` URL.
+- [x] Create the dedicated FactoryOS Supabase project `zevrmvhnibztbxizswgu` in Mumbai (`ap-south-1`), under the approved organization; initial quoted cost $0/month (verified 26 Oct 2026).
+- [ ] Verify current billing plan and backup capabilities before customer onboarding. API endpoint: `https://zevrmvhnibztbxizswgu.supabase.co`.
 - [ ] Set a protected GitHub environment named `factoryos-production` with required reviewers; restrict it and production workflow dispatches to `main`.
 - [ ] Set `SUPABASE_ACCESS_TOKEN`, `FACTORYOS_SUPABASE_PROJECT_REF`, `FACTORYOS_SUPABASE_DB_PASSWORD`, `FACTORYOS_SUPABASE_URL`, `FACTORYOS_SUPABASE_PUBLISHABLE_KEY`, and `FACTORYOS_INVITE_REDIRECT_URL` as repository/environment secrets. Never commit service-role or DB credentials.
 - [ ] Verify `FACTORYOS_SUPABASE_URL` resolves to precisely the configured project ref, not just to any valid Supabase project.
@@ -17,7 +17,8 @@
 - [ ] Confirm database backup/PITR capabilities for the chosen plan, record a recovery owner and trial a restore in a nonproduction environment where supported.
 - [ ] Verify the final PR's Flutter, Mobile Release, Supabase Foundation and Release Workflow Lint checks are green.
 - [ ] Confirm pending migration list and assess any destructive SQL before manually invoking **Supabase Production Release** with `confirm=DEPLOY` and a separately typed `confirm_project_ref`.
-- [ ] Confirm migrations through `0043` (including 0041 outbox, 0042 structural QA and 0043 invitation reissue), Edge Functions, and private POD/Maintenance storage policies exist; do not run remote `db reset` or production fictional seeds.
+- [ ] Apply migrations through `0044` (including 0043 invitation reissue and 0044 real customer pilot) through the **protected** `Supabase Production Release` workflow, first with `release_scope=database-only`. Confirm recorded migration history matches the committed files; never run remote `db reset` or production fictional seeds.
+- [ ] After an approved HTTPS Auth redirect, SMTP and Firebase secrets are configured, run the same workflow with `release_scope=full` to deploy the Edge Functions, then verify private POD/Maintenance storage policies and production RLS.
 - [ ] Inspect Supabase security/performance advisors and fix actionable findings before onboarding customers.
 
 ## Push delivery
