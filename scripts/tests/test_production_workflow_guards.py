@@ -80,7 +80,7 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertIn('type == "array"', s)
         self.assertIn('no data changed', s)
         self.assertIn('dispatch_returnable_intakes dispatch_returnable_intake_lines', s)
-        self.assertIn('Anonymous ${table} access unexpectedly succeeded.', s)
+        self.assertIn('Anonymous ${table} access was not explicitly denied (expected 4xx).', s)
         self.assertIn('select=id&limit=1', s)
         self.assertNotIn('supabase db push', s)
         self.assertNotIn('supabase db reset', s)
