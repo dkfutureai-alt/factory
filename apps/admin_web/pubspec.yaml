@@ -15,6 +15,8 @@ dependencies:
   factoryos_core:
     path: ../../packages/factoryos_core
   supabase_flutter: ^2.18.3
+  pdf: ^3.13.1
+  printing: ^5.15.1
 
 dev_dependencies:
   flutter_test:
