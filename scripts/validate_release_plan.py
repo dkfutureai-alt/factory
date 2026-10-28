@@ -14,6 +14,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 PLAN_WORKFLOW = ".github/workflows/supabase-production-plan.yml"
+PLAN_JOB = "FactoryOS read-only migration plan"
 PROJECT_REPO = "dkfutureai-alt/factory"
 MAX_PLAN_AGE = timedelta(hours=24)
 
@@ -37,7 +38,7 @@ def _timestamp(value):
     return parsed
 
 
-def verify_plan(run, *, run_id, repository, expected_sha, now=None):
+def verify_plan(run, jobs, *, run_id, repository, expected_sha, now=None):
     """Ensure the approved plan was successful on this exact current main commit."""
     if not isinstance(run_id, str) or not re.fullmatch(r"[1-9][0-9]{0,14}", run_id):
         raise PlanError("An actual numeric, nonzero GitHub plan run ID is required.")
@@ -57,6 +58,21 @@ def verify_plan(run, *, run_id, repository, expected_sha, now=None):
         raise PlanError("Planning run commit differs from the exact release commit.")
     if run.get("status") != "completed" or run.get("conclusion") != "success":
         raise PlanError("Planning run has not passed all preflight steps.")
+    # A workflow can report success when its gated job was skipped. Verify
+    # the *actual job* completed successfully, rather than trusting run status.
+    if not isinstance(jobs, list):
+        raise PlanError("Planning job evidence was not returned.")
+    matches = [
+        job for job in jobs
+        if isinstance(job, dict) and job.get("name") == PLAN_JOB
+    ]
+    if len(matches) != 1:
+        raise PlanError("Exactly one real migration planning job must exist.")
+    job = matches[0]
+    if (job.get("run_id") != int(run_id)
+            or job.get("status") != "completed"
+            or job.get("conclusion") != "success"):
+        raise PlanError("Migration planning job was skipped, failed, or incomplete.")
     checked_at = _timestamp(run.get("updated_at"))
     now = datetime.now(timezone.utc) if now is None else now
     if now.tzinfo is None:
@@ -67,13 +83,11 @@ def verify_plan(run, *, run_id, repository, expected_sha, now=None):
     return "PASS: successful recent approved FactoryOS migration plan matches release SHA."
 
 
-def fetch_github_run(run_id, token):
-    """Read only an exact API endpoint; forbid cross-origin redirects."""
-    if not isinstance(run_id, str) or not re.fullmatch(r"[1-9][0-9]{0,14}", run_id):
-        raise PlanError("Invalid planning run identifier.")
+def fetch_github_api(path, token):
+    """Read only one of two fixed GitHub API paths; forbid redirects."""
     if not token:
         raise PlanError("Missing GitHub workflow identity.")
-    url = f"https://api.github.com/repos/{PROJECT_REPO}/actions/runs/{run_id}"
+    url = f"https://api.github.com/repos/{PROJECT_REPO}/actions/runs/{path}"
     request = Request(
         url,
         method="GET",
@@ -99,9 +113,18 @@ def main():
     try:
         if env.get("GITHUB_REF") != "refs/heads/main":
             raise PlanError("Production releases require the main branch.")
-        result = fetch_github_run(run_id, env.get("GITHUB_TOKEN", ""))
+        if not isinstance(run_id, str) or not re.fullmatch(r"[1-9][0-9]{0,14}", run_id):
+            raise PlanError("An actual numeric GitHub migration plan run ID is required.")
+        token = env.get("GITHUB_TOKEN", "")
+        result = fetch_github_api(run_id, token)
+        job_response = fetch_github_api(f"{run_id}/jobs?filter=latest&per_page=100", token)
+        if not isinstance(job_response, dict):
+            raise PlanError("Planning job API returned invalid data.")
+        jobs = job_response.get("jobs")
+        if job_response.get("total_count") != 1:
+            raise PlanError("Exactly one planning job is required; review the run.")
         print(verify_plan(
-            result,
+            result, jobs,
             run_id=run_id,
             repository=env.get("GITHUB_REPOSITORY", ""),
             expected_sha=env.get("GITHUB_SHA", ""),
