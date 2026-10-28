@@ -12,6 +12,10 @@ on:
         required: true
         default: ''
 
+concurrency:
+  group: factoryos-production-database-migrations
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
