@@ -43,7 +43,7 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertIn('      release_scope:\\n'.replace('\\n', '\n'), s)
         self.assertIn('          - database-only', s)
         self.assertIn('          - full', s)
-        self.assertIn("if [[ \\"$RELEASE_SCOPE\\" == 'full' ]]; then", s)
+        self.assertIn("""if [[ "$RELEASE_SCOPE" == 'full' ]]; then""", s)
         self.assertEqual(s.count("if: inputs.release_scope == 'full'"), 2)
         self.assertIn('supabase db push --dry-run', s)
         self.assertIn('supabase db push', s)

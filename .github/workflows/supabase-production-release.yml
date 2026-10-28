@@ -65,8 +65,6 @@ jobs:
               FCM_PRIVATE_KEY
             )
           fi
-          required+=(
-          )
           missing=0
           for name in "${required[@]}"; do
             if [[ -z "${!name:-}" ]]; then
