@@ -89,6 +89,26 @@ insert into public.dispatch_returnable_lines(
   '43000000-0000-4000-8000-000000000003',
   1,'damaged','54600000-0000-4000-8000-000000000006');
 
+-- Sales must not allocate uninspected empty or damaged returned cylinders.
+insert into public.sales_orders(
+  id,organization_id,factory_id,customer_id,status
+) values (
+  '54600000-0000-4000-8000-000000000009',
+  '10000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '91000000-0000-4000-8000-000000000003',
+  'confirmed'
+);
+insert into public.sales_order_lines(
+  id,organization_id,sales_order_id,item_id,ordered_quantity,unit_price
+) values (
+  '54600000-0000-4000-8000-00000000000a',
+  '10000000-0000-4000-8000-000000000001',
+  '54600000-0000-4000-8000-000000000009',
+  '43000000-0000-4000-8000-000000000003',
+  1,100
+);
+
 -- The RPC must operate with an actual authenticated role, not postgres bypass.
 set local role authenticated;
 select set_config(
@@ -150,6 +170,53 @@ begin
       where intake_id=v_intake) <> v_transfers then
     raise exception 'Retried intake created duplicate ledger movements';
   end if;
+  if (
+    select coalesce(sum(quantity_delta),0) from public.stock_ledger_entries
+    where item_id='43000000-0000-4000-8000-000000000003'
+      and location_id='54600000-0000-4000-8000-000000000002'
+      and transaction_id in (
+        select transfer_transaction_id from public.dispatch_returnable_intake_lines
+        where intake_id=v_intake
+      )
+  ) <> 2 or (
+    select coalesce(sum(quantity_delta),0) from public.stock_ledger_entries
+    where item_id='43000000-0000-4000-8000-000000000003'
+      and location_id='54600000-0000-4000-8000-000000000003'
+      and transaction_id in (
+        select transfer_transaction_id from public.dispatch_returnable_intake_lines
+        where intake_id=v_intake
+      )
+  ) <> 1 then
+    raise exception 'Receiving/quarantine ledger credits do not balance vehicle debit';
+  end if;
+
+  -- Even a commercial manager cannot allocate physical returns until a
+  -- separate inspection releases them into a warehouse/bin/dispatch area.
+  v_bad := false;
+  begin
+    perform public.commercial_allocate_sales_order(
+      '54600000-0000-4000-8000-000000000009',
+      '54600000-0000-4000-8000-000000000002'
+    );
+  exception when others then v_bad := true;
+  end;
+  if not v_bad then raise exception 'Uninspected empty cylinders were sellable'; end if;
+  v_bad := false;
+  begin
+    perform public.commercial_allocate_sales_order(
+      '54600000-0000-4000-8000-000000000009',
+      '54600000-0000-4000-8000-000000000003'
+    );
+  exception when others then v_bad := true;
+  end;
+  if not v_bad then raise exception 'Quarantined cylinders were sellable'; end if;
+  if exists(
+    select 1 from public.sales_allocations
+    where sales_order_id='54600000-0000-4000-8000-000000000009'
+  ) then
+    raise exception 'Unsafe commercial allocations were created';
+  end if;
+
 
   begin
     perform public.dispatch_intake_returnables(
