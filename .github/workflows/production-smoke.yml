@@ -131,6 +131,39 @@ jobs:
           done
           echo 'FactoryOS returnable intake API grants and anonymous denial verified.'
 
+      - name: Verify Phase 17 customer-pilot API access (read-only)
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          # Test only read grants and the absence of anonymous access. Do not
+          # create or edit participants, feedback, customer data or approvals.
+          for table in pilot_participants pilot_feedback; do
+            response=$(curl --fail-with-body --silent --show-error \
+              --max-time 20 \
+              "$SUPABASE_URL/rest/v1/${table}?select=organization_id,user_id&limit=1" \
+              --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+              --header "Authorization: Bearer $ACCESS_TOKEN")
+            jq -e 'type == "array"' <<<"$response" >/dev/null
+
+            # The schema must not be accessible by a publishable-key request
+            # without an authenticated user JWT, even when the table is empty.
+            anonymous_status=$(curl --silent --show-error \
+              --max-time 20 --output /dev/null --write-out '%{http_code}' \
+              "$SUPABASE_URL/rest/v1/${table}?select=organization_id,user_id&limit=1" \
+              --header "apikey: $SUPABASE_PUBLISHABLE_KEY")
+            if [[ "$anonymous_status" == 2* ]]; then
+              echo "Anonymous customer-pilot API access unexpectedly succeeded: $table" >&2
+              exit 1
+            fi
+            if [[ "$anonymous_status" != 4* ]]; then
+              echo "Customer-pilot anonymous denial returned unexpected HTTP status for $table." >&2
+              exit 1
+            fi
+          done
+          echo 'FactoryOS pilot API read grants and anonymous denial passed; no data changed.'
+
       - name: Verify Admin portal when configured
         if: ${{ env.ADMIN_URL != '' }}
         shell: bash
