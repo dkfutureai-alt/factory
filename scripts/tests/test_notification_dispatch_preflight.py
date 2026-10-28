@@ -12,13 +12,20 @@ from notification_dispatch_preflight import validate_dispatch_environment
 class NotificationDispatchPreflightTests(unittest.TestCase):
     def setUp(self):
         self.config = {
-            "FACTORYOS_SUPABASE_PROJECT_REF": "abcdefghijklmnopqrst",
-            "FACTORYOS_SUPABASE_URL": "https://abcdefghijklmnopqrst.supabase.co",
+            "FACTORYOS_SUPABASE_PROJECT_REF": "zevrmvhnibztbxizswgu",
+            "FACTORYOS_SUPABASE_URL": "https://zevrmvhnibztbxizswgu.supabase.co",
             "NOTIFICATION_DISPATCH_SECRET": "fabricated-integration-secret-not-real",
         }
 
     def test_exact_factoryos_target_allowed(self):
         self.assertEqual(validate_dispatch_environment(self.config)[0], "ready")
+
+    def test_self_consistent_other_project_is_rejected(self):
+        # Even a matching ref/URL pair must never target another app's project.
+        other = {**self.config,
+                 "FACTORYOS_SUPABASE_PROJECT_REF": "abcdefghijklmnopqrst",
+                 "FACTORYOS_SUPABASE_URL": "https://abcdefghijklmnopqrst.supabase.co"}
+        self.assertEqual(validate_dispatch_environment(other)[0], "error")
 
     def test_all_missing_skips_without_contacting_any_project(self):
         self.assertEqual(validate_dispatch_environment({})[0], "skip")
@@ -39,11 +46,11 @@ class NotificationDispatchPreflightTests(unittest.TestCase):
 
     def test_redirect_and_credentials_targets_rejected(self):
         urls = [
-            "https://abcdefghijklmnopqrst.supabase.co.evil.invalid",
-            "https://abcdefghijklmnopqrst.supabase.co@evil.invalid",
-            "http://abcdefghijklmnopqrst.supabase.co",
-            "https://abcdefghijklmnopqrst.supabase.co/",
-            "https://abcdefghijklmnopqrst.supabase.co/functions/v1/send-notifications",
+            "https://zevrmvhnibztbxizswgu.supabase.co.evil.invalid",
+            "https://zevrmvhnibztbxizswgu.supabase.co@evil.invalid",
+            "http://zevrmvhnibztbxizswgu.supabase.co",
+            "https://zevrmvhnibztbxizswgu.supabase.co/",
+            "https://zevrmvhnibztbxizswgu.supabase.co/functions/v1/send-notifications",
         ]
         for url in urls:
             with self.subTest(url=url):
@@ -55,7 +62,7 @@ class NotificationDispatchPreflightTests(unittest.TestCase):
     def test_reference_injection_and_bad_format_rejected(self):
         references = [
             "short", "ABCDEFGHIJKLMNOPQRST",
-            "abcdefghijklmnopqrst@evil.invalid/path",
+            "zevrmvhnibztbxizswgu@evil.invalid/path",
             "abcdefghijklmnopqrs-", "abcdefghijklmnopqrs/",
             "abcdefghijklmnopqrs\n",
         ]
