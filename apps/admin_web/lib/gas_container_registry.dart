@@ -4,6 +4,8 @@ import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'gas_serial_coverage_panel.dart';
+
 /// Identity and inspection evidence only. Stock and customer custody remain
 /// controlled by the existing quantity-based workflows.
 class GasContainerRegistryPage extends StatefulWidget {
@@ -395,6 +397,11 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
           ]),
           const SizedBox(height: FactorySpacing.sm),
           Text('Showing ${visible.length} of the latest ${data.assets.length} records (200 record cap).'),
+          const SizedBox(height: FactorySpacing.md),
+          GasSerialCoveragePanel(
+            key: ValueKey('gas-serial-coverage-$factoryId'),
+            factoryId: factoryId!,
+          ),
           const SizedBox(height: FactorySpacing.md),
           if (visible.isEmpty) const Center(child: Padding(
             padding: EdgeInsets.all(FactorySpacing.xl),
