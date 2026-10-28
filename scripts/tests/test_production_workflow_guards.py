@@ -71,6 +71,13 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertIn('type == "array" and length == 1 and (.[0].organization_id | type == "string")', s)
         self.assertIn('Anonymous ${table} access was not explicitly denied (expected 4xx).', s)
 
+    def test_smoke_requires_real_same_tenant_factory_not_just_empty_json(self):
+        s = self.content('production-smoke.yml')
+        self.assertIn("org_id=$(jq -er '.[0].organization_id' <<<\"$memberships\")", s)
+        self.assertIn("factories?select=id,organization_id,name,code&is_active=eq.true", s)
+        self.assertIn('type == "array" and length > 0 and all(.[];', s)
+        self.assertIn('(.organization_id == $org)', s)
+
     def test_smoke_is_read_only(self):
         s = self.content('production-smoke.yml')
         self.assertIn('Verify authenticated identity and tenant RLS', s)
