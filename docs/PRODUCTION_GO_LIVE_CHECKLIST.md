@@ -61,3 +61,5 @@
 - [ ] Before any protected production database release, confirm the **current main SHA** has a completed successful `Supabase Foundation Checks` **push** run. The exact-head workflow gate fails closed for stale/failed/in-progress/PR-only database CI; see `docs/PHASE_28_EXACT_HEAD_DATABASE_RELEASE_GATE.md`.
 
 - [ ] Verify Phase 27C scoped FCM payload and navigation behavior: matching signed-in user + organization may open an authorized route; mismatched, legacy-unscoped or stale cold-start pushes must not navigate. Verify shared-device sign-out and refresh-token races with real Android/iOS hardware after the updated Edge Function is deployed. See `docs/PHASE_27C_SCOPED_PUSH_NAVIGATION.md`.
+
+- [ ] Deploy the Phase 29 `send-notifications` worker before enabling scheduled push dispatch. Validate `claimed/processed/sent/failed/skipped` accounting, ensure a failed row fails GitHub dispatch, verify real handset receipt independently, and retain evidence; a green skip/empty queue does not certify notifications. See `docs/PHASE_29_PUSH_DISPATCH_ACCOUNTABILITY.md`.
