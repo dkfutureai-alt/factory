@@ -251,4 +251,62 @@ create trigger dispatch_returnable_intakes_audit
 after insert on public.dispatch_returnable_intakes
 for each row execute function public.audit_dispatch_change();
 
+-- A returned cylinder in receiving/quarantine must NEVER be sold before
+-- an independent inspection/refill release. Existing commercial allocation
+-- accepted any active location, so pin sale allocation to approved warehouse,
+-- bin or dispatch locations. This is enforced at the database boundary.
+create or replace function public.commercial_allocate_sales_order(
+  p_sales_order_id uuid, p_location_id uuid
+)
+returns void language plpgsql security definer set search_path=public as $
+declare
+  v_so public.sales_orders%rowtype;
+  v_line public.sales_order_lines%rowtype;
+  v_need numeric;
+  v_available numeric;
+begin
+  select * into v_so from public.sales_orders where id=p_sales_order_id for update;
+  if v_so.id is null then raise exception 'Sales order not found'; end if;
+  if not public.can_operate_commercial_factory(v_so.factory_id) then
+    raise exception 'Not allowed for this factory';
+  end if;
+  if v_so.status not in ('confirmed','allocated') then
+    raise exception 'Sales order cannot be allocated from status %',v_so.status;
+  end if;
+  if not exists(
+    select 1 from public.stock_locations
+    where id=p_location_id and factory_id=v_so.factory_id and is_active
+      and location_type in ('warehouse','bin','dispatch')
+  ) then
+    raise exception 'Sales allocation requires active warehouse, bin or dispatch stock; receiving and quarantine are blocked';
+  end if;
+  for v_line in
+    select * from public.sales_order_lines
+    where sales_order_id=p_sales_order_id order by id for update
+  loop
+    v_need:=v_line.ordered_quantity-v_line.allocated_quantity;
+    if v_need>0 then
+      perform pg_advisory_xact_lock(hashtext(v_line.item_id::text||':'||p_location_id::text));
+      select public.commercial_available_stock(v_line.item_id,p_location_id) into v_available;
+      if v_available<v_need then
+        raise exception 'Insufficient available stock for item %: need %, available %',
+          v_line.item_id,v_need,v_available;
+      end if;
+      insert into public.sales_allocations(
+        organization_id,factory_id,sales_order_id,sales_order_line_id,
+        item_id,location_id,quantity,status,created_by
+      ) values (
+        v_so.organization_id,v_so.factory_id,v_so.id,v_line.id,
+        v_line.item_id,p_location_id,v_need,'allocated',auth.uid()
+      );
+      update public.sales_order_lines
+      set allocated_quantity=allocated_quantity+v_need where id=v_line.id;
+    end if;
+  end loop;
+  update public.sales_orders set status='allocated',dispatch_ready_at=null
+  where id=p_sales_order_id;
+end; $;
+revoke all on function public.commercial_allocate_sales_order(uuid,uuid) from public, anon;
+grant execute on function public.commercial_allocate_sales_order(uuid,uuid) to authenticated;
+
 commit;
