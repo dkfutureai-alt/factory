@@ -19,6 +19,13 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertIn("inputs.confirm == '" + confirmation + "' && github.ref == 'refs/heads/main'", self.content(name))
 
+    def test_all_manual_production_workflows_pin_factoryos_project(self):
+        for name in WORKFLOWS:
+            with self.subTest(name=name):
+                content = self.content(name)
+                self.assertIn('[[ "$SUPABASE_PROJECT_REF" != "zevrmvhnibztbxizswgu" ]]', content)
+                self.assertIn('[[ "$CONFIRMED_PROJECT_REF" != "$SUPABASE_PROJECT_REF" ]]', content)
+
     def test_production_environment(self):
         for name in WORKFLOWS:
             with self.subTest(name=name):
