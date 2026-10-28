@@ -26,6 +26,8 @@ jobs:
       SUPABASE_PUBLISHABLE_KEY: ${{ secrets.FACTORYOS_SUPABASE_PUBLISHABLE_KEY }}
       SMOKE_EMAIL: ${{ secrets.FACTORYOS_SMOKE_EMAIL }}
       SMOKE_PASSWORD: ${{ secrets.FACTORYOS_SMOKE_PASSWORD }}
+      SMOKE_SECOND_EMAIL: ${{ secrets.FACTORYOS_SMOKE_SECOND_EMAIL }}
+      SMOKE_SECOND_PASSWORD: ${{ secrets.FACTORYOS_SMOKE_SECOND_PASSWORD }}
       ADMIN_URL: ${{ secrets.FACTORYOS_ADMIN_URL }}
       SUPABASE_PROJECT_REF: ${{ secrets.FACTORYOS_SUPABASE_PROJECT_REF }}
       CONFIRMED_PROJECT_REF: ${{ inputs.confirm_project_ref }}
@@ -34,7 +36,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          required=(SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SMOKE_EMAIL SMOKE_PASSWORD SUPABASE_PROJECT_REF)
+          required=(SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SMOKE_EMAIL SMOKE_PASSWORD SMOKE_SECOND_EMAIL SMOKE_SECOND_PASSWORD SUPABASE_PROJECT_REF)
           missing=0
           for name in "${required[@]}"; do
             if [[ -z "${!name:-}" ]]; then
@@ -103,6 +105,10 @@ jobs:
             --header "Authorization: Bearer $ACCESS_TOKEN")
           jq -e 'type == "array"' <<<"$factories" >/dev/null
           echo "Authenticated production Auth + RLS smoke passed."
+
+      - name: Verify two populated test organizations deny each other's data (read-only)
+        shell: bash
+        run: python3 scripts/production_tenant_isolation_smoke.py
 
       - name: Verify Phase 20 returnable-intake API permissions (read-only)
         shell: bash
