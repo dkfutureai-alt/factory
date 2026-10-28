@@ -4,7 +4,10 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class InventoryScannerPage extends StatefulWidget {
-  const InventoryScannerPage({super.key});
+  const InventoryScannerPage({required this.organizationId, super.key});
+
+  /// The currently opened FactoryOS workspace, not the first membership.
+  final String organizationId;
 
   @override
   State<InventoryScannerPage> createState() => _InventoryScannerPageState();
@@ -27,22 +30,6 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
     super.dispose();
   }
 
-  Future<String> _organizationId() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) throw StateError('Authentication required.');
-    final membership = await Supabase.instance.client
-        .from('organization_members')
-        .select('organization_id')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .limit(1)
-        .maybeSingle();
-    if (membership == null) {
-      throw StateError('No active organization membership.');
-    }
-    return membership['organization_id'] as String;
-  }
-
   Future<void> lookup(String rawCode) async {
     final code = rawCode.trim();
     if (code.length < 2 || busy) return;
@@ -50,9 +37,16 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
       busy = true;
       error = null;
       lastCode = code;
+      // Clear prior results immediately: never display the previous
+      // cylinder or stock as though it belongs to the new scan.
+      containerAsset = null;
+      rows = const [];
     });
     try {
-      final organizationId = await _organizationId();
+      if (Supabase.instance.client.auth.currentUser == null) {
+        throw StateError('Authentication required.');
+      }
+      final organizationId = widget.organizationId;
       final normalizedSerial = code.toUpperCase();
       final byQr = await Supabase.instance.client
           .from('gas_container_assets')
@@ -90,7 +84,13 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
             : null;
       });
     } catch (exception) {
-      if (mounted) setState(() => error = _errorText(exception));
+      if (mounted) {
+        setState(() {
+          rows = const [];
+          containerAsset = null;
+          error = _errorText(exception);
+        });
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }

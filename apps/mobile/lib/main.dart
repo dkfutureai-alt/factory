@@ -187,7 +187,7 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
     final Widget? page = switch (destination) {
       'maintenance' => const MaintenanceTechnicianPage(),
       'hr' => const HrSelfServicePage(),
-      'inventory' => const InventoryScannerPage(),
+      'inventory' => InventoryScannerPage(organizationId: widget.data.organizationId),
       'production' => const ProductionExecutionPage(),
       'quality' => const QualityExecutionPage(),
       'warehouse' => const WarehouseOperationsPage(),
@@ -222,7 +222,7 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
       _HomeTabPhase12(data: widget.data),
       const phase11.SimpleTab(title: 'Tasks', icon: Icons.task_alt),
       hasInventory
-          ? const InventoryScannerPage()
+          ? InventoryScannerPage(organizationId: widget.data.organizationId)
           : const phase11.SimpleTab(
               title: 'Scan',
               icon: Icons.qr_code_scanner,
@@ -386,7 +386,7 @@ class _HomeTabPhase12 extends StatelessWidget {
     if (module.key == 'hr') {
       page = const HrSelfServicePage();
     } else if (module.key == 'inventory') {
-      page = const InventoryScannerPage();
+      page = InventoryScannerPage(organizationId: data.organizationId);
     } else if (module.key == 'production') {
       page = const ProductionExecutionPage();
     } else if (module.key == 'quality') {
