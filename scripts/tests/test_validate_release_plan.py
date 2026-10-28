@@ -30,10 +30,15 @@ def plan():
     }
 
 
-def verify(metadata, **kwargs):
+def successful_job():
+    return {"name": "FactoryOS read-only migration plan", "run_id": 12345678,
+            "status": "completed", "conclusion": "success"}
+
+
+def verify(metadata, jobs=None, **kwargs):
     params = dict(run_id="12345678", repository=PROJECT_REPO, expected_sha=SHA, now=NOW)
     params.update(kwargs)
-    return verify_plan(metadata, **params)
+    return verify_plan(metadata, [successful_job()] if jobs is None else jobs, **params)
 
 
 class PlanAuthorizationTests(unittest.TestCase):
@@ -46,6 +51,19 @@ class PlanAuthorizationTests(unittest.TestCase):
                      PLAN_WORKFLOW + "-evil@main", "other/" + PLAN_WORKFLOW, ""):
             with self.subTest(path=path), self.assertRaises(PlanError):
                 verify({**plan(), "path": path})
+
+    def test_workflow_success_is_not_enough_if_actual_plan_job_skipped(self):
+        for invalid in (
+            [], None,
+            [{"name": "other", "run_id": 12345678, "status": "completed", "conclusion": "success"}],
+            [{**successful_job(), "conclusion": "skipped"}],
+            [{**successful_job(), "conclusion": "failure"}],
+            [{**successful_job(), "status": "in_progress"}],
+            [{**successful_job(), "run_id": 12345679}],
+            [successful_job(), successful_job()],
+        ):
+            with self.subTest(invalid=invalid), self.assertRaises(PlanError):
+                verify(plan(), jobs=invalid)
 
     def test_run_id_must_be_exact_nonzero_digits_and_match_response(self):
         for value in ("", "0", "-1", "1/foo", "notanumber", "12345678901234567"):
@@ -87,7 +105,7 @@ class PlanAuthorizationTests(unittest.TestCase):
     def test_missing_main_checkout_never_calls_github(self):
         env = {"GITHUB_REF": "refs/heads/feature", "APPROVED_PLAN_RUN_ID": "12345678"}
         with patch.dict(os.environ, env, clear=True), patch(
-            "validate_release_plan.fetch_github_run"
+            "validate_release_plan.fetch_github_api"
         ) as remote, patch("builtins.print"):
             self.assertEqual(main(), 2)
             remote.assert_not_called()
@@ -111,6 +129,7 @@ class PlanAuthorizationTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[2]
         file = (root / ".github/workflows/supabase-production-plan.yml").read_text()
         self.assertIn("inputs.confirm == 'PLAN' && github.ref == 'refs/heads/main'", file)
+        self.assertIn("name: FactoryOS read-only migration plan", file)
         self.assertIn("environment: factoryos-production", file)
         self.assertIn("zevrmvhnibztbxizswgu", file)
         self.assertIn("python3 scripts/check_migration_versions.py", file)
