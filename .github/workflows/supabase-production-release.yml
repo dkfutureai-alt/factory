@@ -11,6 +11,10 @@ on:
         description: 'Independently type the exact FactoryOS production Supabase project ref'
         required: true
         default: ''
+      approved_plan_run_id:
+        description: 'Successful reviewed Supabase Production Plan run ID for this exact main commit (max 24 hours old)'
+        required: true
+        default: ''
       release_scope:
         description: 'Database schema first, or schema plus configured Edge Functions'
         required: true
@@ -22,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   deploy:
@@ -43,6 +48,8 @@ jobs:
       FCM_PRIVATE_KEY: ${{ secrets.FCM_PRIVATE_KEY }}
     steps:
       - uses: actions/checkout@v4
+      - name: Reject duplicate or malformed migration versions before linking
+        run: python3 scripts/check_migration_versions.py
       - uses: supabase/setup-cli@v1
         with:
           version: 2.121.0
@@ -88,6 +95,11 @@ jobs:
           test -f supabase/migrations/0047_gas_container_serial_registry.sql
           test -f supabase/migrations/0048_gas_serial_transaction_links.sql
           test -f supabase/migrations/0049_gas_serial_attestation_coverage.sql
+      - name: Verify approved, successful, same-commit migration plan run
+        env:
+          APPROVED_PLAN_RUN_ID: ${{ inputs.approved_plan_run_id }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/validate_release_plan.py
       - name: Link exact FactoryOS production project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
       - name: Check linked migration history before any writes
@@ -100,6 +112,12 @@ jobs:
         run: supabase db push --dry-run
       - name: Apply pending production migrations
         run: supabase db push
+      - name: Verify all committed migrations reached exact FactoryOS project
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --linked 2>&1 | tee /tmp/factoryos-migrations-after.txt
+          python3 scripts/verify_production_migrations.py --stage postdeploy --input /tmp/factoryos-migrations-after.txt
       - name: Configure Edge Function production secrets
         if: inputs.release_scope == 'full'
         shell: bash
@@ -115,9 +133,3 @@ jobs:
       - name: Deploy FactoryOS Edge Functions
         if: inputs.release_scope == 'full'
         run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF"
-      - name: Verify all committed migrations reached exact FactoryOS project
-        shell: bash
-        run: |
-          set -euo pipefail
-          supabase migration list --linked 2>&1 | tee /tmp/factoryos-migrations-after.txt
-          python3 scripts/verify_production_migrations.py --stage postdeploy --input /tmp/factoryos-migrations-after.txt
