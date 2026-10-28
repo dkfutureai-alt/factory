@@ -7,6 +7,7 @@ import 'dispatch_management.dart';
 import 'fleet_management.dart';
 import 'hr_management.dart';
 import 'inventory_management.dart';
+import 'gas_container_registry.dart';
 import 'maintenance_management.dart';
 import 'main_phase11.dart' as phase11;
 import 'notification_center.dart';
@@ -180,6 +181,16 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
           'Inventory',
           Icons.inventory_2_outlined,
           InventoryManagementPage(
+            organizationId: w.orgId,
+            actorRole: w.role,
+            factories: w.factories,
+          ),
+        ),
+      if (inventoryEnabled)
+        _Phase12Tab(
+          'Cylinders',
+          Icons.qr_code_2_outlined,
+          GasContainerRegistryPage(
             organizationId: w.orgId,
             actorRole: w.role,
             factories: w.factories,
