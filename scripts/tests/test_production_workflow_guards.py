@@ -71,6 +71,14 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         self.assertIn('type == "array" and length == 1 and (.[0].organization_id | type == "string")', s)
         self.assertIn('Anonymous ${table} access was not explicitly denied (expected 4xx).', s)
 
+    def test_smoke_requires_second_tenant_and_runs_read_only_isolation(self):
+        s = self.content("production-smoke.yml")
+        self.assertIn("SMOKE_SECOND_EMAIL: ${{ secrets.FACTORYOS_SMOKE_SECOND_EMAIL }}", s)
+        self.assertIn("SMOKE_SECOND_PASSWORD: ${{ secrets.FACTORYOS_SMOKE_SECOND_PASSWORD }}", s)
+        self.assertIn("SMOKE_SECOND_EMAIL SMOKE_SECOND_PASSWORD", s)
+        self.assertIn("python3 scripts/production_tenant_isolation_smoke.py", s)
+        self.assertLess(s.index("Verify two populated test organizations"), s.index("Verify Phase 20 returnable-intake"))
+
     def test_smoke_is_read_only(self):
         s = self.content('production-smoke.yml')
         self.assertIn('Verify authenticated identity and tenant RLS', s)
