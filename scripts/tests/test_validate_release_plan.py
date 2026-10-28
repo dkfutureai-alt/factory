@@ -35,10 +35,13 @@ def successful_job():
             "status": "completed", "conclusion": "success"}
 
 
-def verify(metadata, jobs=None, **kwargs):
+DEFAULT_JOBS = object()
+
+
+def verify(metadata, jobs=DEFAULT_JOBS, **kwargs):
     params = dict(run_id="12345678", repository=PROJECT_REPO, expected_sha=SHA, now=NOW)
     params.update(kwargs)
-    return verify_plan(metadata, [successful_job()] if jobs is None else jobs, **params)
+    return verify_plan(metadata, [successful_job()] if jobs is DEFAULT_JOBS else jobs, **params)
 
 
 class PlanAuthorizationTests(unittest.TestCase):
