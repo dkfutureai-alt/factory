@@ -48,6 +48,24 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
         s = self.content('admin-production-release.yml')
         self.assertEqual(s.count("if: ${{ inputs.confirm == 'PUBLISH' && github.ref == 'refs/heads/main' }}"), 2)
 
+    def test_database_release_requires_green_exact_main_sha_before_writes(self):
+        release = self.content('supabase-production-release.yml')
+        self.assertIn('  actions: read', release)
+        self.assertIn('GH_TOKEN: ${{ github.token }}', release)
+        guard = 'python3 scripts/require_exact_head_database_ci.py'
+        self.assertIn(guard, release)
+        self.assertLess(release.index(guard), release.index('supabase link --project-ref'))
+        self.assertLess(release.index(guard), release.index('supabase db push'))
+
+    def test_foundation_database_ci_runs_on_every_main_commit(self):
+        foundation = self.content('supabase-foundation.yml')
+        self.assertIn('  push:\n    branches:\n      - main', foundation)
+        self.assertIn("      - 'supabase/**'", foundation)
+        self.assertIn("      - 'scripts/**'", foundation)
+        self.assertIn("      - '.github/workflows/supabase-production-release.yml'", foundation)
+        self.assertIn('supabase db reset', foundation)
+        self.assertIn('supabase/tests/pilot_auth_e2e.sh', foundation)
+
     def test_database_only_release_keeps_separate_approval_gate(self):
         s = self.content('supabase-production-release.yml')
         self.assertIn("github.ref == 'refs/heads/main'", s)
