@@ -54,3 +54,5 @@
 - [ ] Prepare web rollback to the prior artifact; database schema recovery requires a planned, forward-compatible migration or a verified backup/restore procedure — never assume reversing a Git commit reverses applied database migrations.
 
 **Release decision:** only mark FactoryOS production complete when the actual project is deployed, smoke and pilot workflows pass, store/platform credentials are operational, and the release owner signs off. Repository-only CI is necessary but not sufficient.
+
+- [ ] Configure `FACTORYOS_SMOKE_SECOND_EMAIL` and `FACTORYOS_SMOKE_SECOND_PASSWORD` for a second scoped test account in a different owner-approved test organization (both accounts must see their own active factory). Run the protected two-organization read-only RLS smoke and retain evidence before releasing to real customers. See `docs/PHASE_27B_PRODUCTION_TWO_TENANT_SMOKE.md`.
