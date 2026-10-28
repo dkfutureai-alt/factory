@@ -56,3 +56,5 @@
 **Release decision:** only mark FactoryOS production complete when the actual project is deployed, smoke and pilot workflows pass, store/platform credentials are operational, and the release owner signs off. Repository-only CI is necessary but not sufficient.
 
 - [ ] Configure `FACTORYOS_SMOKE_SECOND_EMAIL` and `FACTORYOS_SMOKE_SECOND_PASSWORD` for a second scoped test account in a different owner-approved test organization (both accounts must see their own active factory). Run the protected two-organization read-only RLS smoke and retain evidence before releasing to real customers. See `docs/PHASE_27B_PRODUCTION_TWO_TENANT_SMOKE.md`.
+
+- [ ] Before any protected production database release, confirm the **current main SHA** has a completed successful `Supabase Foundation Checks` **push** run. The exact-head workflow gate fails closed for stale/failed/in-progress/PR-only database CI; see `docs/PHASE_28_EXACT_HEAD_DATABASE_RELEASE_GATE.md`.
