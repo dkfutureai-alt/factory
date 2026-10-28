@@ -55,7 +55,7 @@ Primary backend: Supabase/PostgreSQL with mandatory tenant isolation and RLS. FC
 - Phase 15: Full QA & Performance — complete, merged and CI validated; cross-app RBAC regression tests, reporting indexes, hardened RPCs and release bundle budgets.
 - Phase 16: Production Release — source-controlled release foundation merged to `main`; Android/iOS native projects, FCM-ready client, notification security, guarded production workflows and smoke checks exist. Live deployment remains blocked by migration approval, environment secrets, real-device testing and store ownership.
 - Phase 17: Consent-based customer pilot feedback and isolation are merged, including migration `0044` and cross-tenant SQL verification. Actual customer participation and real-device acceptance remain pending.
-- Phase 18: New-project Data API explicit grants and privilege regression tests are under review in a separate branch (migration `0045`); no production schema change is implied.
+- Phase 18: New-project Data API explicit grants and privilege regression tests (migration `0045`) are merged to `main` via PR #23 (commit `07af11e`) after full isolated Supabase CI, including real Auth/RLS E2E checks. No production schema change or real customer test is implied.
 - Optional CI-only release-candidate tooling — `release-candidate.yml` builds web hosting artifacts or Android QA APKs using validated environment variables and offline Python preflight tests; this is separate from the guarded production publish/deploy workflows. See `docs/PHASE_16_RELEASE_CANDIDATE.md`.
 
 Latest validated checks through the Phase 15 substantive source head:
