@@ -43,6 +43,10 @@ def validate_environment(env: dict[str, str]) -> None:
     ):
         if not env.get(variable, "").strip():
             raise SmokeError(f"Missing required two-tenant smoke configuration: {variable}.")
+    key = env["SUPABASE_PUBLISHABLE_KEY"]
+    if (not key.startswith("sb_publishable_") or len(key) <= len("sb_publishable_") + 8
+            or any(char.isspace() for char in key)):
+        raise SmokeError("A non-secret FactoryOS publishable API key is required.")
     if env["SMOKE_EMAIL"].strip().casefold() == env["SMOKE_SECOND_EMAIL"].strip().casefold():
         raise SmokeError("Two-tenant smoke requires different test account emails.")
 
