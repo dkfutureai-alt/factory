@@ -8,6 +8,7 @@ import sys
 from urllib.parse import urlsplit
 
 BASE_RE = re.compile(r"/(?:[a-zA-Z0-9_-]+/)*")
+FACTORYOS_PRODUCTION_REF = "zevrmvhnibztbxizswgu"
 
 
 def validate_configuration(env: dict[str, str], target: str) -> list[str]:
@@ -19,6 +20,8 @@ def validate_configuration(env: dict[str, str], target: str) -> list[str]:
         errors.append("Release environment must be staging or production.")
 
     url = env.get("FACTORYOS_SUPABASE_URL", "").strip()
+    if env.get("FACTORYOS_RELEASE_ENV", "").strip() == "production" and url != f"https://{FACTORYOS_PRODUCTION_REF}.supabase.co":
+        errors.append("Production release candidate must use the pinned FactoryOS Supabase project.")
     try:
         parsed = urlsplit(url)
         host = (parsed.hostname or "").lower()
