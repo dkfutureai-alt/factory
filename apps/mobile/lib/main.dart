@@ -166,8 +166,14 @@ class _MobileHomePhase12State extends State<_MobileHomePhase12> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final push = PushNotificationService.instance;
-      push.attachRouteHandler(_pushRouteHandler);
-      unawaited(push.registerCurrentWorkspace());
+      push.attachRouteHandler(
+        _pushRouteHandler,
+        organizationId: widget.data.organizationId,
+        userId: Supabase.instance.client.auth.currentUser?.id ?? '',
+      );
+      unawaited(push.registerCurrentWorkspace(
+        organizationId: widget.data.organizationId,
+      ));
     });
   }
 

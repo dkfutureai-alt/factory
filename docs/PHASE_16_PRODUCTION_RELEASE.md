@@ -65,12 +65,12 @@ When Firebase runtime configuration is supplied, the app now:
 1. initializes Firebase;
 2. requests notification permission;
 3. waits for the APNs token on iOS before requesting the FCM token;
-4. registers the same physical push target for every active organization membership owned by the signed-in user;
-5. refreshes all active tenant registrations when Firebase rotates the token;
-6. opens supported FactoryOS workflows from `action_route` when a push is tapped;
-7. disables the current physical push target across the user's active tenant registrations before signing out.
+4. registers the physical push target only for the single verified active mobile organization;
+5. refreshes the active user and organization registration when Firebase rotates the token;
+6. opens supported FactoryOS workflows only after `action_route`, `organization_id` and `recipient_user_id` match the authenticated mobile workspace;
+7. disables the current physical push target and clears pending navigation before signing out.
 
-Registering against every active membership avoids coupling FCM registration to an arbitrary `limit(1)` tenant lookup and matches the tenant-aware device key introduced in migration `0040`.
+Registration refuses ambiguous multi-organization mobile sessions until every module is migrated to explicitly authorized workspace scopes. The backend tenant-aware device key introduced in migration `0040` remains supported. See `docs/PHASE_27C_SCOPED_PUSH_NAVIGATION.md`.
 
 When no Firebase configuration is supplied, push setup is a safe no-op so local development and application QA continue to work without production credentials.
 
