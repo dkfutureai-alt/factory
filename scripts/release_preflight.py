@@ -38,6 +38,9 @@ def validate_configuration(env: dict[str, str], target: str) -> list[str]:
     except ValueError:
         errors.append("FACTORYOS_SUPABASE_URL is not a valid HTTPS API origin.")
 
+    if env.get("FACTORYOS_RELEASE_ENV", "").strip() == "production" and url.rstrip("/") != "https://zevrmvhnibztbxizswgu.supabase.co":
+        errors.append("Production release candidates must target the dedicated FactoryOS project.")
+
     key = env.get("FACTORYOS_SUPABASE_PUBLISHABLE_KEY", "").strip()
     if (
         not key.startswith("sb_publishable_")
