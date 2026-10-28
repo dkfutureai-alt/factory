@@ -56,7 +56,7 @@ class IsolationTests(unittest.TestCase):
         self.env = {
             "SUPABASE_PROJECT_REF": PROJECT_REF,
             "SUPABASE_URL": f"https://{PROJECT_REF}.supabase.co",
-            "SUPABASE_PUBLISHABLE_KEY": "test-key",
+            "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_synthetic_not_a_real_key",
             "SMOKE_EMAIL": "a@example.test",
             "SMOKE_PASSWORD": "synthetic-a",
             "SMOKE_SECOND_EMAIL": "b@example.test",
@@ -75,6 +75,15 @@ class IsolationTests(unittest.TestCase):
         self.env["SUPABASE_URL"] = "https://abcdefghijklmnopqrst.supabase.co"
         with self.assertRaises(SmokeError):
             validate_environment(self.env)
+
+    def test_secret_role_and_legacy_keys_rejected_before_any_request(self):
+        for key in ("sb_secret_fake_but_forbidden", "eyJ.legacy_service_role_jwt",
+                    "sb_publishable_short", "sb_publishable_synthetic\nleak"):
+            with self.subTest(key=key):
+                self.env["SUPABASE_PUBLISHABLE_KEY"] = key
+                with self.assertRaisesRegex(SmokeError, "publishable"):
+                    validate_environment(self.env)
+        self.env["SUPABASE_PUBLISHABLE_KEY"] = "sb_publishable_synthetic_not_a_real_key"
 
     def test_no_positive_factory_cannot_pass(self):
         with self.assertRaisesRegex(SmokeError, "visible active factory"):
