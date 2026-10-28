@@ -18,6 +18,7 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
   String? error;
   String? lastCode;
   List<Map<String, dynamic>> rows = const [];
+  Map<String, dynamic>? containerAsset;
 
   @override
   void dispose() {
@@ -52,17 +53,41 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
     });
     try {
       final organizationId = await _organizationId();
-      final result = await Supabase.instance.client.rpc(
-        'inventory_lookup_scan',
-        params: {'p_organization_id': organizationId, 'p_code': code},
-      );
-      final found = (result as List<dynamic>)
-          .map((row) => Map<String, dynamic>.from(row as Map))
-          .toList();
+      final normalizedSerial = code.toUpperCase();
+      final byQr = await Supabase.instance.client
+          .from('gas_container_assets')
+          .select('id,serial_number,qr_code,container_type,ownership,state,condition,test_due_on,factory_id')
+          .eq('organization_id', organizationId)
+          .eq('qr_code', code)
+          .limit(1);
+      final bySerial = byQr.isNotEmpty
+          ? byQr
+          : await Supabase.instance.client
+              .from('gas_container_assets')
+              .select('id,serial_number,qr_code,container_type,ownership,state,condition,test_due_on,factory_id')
+              .eq('organization_id', organizationId)
+              .eq('serial_number', normalizedSerial)
+              .limit(1);
+      final matchedAsset = bySerial.isEmpty
+          ? null
+          : Map<String, dynamic>.from(bySerial.first);
+      List<Map<String, dynamic>> found = const [];
+      if (matchedAsset == null) {
+        final result = await Supabase.instance.client.rpc(
+          'inventory_lookup_scan',
+          params: {'p_organization_id': organizationId, 'p_code': code},
+        );
+        found = (result as List<dynamic>)
+            .map((row) => Map<String, dynamic>.from(row as Map))
+            .toList();
+      }
       if (!mounted) return;
       setState(() {
+        containerAsset = matchedAsset;
         rows = found;
-        error = found.isEmpty ? 'No inventory item matched this code.' : null;
+        error = matchedAsset == null && found.isEmpty
+            ? 'No accessible container or Inventory item matched this code.'
+            : null;
       });
     } catch (exception) {
       if (mounted) setState(() => error = _errorText(exception));
@@ -171,6 +196,39 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
                 child: ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: Text(error!),
+                ),
+              ),
+            ],
+            if (containerAsset != null) ...[
+              const SizedBox(height: FactorySpacing.md),
+              Text(
+                'Serialized cylinder / Dura',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(FactorySpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        containerAsset!['serial_number'] as String,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      Text('QR: ${containerAsset!['qr_code']}'),
+                      Text('Type: ${_title(containerAsset!['container_type'] as String)}'),
+                      Text('State: ${_title(containerAsset!['state'] as String)}'),
+                      Text('Condition: ${_title(containerAsset!['condition'] as String)}'),
+                      Text('Test due: ${containerAsset!['test_due_on'] ?? 'Not recorded'}'),
+                      const SizedBox(height: FactorySpacing.sm),
+                      const Text(
+                        'Identity only. The scan does not certify safety, confirm customer custody, or change stock.',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
