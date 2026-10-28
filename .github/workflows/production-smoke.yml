@@ -94,7 +94,7 @@ jobs:
             "$SUPABASE_URL/rest/v1/organization_members?select=organization_id,user_id,role&user_id=eq.${user_id}&is_active=eq.true&limit=5" \
             --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
             --header "Authorization: Bearer $ACCESS_TOKEN")
-          jq -e --arg uid "$user_id" 'type == "array" and length > 0 and all(.[]; (.organization_id | type == "string") and (.role | type == "string") and .user_id == $uid)' \
+          jq -e --arg uid "$user_id" 'type == "array" and length == 1 and all(.[]; (.organization_id | type == "string") and (.role | type == "string") and .user_id == $uid)' \
             <<<"$memberships" >/dev/null
 
           factories=$(curl --fail-with-body --silent --show-error \
@@ -125,8 +125,8 @@ jobs:
               --write-out '%{http_code}' \
               "$SUPABASE_URL/rest/v1/${table}?select=id&limit=1" \
               --header "apikey: $SUPABASE_PUBLISHABLE_KEY")
-            if [[ "$anon_status" == 2* ]]; then
-              echo "Anonymous ${table} access unexpectedly succeeded."
+            if [[ "$anon_status" != 4* ]]; then
+              echo "Anonymous ${table} access was not explicitly denied (expected 4xx)." >&2
               exit 1
             fi
           done
@@ -204,10 +204,13 @@ jobs:
           user_id=$(jq -r '.id // empty' <<<"$uid_json")
           test -n "$user_id"
           memberships=$(curl --fail-with-body --silent --show-error --max-time 20 \
-            "$SUPABASE_URL/rest/v1/organization_members?select=organization_id&user_id=eq.${user_id}&is_active=eq.true&limit=1" \
+            "$SUPABASE_URL/rest/v1/organization_members?select=organization_id&user_id=eq.${user_id}&is_active=eq.true&limit=2" \
             -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
             -H "Authorization: Bearer $ACCESS_TOKEN")
-          org_id=$(jq -r '.[0].organization_id // empty' <<<"$memberships")
+          # Fail closed instead of selecting the first of several active workspaces.
+          jq -e 'type == "array" and length == 1 and (.[0].organization_id | type == "string")' \
+            <<<"$memberships" >/dev/null
+          org_id=$(jq -r '.[0].organization_id' <<<"$memberships")
           test -n "$org_id"
           payload=$(jq -nc --arg organization "$org_id" \
             '{p_organization_id:$organization,p_factory_id:null,p_limit:1}')
