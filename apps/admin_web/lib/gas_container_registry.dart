@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -56,8 +58,15 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
         .eq('organization_id', widget.organizationId)
         .eq('is_active', true)
         .order('name'));
+    final transactions = List<Map<String, dynamic>>.from(await client
+        .from('inventory_transactions')
+        .select('id,transaction_no,item_id,transaction_type,quantity,occurred_at')
+        .eq('factory_id', factoryId!)
+        .order('occurred_at', ascending: false)
+        .limit(200));
     return _RegistryData(
       assets: assets,
+      transactions: transactions,
       items: items.where((item) =>
         item['item_type'] == 'cylinder' || item['is_returnable'] == true).toList(),
     );
@@ -198,6 +207,95 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
     }
   }
 
+  Future<void> linkTransaction(
+    Map<String, dynamic> asset,
+    _RegistryData data,
+  ) async {
+    final candidates = data.transactions
+        .where((row) => row['item_id'] == asset['item_id'])
+        .toList();
+    if (candidates.isEmpty) {
+      showMessage(
+        'No recent Inventory transaction matches this container item.',
+        error: true,
+      );
+      return;
+    }
+    final scannedCode = TextEditingController();
+    var transactionId = candidates.first['id'] as String;
+    try {
+      final approved = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, update) => AlertDialog(
+            title: const Text('Attach serial to Inventory transaction'),
+            content: SizedBox(
+              width: 490,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Text(
+                  'This creates an auditable serial attestation for a posted '
+                  'Inventory movement. It does not move stock, prove unscanned '
+                  'custody or certify the container.',
+                ),
+                const SizedBox(height: FactorySpacing.md),
+                DropdownButtonFormField<String>(
+                  initialValue: transactionId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Recorded movement'),
+                  items: candidates.map((row) => DropdownMenuItem(
+                    value: row['id'] as String,
+                    child: Text(
+                      '${row['transaction_no']} · ${row['transaction_type']} · ${row['quantity']}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  )).toList(),
+                  onChanged: (value) {
+                    if (value != null) update(() => transactionId = value);
+                  },
+                ),
+                const SizedBox(height: FactorySpacing.md),
+                TextField(
+                  controller: scannedCode,
+                  maxLength: 80,
+                  onChanged: (_) => update(() {}),
+                  decoration: const InputDecoration(
+                    labelText: 'Scan or enter the physical serial / QR',
+                    prefixIcon: Icon(Icons.qr_code_scanner),
+                  ),
+                ),
+              ]),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: scannedCode.text.trim().length < 3
+                    ? null
+                    : () => Navigator.pop(dialogContext, true),
+                child: const Text('Record serial attestation'),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (approved != true || !mounted) return;
+      await client.rpc('gas_link_container_transaction', params: {
+        'p_asset_id': asset['id'],
+        'p_transaction_id': transactionId,
+        'p_scanned_code': scannedCode.text.trim(),
+        'p_request_key': _randomRequestId(),
+      });
+      showMessage('Serial attestation saved. Inventory quantity was unchanged.');
+      reload();
+    } catch (e) {
+      showMessage(_error(e), error: true);
+    } finally {
+      scannedCode.dispose();
+    }
+  }
+
   Future<void> showHistory(Map<String, dynamic> asset) async {
     try {
       final events = List<Map<String, dynamic>>.from(await client
@@ -206,6 +304,12 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
           .eq('asset_id', asset['id'] as String)
           .order('created_at', ascending: false)
           .limit(100));
+      final links = List<Map<String, dynamic>>.from(await client
+          .from('gas_container_transaction_links')
+          .select('transaction_type,transaction_id,from_location_id,to_location_id,customer_id,recorded_at')
+          .eq('asset_id', asset['id'] as String)
+          .order('recorded_at', ascending: false)
+          .limit(100));
       if (!mounted) return;
       await showDialog<void>(
         context: context,
@@ -213,6 +317,15 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
           title: Text('History · ${asset['serial_number']}'),
           content: SizedBox(width: 520, height: 360, child: ListView(
             children: [
+              const Text('Transaction-linked serial attestations (not a complete custody trail)'),
+              for (final link in links)
+                ListTile(
+                  leading: const Icon(Icons.sync_alt_outlined),
+                  title: Text('${_display(link['transaction_type'])} · ${link['recorded_at']}'),
+                  subtitle: Text('Inventory transaction: ${link['transaction_id']}'),
+                ),
+              const Divider(),
+              const Text('Physical asset inspection events'),
               for (final event in events)
                 ListTile(
                   leading: const Icon(Icons.history),
@@ -304,10 +417,12 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
                       tooltip: 'Container actions',
                       onSelected: (action) {
                         if (action == 'inspect') inspect(asset);
+                        if (action == 'link') linkTransaction(asset, data);
                         if (action == 'retire') retire(asset);
                       },
                       itemBuilder: (_) => const [
                         PopupMenuItem(value: 'inspect', child: Text('Record inspection')),
+                        PopupMenuItem(value: 'link', child: Text('Attach serial to movement')),
                         PopupMenuItem(value: 'retire', child: Text('Retire')),
                       ],
                     )
@@ -320,9 +435,14 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
 }
 
 class _RegistryData {
-  const _RegistryData({required this.assets, required this.items});
+  const _RegistryData({
+    required this.assets,
+    required this.items,
+    required this.transactions,
+  });
   final List<Map<String, dynamic>> assets;
   final List<Map<String, dynamic>> items;
+  final List<Map<String, dynamic>> transactions;
 }
 
 class _RegisterDialog extends StatefulWidget {
@@ -436,6 +556,16 @@ class _RegisterDialogState extends State<_RegisterDialog> {
 String _display(Object? text) => '${text ?? '—'}'.split('_')
     .map((part) => part.isEmpty ? part : '${part[0].toUpperCase()}${part.substring(1)}')
     .join(' ');
+
+String _randomRequestId() {
+  final random = Random.secure();
+  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  final hex = bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
+      '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+}
 
 String _error(Object error) =>
     error is PostgrestException ? error.message : '$error';
