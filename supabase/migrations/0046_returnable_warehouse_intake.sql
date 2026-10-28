@@ -34,6 +34,19 @@ create index dispatch_returnable_intakes_factory_recent_idx
   on public.dispatch_returnable_intakes(factory_id, received_at desc);
 create index dispatch_returnable_intakes_received_by_idx
   on public.dispatch_returnable_intakes(received_by);
+-- The existing structural QA requires indexes leading with *every* FK key.
+create index dispatch_returnable_intakes_org_fk_idx
+  on public.dispatch_returnable_intakes(organization_id);
+create index dispatch_returnable_intakes_factory_org_fk_idx
+  on public.dispatch_returnable_intakes(factory_id, organization_id);
+create index dispatch_returnable_intakes_pickup_org_fk_idx
+  on public.dispatch_returnable_intakes(pickup_id, organization_id);
+create index dispatch_returnable_intakes_vehicle_factory_fk_idx
+  on public.dispatch_returnable_intakes(vehicle_location_id, factory_id);
+create index dispatch_returnable_intakes_receiving_factory_fk_idx
+  on public.dispatch_returnable_intakes(receiving_location_id, factory_id);
+create index dispatch_returnable_intakes_quarantine_factory_fk_idx
+  on public.dispatch_returnable_intakes(quarantine_location_id, factory_id);
 
 create table public.dispatch_returnable_intake_lines (
   id uuid primary key default gen_random_uuid(),
@@ -56,6 +69,12 @@ create table public.dispatch_returnable_intake_lines (
 );
 create index dispatch_returnable_intake_lines_intake_idx
   on public.dispatch_returnable_intake_lines(intake_id);
+create index dispatch_returnable_intake_lines_intake_org_fk_idx
+  on public.dispatch_returnable_intake_lines(intake_id, organization_id);
+create index dispatch_returnable_intake_lines_line_org_fk_idx
+  on public.dispatch_returnable_intake_lines(returnable_line_id, organization_id);
+create index dispatch_returnable_intake_lines_item_org_fk_idx
+  on public.dispatch_returnable_intake_lines(item_id, organization_id);
 
 alter table public.dispatch_returnable_intakes enable row level security;
 alter table public.dispatch_returnable_intake_lines enable row level security;
