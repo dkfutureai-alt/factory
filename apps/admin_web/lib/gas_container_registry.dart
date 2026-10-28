@@ -64,8 +64,16 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
         .eq('factory_id', factoryId!)
         .order('occurred_at', ascending: false)
         .limit(200));
+    final coverage = List<Map<String, dynamic>>.from(
+      await client.rpc('gas_serial_attestation_coverage', params: {
+        'p_organization_id': widget.organizationId,
+        'p_factory_id': factoryId,
+        'p_limit': 200,
+      }) as List<dynamic>,
+    );
     return _RegistryData(
       assets: assets,
+      coverage: coverage,
       transactions: transactions,
       items: items.where((item) =>
         item['item_type'] == 'cylinder' || item['is_returnable'] == true).toList(),
@@ -361,6 +369,9 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
         final visible = data.assets.where((row) =>
           filter.isEmpty ||
           '${row['serial_number']} ${row['qr_code']}'.toUpperCase().contains(filter)).toList();
+        final withoutEvidence = data.coverage
+            .where((row) => row['coverage_status'] != 'fully_attested')
+            .toList();
         return ListView(padding: const EdgeInsets.all(FactorySpacing.lg), children: [
           Text('Cylinder & Dura registry', style: Theme.of(context).textTheme.headlineMedium),
           const Text('Serial/QR identity, inspection observations and immutable history. Stock movement and safety approval are separate.'),
@@ -393,6 +404,45 @@ class _GasContainerRegistryPageState extends State<GasContainerRegistryPage> {
                 label: const Text('Register container'),
               ),
           ]),
+          const SizedBox(height: FactorySpacing.sm),
+          Card(
+            child: ExpansionTile(
+              leading: const Icon(Icons.fact_check_outlined),
+              title: Text(
+                'Serial evidence reconciliation · ${withoutEvidence.length} unattested/partial movements',
+              ),
+              subtitle: const Text(
+                'Last 200 cylinder/returnable Inventory transactions only. '
+                'Unattested means no serial evidence—not missing physical stock.',
+              ),
+              children: [
+                if (withoutEvidence.isEmpty)
+                  const ListTile(
+                    title: Text('No unattested transactions in this limited view.'),
+                    subtitle: Text('This does not prove every historical movement was scanned.'),
+                  ),
+                for (final row in withoutEvidence.take(30))
+                  ListTile(
+                    leading: const Icon(Icons.warning_amber_outlined),
+                    title: Text(
+                      '${row['transaction_no']} · ${row['sku']} · '
+                      '${_display(row['coverage_status'])}',
+                    ),
+                    subtitle: Text(
+                      'Evidence: ${row['linked_serial_count']} of ${row['quantity']} units · '
+                      '${row['occurred_at']}',
+                    ),
+                    trailing: Text(
+                      'Unattested: ${row['unattested_quantity']}',
+                    ),
+                  ),
+                if (withoutEvidence.length > 30)
+                  const ListTile(
+                    title: Text('Showing first 30 exceptions. Expand report limits in a separate audited export.'),
+                  ),
+              ],
+            ),
+          ),
           const SizedBox(height: FactorySpacing.sm),
           Text('Showing ${visible.length} of the latest ${data.assets.length} records (200 record cap).'),
           const SizedBox(height: FactorySpacing.md),
@@ -439,10 +489,12 @@ class _RegistryData {
     required this.assets,
     required this.items,
     required this.transactions,
+    required this.coverage,
   });
   final List<Map<String, dynamic>> assets;
   final List<Map<String, dynamic>> items;
   final List<Map<String, dynamic>> transactions;
+  final List<Map<String, dynamic>> coverage;
 }
 
 class _RegisterDialog extends StatefulWidget {
