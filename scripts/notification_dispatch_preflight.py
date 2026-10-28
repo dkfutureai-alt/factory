@@ -11,6 +11,7 @@ import re
 from collections.abc import Mapping
 
 PROJECT_REF_RE = re.compile(r"[a-z0-9]{20}")
+EXPECTED_FACTORYOS_PRODUCTION_REF = "zevrmvhnibztbxizswgu"
 
 
 def validate_dispatch_environment(env: Mapping[str, str]) -> tuple[str, str]:
@@ -25,6 +26,8 @@ def validate_dispatch_environment(env: Mapping[str, str]) -> tuple[str, str]:
         return "error", "FactoryOS push dispatch configuration is incomplete."
     if not PROJECT_REF_RE.fullmatch(project_ref):
         return "error", "FactoryOS project reference must be 20 lowercase letters/digits."
+    if project_ref != EXPECTED_FACTORYOS_PRODUCTION_REF:
+        return "error", "Push dispatch must target the dedicated FactoryOS production project."
     if project_url != f"https://{project_ref}.supabase.co":
         return "error", "FactoryOS push URL must exactly match the configured project reference."
 
