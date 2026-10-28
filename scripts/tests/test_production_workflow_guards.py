@@ -14,6 +14,11 @@ class ProductionWorkflowGuardTests(unittest.TestCase):
     def content(self, name):
         return (ROOT / '.github' / 'workflows' / name).read_text(encoding='utf-8')
 
+    def test_release_lint_triggers_on_script_and_workflow_changes(self):
+        s = self.content("release-workflow-lint.yml")
+        self.assertEqual(s.count("      - '.github/workflows/**'"), 2)
+        self.assertEqual(s.count("      - 'scripts/**'"), 2)
+
     def test_main_only_confirmation(self):
         for name, confirmation in WORKFLOWS.items():
             with self.subTest(name=name):
