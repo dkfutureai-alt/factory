@@ -19,7 +19,7 @@
 - [ ] Confirm database backup/PITR capabilities for the chosen plan, record a recovery owner and trial a restore in a nonproduction environment where supported.
 - [ ] Verify the final PR's Flutter, Mobile Release, Supabase Foundation and Release Workflow Lint checks are green.
 - [ ] Confirm pending migration list and assess any destructive SQL before manually invoking **Supabase Production Release** with `confirm=DEPLOY` and a separately typed `confirm_project_ref`.
-- [ ] Apply migrations through `0045` (including 0043 invitation reissue, 0044 real customer pilot and 0045 explicit Data API grants) through the **protected** `Supabase Production Release` workflow, first with `release_scope=database-only`. Confirm recorded migration history matches the committed files; never run remote `db reset` or production fictional seeds.
+- [ ] Apply migrations through `0046` (including 0043 invitation reissue, 0044 real customer pilot, 0045 explicit Data API grants and 0046 returnable warehouse intake) through the **protected** `Supabase Production Release` workflow, first with `release_scope=database-only`. Confirm recorded migration history matches the committed files; never run remote `db reset` or production fictional seeds.
 - [ ] After an approved HTTPS Auth redirect, SMTP and Firebase secrets are configured, run the same workflow with `release_scope=full` to deploy the Edge Functions, then verify private POD/Maintenance storage policies and production RLS.
 - [ ] Inspect Supabase security/performance advisors and fix actionable findings before onboarding customers.
 
@@ -44,7 +44,8 @@
 ## Acceptance and rollback
 
 - [ ] Run **Production Smoke Verification** with `confirm=VERIFY` and exact typed FactoryOS project ref; require authenticated smoke membership and successful scoped factory read.
-- [ ] Test with real authorized pilot accounts: invitations, factory assignment, attendance, purchasing/receipts, Inventory ledger, Production/Quality, sales allocation, Warehouse, dispatch/POD/returnables, Fleet/fuel, Maintenance, reporting, notifications and audit access.
+- [ ] Test with real authorized pilot accounts: invitations, factory assignment, attendance, purchasing/receipts, Inventory ledger, Production/Quality, sales allocation, Warehouse, dispatch/POD/customer returnables **and completed vehicle-to-warehouse intake**, Fleet/fuel, Maintenance, reporting, notifications and audit access.
+- [ ] Verify returned cylinders route from the vehicle to receiving/quarantine by condition; check original vehicle stock debit, no double-intake on retry, inspection gate and rejection of Sales allocation from receiving/quarantine.
 - [ ] Include cross-tenant and cross-factory denial tests; confirm a low-privilege user cannot mutate manager-only records.
 - [ ] Confirm no customer-facing dashboard displays fictional seed data.
 - [ ] Record a release owner, test evidence, deployment time, app/web commit SHA and smoke results.
