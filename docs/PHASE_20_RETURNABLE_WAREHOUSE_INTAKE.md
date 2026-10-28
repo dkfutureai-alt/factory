@@ -12,6 +12,8 @@ The existing Phase 10 driver flow records customer returns with the immutable In
 4. A single database RPC moves *all* pickup lines, debiting vehicle stock and crediting their segregated destinations. `good` lines go to **receiving**, while `damaged` and `rejected` lines go to **quarantine**.
 5. The intake and every Inventory transaction are recorded. Repeating the exact request returns the already committed intake ID, not a second stock transfer.
 
+Migration 0046 also hardens `commercial_allocate_sales_order` to **reject Sales allocation from receiving, quarantine, vehicle, production, quality and other non-saleable locations**. Only active warehouse, bin and dispatch locations are eligible; the existing valid-location Sales E2E remains part of Foundation CI.
+
 The receiving area is intentionally **not a refill release or sales-available bin**. An authorized Quality/Warehouse process must subsequently inspect and route the returned physical cylinder before production/refilling; dangerous/failed assets stay isolated. No individual cylinder serial tracking, hydrostatic test certification or hazardous-goods compliance claim is made by this phase.
 
 ## Database
