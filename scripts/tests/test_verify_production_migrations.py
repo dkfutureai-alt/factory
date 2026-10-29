@@ -41,6 +41,19 @@ class MigrationHistoryTests(unittest.TestCase):
         with self.assertRaisesRegex(HistoryError, "Deployment incomplete"):
             verify_history(self.committed, local, remote, "postdeploy")
 
+    def test_remote_applied_migrations_must_form_prefix_even_before_deploy(self):
+        # 0046 cannot already be applied while 0002 remains pending.
+        local, remote = cli_versions(table(("0001", "0001"), ("0002", ""),
+                                           ("0046", "0046"), ("0047", "")))
+        with self.assertRaisesRegex(HistoryError, "not an applied prefix"):
+            verify_history(self.committed, local, remote, "preflight")
+
+    def test_remote_history_without_first_migration_is_blocked(self):
+        local, remote = cli_versions(table(("0001", ""), ("0002", "0002"),
+                                           ("0046", ""), ("0047", "")))
+        with self.assertRaisesRegex(HistoryError, "not an applied prefix"):
+            verify_history(self.committed, local, remote, "preflight")
+
     def test_remote_unknown_version_blocks_preflight(self):
         local, remote = cli_versions(table(("0001", "0001"), ("0002", "0002"), ("0046", "0046"), ("0047", "0047"), ("", "9999")))
         with self.assertRaisesRegex(HistoryError, "Unexpected remote"):
@@ -87,11 +100,46 @@ class MigrationHistoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary)
             (path / "0001_core.sql").write_text("select 1;")
-            (path / "0046_intake.sql").write_text("select 1;")
-            self.assertEqual(local_versions(path), {"0001", "0046"})
+            (path / "0002_intake.sql").write_text("select 1;")
+            self.assertEqual(local_versions(path), {"0001", "0002"})
             (path / "0001_second.sql").write_text("select 1;")
             with self.assertRaisesRegex(HistoryError, "Duplicate migration version"):
                 local_versions(path)
+
+    def test_missing_first_or_middle_migration_blocks_empty_remote_release(self):
+        for filenames in (
+            ("0002_orphan.sql",),
+            ("0001_core.sql", "0003_skipped.sql"),
+            ("0000_invalid.sql", "0001_core.sql"),
+        ):
+            with self.subTest(filenames=filenames), tempfile.TemporaryDirectory() as temporary:
+                path = Path(temporary)
+                for filename in filenames:
+                    (path / filename).write_text("select 1;")
+                with self.assertRaisesRegex(HistoryError, "contiguous from 0001"):
+                    local_versions(path)
+
+    def test_timestamp_or_extra_digit_version_cannot_bypass_numbered_chain(self):
+        for filename in ("202610290001_extra.sql", "00001_extra.sql", "٠٠٠١_unicode.sql"):
+            with self.subTest(filename=filename), tempfile.TemporaryDirectory() as temporary:
+                path = Path(temporary)
+                (path / "0001_core.sql").write_text("select 1;")
+                (path / filename).write_text("select 1;")
+                with self.assertRaisesRegex(HistoryError, "Invalid migration filename"):
+                    local_versions(path)
+
+    def test_migration_directory_entry_must_be_regular_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary)
+            (path / "0001_not_a_file.sql").mkdir()
+            with self.assertRaisesRegex(HistoryError, "must be a regular file"):
+                local_versions(path)
+
+    def test_actual_committed_factoryos_migrations_form_contiguous_chain(self):
+        root = Path(__file__).resolve().parents[2]
+        versions = local_versions(root / "supabase/migrations")
+        self.assertIn("0001", versions)
+        self.assertGreaterEqual(len(versions), 52)
 
 
 if __name__ == "__main__":

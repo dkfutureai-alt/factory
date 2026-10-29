@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
-FILENAME = re.compile(r"^(\d+)_[A-Za-z0-9][A-Za-z0-9_-]*\.sql$")
+FILENAME = re.compile(r"^([0-9]{4})_[A-Za-z0-9][A-Za-z0-9_-]*\.sql$")
 
 
 class HistoryError(ValueError):
@@ -23,6 +23,8 @@ def local_versions(directory: Path) -> set[str]:
         raise HistoryError("Migration directory is missing.")
     versions: set[str] = set()
     for path in sorted(directory.glob("*.sql")):
+        if path.is_symlink() or not path.is_file():
+            raise HistoryError(f"Migration must be a regular file: {path.name}")
         match = FILENAME.fullmatch(path.name)
         if match is None:
             raise HistoryError(f"Invalid migration filename: {path.name}")
@@ -32,6 +34,12 @@ def local_versions(directory: Path) -> set[str]:
         versions.add(version)
     if not versions:
         raise HistoryError("No committed migration files found.")
+    # FactoryOS uses a numbered 0001..NNNN chain. Reject accidentally deleted
+    # or skipped migrations even for an empty remote project: otherwise the
+    # linked-history comparison would consider the incomplete source canonical.
+    ordered = sorted(int(version) for version in versions)
+    if ordered != list(range(1, len(ordered) + 1)):
+        raise HistoryError("FactoryOS migration versions must be contiguous from 0001 (no gaps or zero version).")
     return versions
 
 
@@ -90,6 +98,16 @@ def verify_history(committed: set[str], cli_local: set[str],
         raise HistoryError(
             f"Unexpected remote migrations: {sorted(unknown_remote)}. "
             "Stop and investigate; never auto-repair production history."
+        )
+    # A committed migration may only be marked applied after every preceding
+    # numbered migration. A remote gap indicates out-of-order/inconsistent
+    # history; do not let an approved release silently continue from it.
+    ordered_committed = sorted(committed)
+    expected_remote = set(ordered_committed[:len(cli_remote)])
+    if cli_remote != expected_remote:
+        raise HistoryError(
+            "Remote migration history is not an applied prefix of the committed "
+            "FactoryOS migration chain; stop and investigate remote gaps."
         )
     pending = sorted(committed - cli_remote)
     if stage == "postdeploy" and pending:
