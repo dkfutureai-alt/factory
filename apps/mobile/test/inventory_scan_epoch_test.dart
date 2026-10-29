@@ -82,5 +82,17 @@ void main() {
       session.invalidate();
       expect(session.accepts('org-a', 'user-a', token), isFalse);
     });
+
+    test('same-account reauthentication still rejects the older scan', () {
+      final session = InventoryScanEpoch('org-a', 'user-a');
+      final old = session.start('org-a', 'user-a');
+      // sign-out/sign-in stream events force invalidation even if an account
+      // with the same ID has already become the current authenticated user.
+      session.invalidate();
+      expect(session.selectWorkspace('org-a', 'user-a'), isFalse);
+      expect(session.accepts('org-a', 'user-a', old), isFalse);
+      final fresh = session.start('org-a', 'user-a');
+      expect(session.accepts('org-a', 'user-a', fresh), isTrue);
+    });
   });
 }
