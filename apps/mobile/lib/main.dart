@@ -48,8 +48,33 @@ class _FactoryMobilePhase12 extends StatelessWidget {
       );
 }
 
-class _MobileAuthGatePhase12 extends StatelessWidget {
+class _MobileAuthGatePhase12 extends StatefulWidget {
   const _MobileAuthGatePhase12();
+
+  @override
+  State<_MobileAuthGatePhase12> createState() => _MobileAuthGatePhase12State();
+}
+
+class _MobileAuthGatePhase12State extends State<_MobileAuthGatePhase12> {
+  late final MobileAccountChangeTracker _accountChanges;
+
+  @override
+  void initState() {
+    super.initState();
+    _accountChanges = MobileAccountChangeTracker(
+      Supabase.instance.client.auth.currentUser?.id,
+    );
+  }
+
+  void _resetNavigationOnAccountChange(String? userId) {
+    if (!_accountChanges.changedTo(userId)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // All pushed module routes (and modal sheets) belong to the old user.
+      // Pop them before the newly authenticated workspace can be used.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +87,7 @@ class _MobileAuthGatePhase12 extends StatelessWidget {
       ),
       builder: (context, snapshot) {
         final session = snapshot.data?.session;
+        _resetNavigationOnAccountChange(session?.user.id);
         return session == null
             ? const phase11.SignInPage()
             : _MobileBootstrapPhase12(
