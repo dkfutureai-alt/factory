@@ -41,6 +41,19 @@ class MigrationHistoryTests(unittest.TestCase):
         with self.assertRaisesRegex(HistoryError, "Deployment incomplete"):
             verify_history(self.committed, local, remote, "postdeploy")
 
+    def test_remote_applied_migrations_must_form_prefix_even_before_deploy(self):
+        # 0046 cannot already be applied while 0002 remains pending.
+        local, remote = cli_versions(table(("0001", "0001"), ("0002", ""),
+                                           ("0046", "0046"), ("0047", "")))
+        with self.assertRaisesRegex(HistoryError, "not an applied prefix"):
+            verify_history(self.committed, local, remote, "preflight")
+
+    def test_remote_history_without_first_migration_is_blocked(self):
+        local, remote = cli_versions(table(("0001", ""), ("0002", "0002"),
+                                           ("0046", ""), ("0047", "")))
+        with self.assertRaisesRegex(HistoryError, "not an applied prefix"):
+            verify_history(self.committed, local, remote, "preflight")
+
     def test_remote_unknown_version_blocks_preflight(self):
         local, remote = cli_versions(table(("0001", "0001"), ("0002", "0002"), ("0046", "0046"), ("0047", "0047"), ("", "9999")))
         with self.assertRaisesRegex(HistoryError, "Unexpected remote"):
