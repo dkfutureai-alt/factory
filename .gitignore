@@ -21,3 +21,19 @@ Thumbs.db
 # Supabase local runtime
 supabase/.branches/
 supabase/.temp/
+
+# Private recovery exports must NEVER enter this source repository.
+# Store real customer backups only in an authorized encrypted offsite vault.
+backups/
+private-backups/
+.factoryos-private-backups/
+factoryos-recovery-*/
+*.dump
+*.backup
+*.sql.gz
+*.sql.zst
+*.sql.age
+*.sql.gpg
+*.pgdump
+*.tar.gpg
+*.tar.age
