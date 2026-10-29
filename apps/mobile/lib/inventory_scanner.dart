@@ -39,17 +39,23 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
     );
     // A shared handset may change accounts while a QR/RPC request is pending.
     // Clear displayed results immediately, even for two users in the same org.
-    _authSubscription = client.auth.onAuthStateChange.listen((_) {
-      if (mounted) _syncWorkspaceIdentity();
+    _authSubscription = client.auth.onAuthStateChange.listen((state) {
+      if (!mounted) return;
+      // User IDs alone do not detect a rapid sign-out and sign-in as the
+      // same user. Reject requests from the old Auth session in all cases.
+      final sessionChanged = state.event == AuthChangeEvent.signedOut ||
+          state.event == AuthChangeEvent.signedIn;
+      if (sessionChanged) _scanEpoch.invalidate();
+      _syncWorkspaceIdentity(forceClear: sessionChanged);
     });
   }
 
-  void _syncWorkspaceIdentity() {
+  void _syncWorkspaceIdentity({bool forceClear = false}) {
     final changed = _scanEpoch.selectWorkspace(
       widget.organizationId,
       Supabase.instance.client.auth.currentUser?.id,
     );
-    if (!changed) return;
+    if (!changed && !forceClear) return;
     manual.clear();
     setState(() {
       lastCode = null;
