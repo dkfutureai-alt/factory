@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:factoryos_core/factoryos_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -19,6 +21,7 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
   final manual = TextEditingController();
   final scanner = MobileScannerController();
   late final InventoryScanEpoch _scanEpoch;
+  StreamSubscription<AuthState>? _authSubscription;
   bool busy = false;
   bool cameraEnabled = true;
   String? error;
@@ -29,26 +32,43 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
   @override
   void initState() {
     super.initState();
-    _scanEpoch = InventoryScanEpoch(widget.organizationId);
+    final client = Supabase.instance.client;
+    _scanEpoch = InventoryScanEpoch(
+      widget.organizationId,
+      client.auth.currentUser?.id,
+    );
+    // A shared handset may change accounts while a QR/RPC request is pending.
+    // Clear displayed results immediately, even for two users in the same org.
+    _authSubscription = client.auth.onAuthStateChange.listen((_) {
+      if (mounted) _syncWorkspaceIdentity();
+    });
+  }
+
+  void _syncWorkspaceIdentity() {
+    final changed = _scanEpoch.selectWorkspace(
+      widget.organizationId,
+      Supabase.instance.client.auth.currentUser?.id,
+    );
+    if (!changed) return;
+    manual.clear();
+    setState(() {
+      lastCode = null;
+      rows = const [];
+      containerAsset = null;
+      error = null;
+      busy = false;
+    });
   }
 
   @override
   void didUpdateWidget(covariant InventoryScannerPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.organizationId == oldWidget.organizationId) return;
-    // The previous organization may still have a pending Supabase response.
-    // Clear it immediately and never render its data in the new workspace.
-    _scanEpoch.selectOrganization(widget.organizationId);
-    manual.clear();
-    lastCode = null;
-    rows = const [];
-    containerAsset = null;
-    error = null;
-    busy = false;
+    _syncWorkspaceIdentity();
   }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _scanEpoch.invalidate();
     manual.dispose();
     scanner.dispose();
@@ -57,9 +77,15 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
 
   Future<void> lookup(String rawCode) async {
     final code = rawCode.trim();
+    _syncWorkspaceIdentity();
     if (code.length < 2 || busy) return;
     final organizationId = widget.organizationId;
-    final request = _scanEpoch.start(organizationId);
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null || userId.isEmpty) {
+      setState(() => error = 'Authentication required.');
+      return;
+    }
+    final request = _scanEpoch.start(organizationId, userId);
     setState(() {
       busy = true;
       error = null;
@@ -70,7 +96,7 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
       rows = const [];
     });
     try {
-      if (Supabase.instance.client.auth.currentUser == null) {
+      if (Supabase.instance.client.auth.currentUser?.id != userId) {
         throw StateError('Authentication required.');
       }
       final normalizedSerial = code.toUpperCase();
@@ -101,7 +127,11 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
             .map((row) => Map<String, dynamic>.from(row as Map))
             .toList();
       }
-      if (!mounted || !_scanEpoch.accepts(organizationId, request)) return;
+      if (!mounted || !_scanEpoch.accepts(
+            organizationId,
+            Supabase.instance.client.auth.currentUser?.id,
+            request,
+          )) return;
       setState(() {
         containerAsset = matchedAsset;
         rows = found;
@@ -110,7 +140,11 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
             : null;
       });
     } catch (exception) {
-      if (mounted && _scanEpoch.accepts(organizationId, request)) {
+      if (mounted && _scanEpoch.accepts(
+            organizationId,
+            Supabase.instance.client.auth.currentUser?.id,
+            request,
+          )) {
         setState(() {
           rows = const [];
           containerAsset = null;
@@ -118,7 +152,11 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
         });
       }
     } finally {
-      if (mounted && _scanEpoch.accepts(organizationId, request)) {
+      if (mounted && _scanEpoch.accepts(
+            organizationId,
+            Supabase.instance.client.auth.currentUser?.id,
+            request,
+          )) {
         setState(() => busy = false);
       }
     }
