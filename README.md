@@ -2,6 +2,8 @@
 
 > **Developer and coding-agent handoff:** Start with [`AGENTS.md`](AGENTS.md) and the persistent [`agent.md`](agent.md) for the architecture, safety invariants, current release limits, CI checks, blockers, and the step-by-step continuation contract. Verify live `main` and Supabase status before relying on the dated snapshot.
 
+**Professional team playbooks:** [Documentation index](docs/INDEX.md) · [Live evidence tracker](status.md) · [AI handoff](docs/AI_HANDOFF.md) · [Senior developer](developer.md) · [QA tester](tester.md) · [UX/UI](ui-ux.md) · [Motion](motion.md). These are working standards, **not claims of deployed or user-tested features**.
+
 FactoryOS is a multi-tenant, modular, white-label factory operations and management platform for real factory clients.
 
 ## Product Goal
