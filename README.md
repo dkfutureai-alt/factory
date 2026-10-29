@@ -1,5 +1,7 @@
 # FactoryOS
 
+> **Developer and coding-agent handoff:** Start with [`AGENTS.md`](AGENTS.md) and the persistent [`agent.md`](agent.md) for the architecture, safety invariants, current release limits, CI checks, blockers, and the step-by-step continuation contract. Verify live `main` and Supabase status before relying on the dated snapshot.
+
 FactoryOS is a multi-tenant, modular, white-label factory operations and management platform for real factory clients.
 
 ## Product Goal
