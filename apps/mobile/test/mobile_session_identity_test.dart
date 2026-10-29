@@ -2,6 +2,32 @@ import 'package:factoryos_mobile/mobile_session_identity.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('MobileAccountChangeTracker', () {
+    test('same user token refresh does not dismiss their active work', () {
+      final tracker = MobileAccountChangeTracker('user-a');
+      expect(tracker.changedTo('user-a'), isFalse);
+      expect(tracker.changedTo('user-a'), isFalse);
+    });
+
+    test('sign-out resets navigation once', () {
+      final tracker = MobileAccountChangeTracker('user-a');
+      expect(tracker.changedTo(null), isTrue);
+      expect(tracker.changedTo(null), isFalse);
+    });
+
+    test('shared-device user switch always resets navigation', () {
+      final tracker = MobileAccountChangeTracker('user-a');
+      expect(tracker.changedTo('user-b'), isTrue);
+      expect(tracker.changedTo('user-a'), isTrue);
+    });
+
+    test('first sign-in from a signed-out app resets prior routes', () {
+      final tracker = MobileAccountChangeTracker(null);
+      expect(tracker.changedTo('user-a'), isTrue);
+      expect(tracker.changedTo('user-a'), isFalse);
+    });
+  });
+
   group('MobileSessionIdentity', () {
     const owner = 'user-a';
     const other = 'user-b';
