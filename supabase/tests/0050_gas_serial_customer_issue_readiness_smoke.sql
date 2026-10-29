@@ -21,12 +21,13 @@ begin
     v_tx:=gen_random_uuid();
     v_key:=gen_random_uuid();
     v_state:=case when v_case=1 then 'hold'
-                  when v_case=2 then 'quarantined'
+                  when v_case in (2,8) then 'quarantined'
                   else 'inspection_recorded' end;
     v_condition:=case when v_case=1 then 'unverified'
-                     when v_case=2 then 'damaged' else 'good' end;
+                     when v_case in (2,8) then 'damaged' else 'good' end;
     v_due:=case when v_case in (1,3) then null
                 when v_case=4 then current_date - 1
+                when v_case=7 then current_date
                 else current_date + 14 end;
     v_inspected:=case when v_case in (1,5) then null
                       when v_case=6 then now()+interval '1 day'
