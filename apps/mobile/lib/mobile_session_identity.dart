@@ -18,3 +18,17 @@ class MobileSessionIdentity {
     }
   }
 }
+
+/// Detects changes of the signed-in account without treating routine refreshes
+/// for that same account as navigation-reset events.
+class MobileAccountChangeTracker {
+  MobileAccountChangeTracker(this._lastUserId);
+
+  String? _lastUserId;
+
+  bool changedTo(String? nextUserId) {
+    if (nextUserId == _lastUserId) return false;
+    _lastUserId = nextUserId;
+    return true;
+  }
+}
