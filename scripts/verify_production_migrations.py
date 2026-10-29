@@ -97,6 +97,16 @@ def verify_history(committed: set[str], cli_local: set[str],
             f"Unexpected remote migrations: {sorted(unknown_remote)}. "
             "Stop and investigate; never auto-repair production history."
         )
+    # A committed migration may only be marked applied after every preceding
+    # numbered migration. A remote gap indicates out-of-order/inconsistent
+    # history; do not let an approved release silently continue from it.
+    ordered_committed = sorted(committed)
+    expected_remote = set(ordered_committed[:len(cli_remote)])
+    if cli_remote != expected_remote:
+        raise HistoryError(
+            "Remote migration history is not an applied prefix of the committed "
+            "FactoryOS migration chain; stop and investigate remote gaps."
+        )
     pending = sorted(committed - cli_remote)
     if stage == "postdeploy" and pending:
         raise HistoryError(
