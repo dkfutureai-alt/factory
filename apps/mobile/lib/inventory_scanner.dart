@@ -127,11 +127,14 @@ class _InventoryScannerPageState extends State<InventoryScannerPage> {
             .map((row) => Map<String, dynamic>.from(row as Map))
             .toList();
       }
-      if (!mounted || !_scanEpoch.accepts(
+      if (!mounted ||
+          !_scanEpoch.accepts(
             organizationId,
             Supabase.instance.client.auth.currentUser?.id,
             request,
-          )) return;
+          )) {
+        return;
+      }
       setState(() {
         containerAsset = matchedAsset;
         rows = found;
