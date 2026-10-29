@@ -6,7 +6,7 @@ The scanner binds every QR/serial/Inventory lookup to **both** the active organi
 
 - Each lookup receives a monotonic request token with its exact `organizationId` and `userId`.
 - Changing organization **or** authenticated user invalidates outstanding requests and immediately clears the prior scanned asset, stock rows, manual entry, error and busy indicator.
-- An Auth state-change listener invalidates scans on sign-out/account switch even without a new scan or widget remount. A routine same-user token refresh does not clear legitimate results.
+- An Auth state-change listener invalidates scans on sign-out/account switch even without a new scan or widget remount. Signed-out and signed-in events also force invalidation for rapid **same-account** reauthentication; a routine same-user token refresh does not clear legitimate results.
 - A late response is rejected in its success, error **and** completion paths if the authenticated user, organization or request epoch no longer matches.
 - Starting a new request while signed out, from a different user, or from the wrong organization fails closed. Revisiting a previous user/organization never revives an earlier response.
 
