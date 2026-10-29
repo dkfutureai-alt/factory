@@ -6,10 +6,18 @@ on:
     paths:
       - '.github/workflows/**'
       - 'scripts/**'
+      - 'AGENTS.md'
+      - 'agent.md'
+      - 'README.md'
+      - 'supabase/migrations/**'
   pull_request:
     paths:
       - '.github/workflows/**'
       - 'scripts/**'
+      - 'AGENTS.md'
+      - 'agent.md'
+      - 'README.md'
+      - 'supabase/migrations/**'
 
 permissions:
   contents: read
