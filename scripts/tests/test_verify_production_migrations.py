@@ -120,13 +120,20 @@ class MigrationHistoryTests(unittest.TestCase):
                     local_versions(path)
 
     def test_timestamp_or_extra_digit_version_cannot_bypass_numbered_chain(self):
-        for filename in ("202610290001_extra.sql", "00001_extra.sql"):
+        for filename in ("202610290001_extra.sql", "00001_extra.sql", "٠٠٠١_unicode.sql"):
             with self.subTest(filename=filename), tempfile.TemporaryDirectory() as temporary:
                 path = Path(temporary)
                 (path / "0001_core.sql").write_text("select 1;")
                 (path / filename).write_text("select 1;")
                 with self.assertRaisesRegex(HistoryError, "Invalid migration filename"):
                     local_versions(path)
+
+    def test_migration_directory_entry_must_be_regular_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary)
+            (path / "0001_not_a_file.sql").mkdir()
+            with self.assertRaisesRegex(HistoryError, "must be a regular file"):
+                local_versions(path)
 
     def test_actual_committed_factoryos_migrations_form_contiguous_chain(self):
         root = Path(__file__).resolve().parents[2]
