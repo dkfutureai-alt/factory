@@ -79,6 +79,9 @@ begin
           else null end
       );
     exception when others then
+      if sqlerrm not like 'Customer issue serial attestation blocked:%' then
+        raise exception 'Unexpected readiness test failure in fixture %: %',v_case,sqlerrm;
+      end if;
       v_rejected:=true;
     end;
 
@@ -86,7 +89,7 @@ begin
       raise exception 'Unexpected serialized customer issue readiness outcome for fixture %: rejected=%',v_case,v_rejected;
     end if;
     if (select count(*) from public.gas_container_transaction_links
-        where transaction_id=v_tx)<>case when v_expected then 1 else 0 end then
+        where transaction_id=v_tx) <> (case when v_expected then 1 else 0 end) then
       raise exception 'Serial issue readiness left an incorrect evidence row for fixture %',v_case;
     end if;
   end loop;
