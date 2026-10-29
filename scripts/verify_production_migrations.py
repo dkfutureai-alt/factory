@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
-FILENAME = re.compile(r"^(\d+)_[A-Za-z0-9][A-Za-z0-9_-]*\.sql$")
+FILENAME = re.compile(r"^(\d{4})_[A-Za-z0-9][A-Za-z0-9_-]*\.sql$")
 
 
 class HistoryError(ValueError):
@@ -32,6 +32,12 @@ def local_versions(directory: Path) -> set[str]:
         versions.add(version)
     if not versions:
         raise HistoryError("No committed migration files found.")
+    # FactoryOS uses a numbered 0001..NNNN chain. Reject accidentally deleted
+    # or skipped migrations even for an empty remote project: otherwise the
+    # linked-history comparison would consider the incomplete source canonical.
+    ordered = sorted(int(version) for version in versions)
+    if ordered != list(range(1, len(ordered) + 1)):
+        raise HistoryError("FactoryOS migration versions must be contiguous from 0001 (no gaps or zero version).")
     return versions
 
 
