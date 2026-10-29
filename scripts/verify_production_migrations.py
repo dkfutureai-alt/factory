@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
-FILENAME = re.compile(r"^(\d{4})_[A-Za-z0-9][A-Za-z0-9_-]*\.sql$")
+FILENAME = re.compile(r"^([0-9]{4})_[A-Za-z0-9][A-Za-z0-9_-]*\.sql$")
 
 
 class HistoryError(ValueError):
@@ -23,6 +23,8 @@ def local_versions(directory: Path) -> set[str]:
         raise HistoryError("Migration directory is missing.")
     versions: set[str] = set()
     for path in sorted(directory.glob("*.sql")):
+        if path.is_symlink() or not path.is_file():
+            raise HistoryError(f"Migration must be a regular file: {path.name}")
         match = FILENAME.fullmatch(path.name)
         if match is None:
             raise HistoryError(f"Invalid migration filename: {path.name}")
