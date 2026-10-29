@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Refuse tracked private database backup files
+        run: python3 scripts/check_no_private_backups.py
       - name: Reject duplicate or malformed migration versions before database startup
         run: python3 scripts/check_migration_versions.py
       - uses: supabase/setup-cli@v1

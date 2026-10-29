@@ -107,7 +107,7 @@ For backend changes, also run the CI suite or equivalent SQL/real Auth E2E. For 
 8. Verify **Production Smoke Verification** and **FactoryOS Real Customer Pilot Acceptance** with two consenting separate organizations, their actual workers and devices; run the real business scenarios. Separately prove signed mobile routing, actual push/SMTP delivery, physical cylinder QR and warehouse custody, Admin hosting, Android release signing and Apple distribution.
 9. Only after the owner signs actual records and deployment/restore/pilot evidence, mark go-live. Otherwise leave issue #12 open and report precise blockers.
 
-Exact instructions: `docs/FACTORYOS_STAGED_PRODUCTION_DEPLOYMENT.md`, `docs/PRODUCTION_GO_LIVE_CHECKLIST.md`, `docs/PHASE_28_EXACT_HEAD_DATABASE_RELEASE_GATE.md`, `docs/PHASE_29_REAL_CUSTOMER_PILOT_ACCEPTANCE.md`, `docs/PHASE_29_PUSH_DISPATCH_ACCOUNTABILITY.md`.
+Exact instructions: `docs/FACTORYOS_STAGED_PRODUCTION_DEPLOYMENT.md`, `docs/PRODUCTION_GO_LIVE_CHECKLIST.md`, `docs/PHASE_28_EXACT_HEAD_DATABASE_RELEASE_GATE.md`, `docs/PHASE_29_REAL_CUSTOMER_PILOT_ACCEPTANCE.md`, `docs/PHASE_29_PUSH_DISPATCH_ACCOUNTABILITY.md`, and **`docs/PHASE_30_FREE_PLAN_BACKUP_RECOVERY.md`** for secure Free-tier backup plus actual isolated restore proof. `scripts/check_no_private_backups.py` prevents accidental Git tracking of common database dumps but is **not** a backup or restore test.
 
 ## 8. Agent execution / handoff contract
 

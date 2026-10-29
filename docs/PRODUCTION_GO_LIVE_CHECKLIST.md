@@ -16,7 +16,9 @@
 
 - [ ] Configure Auth Site URL, allowlisted invitation redirects, and a functional custom SMTP provider.
 - [ ] Create a dedicated least-privilege production smoke identity and set `FACTORYOS_SMOKE_EMAIL` and `FACTORYOS_SMOKE_PASSWORD` secrets.
-- [ ] Confirm database backup/PITR capabilities for the chosen plan, record a recovery owner and trial a restore in a nonproduction environment where supported.
+- [ ] Verify FactoryOS Free-tier recovery limits: no included managed automatic daily database backups or PITR. Approve owner, RPO/RTO, frequency, encrypted offsite retention and keys. Follow `docs/PHASE_30_FREE_PLAN_BACKUP_RECOVERY.md`; do not reuse Salon/Janseva resources.
+- [ ] Witness and document an **actual isolated restore** of role/schema/data plus separately protected Auth identity, actual Storage objects, migration history, private-file integrity, tenant RLS and operational reconciliation. If incomplete, do not onboard real customers.
+- [ ] Confirm `scripts/check_no_private_backups.py` CI guard rejects accidentally tracked backup filenames; this is not a replacement for encrypted offsite backup or real restoration.
 - [ ] Verify the final PR's Flutter, Mobile Release, Supabase Foundation and Release Workflow Lint checks are green.
 - [ ] On the exact current green `main` SHA, manually run the protected read-only **Supabase Production Plan** (`confirm=PLAN`, exact typed FactoryOS ref), review the migration history and pending dry-run output, and record its successful run ID. Obtain owner approval. A successful workflow with a skipped planning job is not accepted.
 - [ ] Within 24 hours on the same SHA, manually run **Supabase Production Release** with `confirm=DEPLOY`, the typed FactoryOS project ref and `approved_plan_run_id`. The release checks **both** exact-head Supabase Foundation CI and the real successful planning job via GitHub API before remote SQL writes; otherwise it blocks.
