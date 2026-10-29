@@ -12,3 +12,14 @@ Core requirements:
 - On completion, update the relevant open issue and this context if verified status materially changed. **Issue #12 stays open** until the approved live deployment, real-device QA and consenting customer pilot acceptance actually pass.
 
 For deeper domain, verification and deployment detail, **[continue in agent.md](agent.md)**.
+
+### Specialized cross-session playbooks
+
+- [status.md](status.md) — evidence-only project snapshot and outstanding blockers.
+- [docs/PROJECT_HANDBOOK.md](docs/PROJECT_HANDBOOK.md) — human/AI onboarding and source-of-truth index.
+- [developer.md](developer.md), [tester.md](tester.md) — engineering and test protocols.
+- [ui-ux.md](ui-ux.md), [motion.md](motion.md) — international visual design, state design and reduced-motion specifications.
+- [docs/QA_MATRIX.md](docs/QA_MATRIX.md), [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) — test coverage and acceptance gates.
+- [docs/HANDOFF_TEMPLATE.md](docs/HANDOFF_TEMPLATE.md) — required end-of-session progress record.
+
+Treat all descriptions of future UI polish, translations, physical testing or deployments as **requirements**, not implemented capabilities, until proved with an exact commit and appropriate evidence.
