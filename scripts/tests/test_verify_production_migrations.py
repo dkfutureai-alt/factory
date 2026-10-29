@@ -87,11 +87,39 @@ class MigrationHistoryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary)
             (path / "0001_core.sql").write_text("select 1;")
-            (path / "0046_intake.sql").write_text("select 1;")
-            self.assertEqual(local_versions(path), {"0001", "0046"})
+            (path / "0002_intake.sql").write_text("select 1;")
+            self.assertEqual(local_versions(path), {"0001", "0002"})
             (path / "0001_second.sql").write_text("select 1;")
             with self.assertRaisesRegex(HistoryError, "Duplicate migration version"):
                 local_versions(path)
+
+    def test_missing_first_or_middle_migration_blocks_empty_remote_release(self):
+        for filenames in (
+            ("0002_orphan.sql",),
+            ("0001_core.sql", "0003_skipped.sql"),
+            ("0000_invalid.sql", "0001_core.sql"),
+        ):
+            with self.subTest(filenames=filenames), tempfile.TemporaryDirectory() as temporary:
+                path = Path(temporary)
+                for filename in filenames:
+                    (path / filename).write_text("select 1;")
+                with self.assertRaisesRegex(HistoryError, "contiguous from 0001"):
+                    local_versions(path)
+
+    def test_timestamp_or_extra_digit_version_cannot_bypass_numbered_chain(self):
+        for filename in ("202610290001_extra.sql", "00001_extra.sql"):
+            with self.subTest(filename=filename), tempfile.TemporaryDirectory() as temporary:
+                path = Path(temporary)
+                (path / "0001_core.sql").write_text("select 1;")
+                (path / filename).write_text("select 1;")
+                with self.assertRaisesRegex(HistoryError, "Invalid migration filename"):
+                    local_versions(path)
+
+    def test_actual_committed_factoryos_migrations_form_contiguous_chain(self):
+        root = Path(__file__).resolve().parents[2]
+        versions = local_versions(root / "supabase/migrations")
+        self.assertIn("0001", versions)
+        self.assertGreaterEqual(len(versions), 52)
 
 
 if __name__ == "__main__":
