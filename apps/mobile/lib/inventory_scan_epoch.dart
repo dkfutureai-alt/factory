@@ -1,32 +1,44 @@
-/// Ignores asynchronous scan results from a prior FactoryOS workspace or
-/// from an older lookup in the same workspace.
+/// Discard QR/Inventory results after either an organization or authenticated
+/// user change. The same organization can have users with different permissions.
 ///
-/// Intentionally has no Flutter/Supabase dependency, so the race guarantees
-/// can be tested without camera hardware or a live production environment.
+/// This is a presentation safety boundary; Postgres RLS/RPC authorization
+/// remains mandatory for the actual read.
 class InventoryScanEpoch {
-  InventoryScanEpoch(this._organizationId);
+  InventoryScanEpoch(this._organizationId, this._userId);
 
   String _organizationId;
+  String? _userId;
   int _revision = 0;
 
-  /// Invalidates all outstanding lookups whenever the active organization
-  /// changes. A subsequent return to the old org does not revive old results.
-  void selectOrganization(String organizationId) {
-    if (organizationId == _organizationId) return;
+  /// Invalidates all pending scans when either tenant or signed-in user changes.
+  /// Returning to an earlier account or organization never revives old results.
+  bool selectWorkspace(String organizationId, String? userId) {
+    if (organizationId == _organizationId && userId == _userId) return false;
     _organizationId = organizationId;
+    _userId = userId;
     _revision++;
+    return true;
   }
 
-  /// Returns a token identifying the latest lookup for this organization.
-  int start(String organizationId) {
-    if (organizationId != _organizationId) {
-      throw StateError('Scan request is not in the active organization');
+  bool matchesSession(String organizationId, String? userId) =>
+      organizationId.isNotEmpty &&
+      organizationId == _organizationId &&
+      userId != null &&
+      userId.isNotEmpty &&
+      userId == _userId;
+
+  /// Start a scan only for the exact authenticated user and organization.
+  int start(String organizationId, String? userId) {
+    if (!matchesSession(organizationId, userId)) {
+      throw StateError('Scan request is not in the active authenticated workspace');
     }
     return ++_revision;
   }
 
-  bool accepts(String organizationId, int token) =>
-      organizationId == _organizationId && token == _revision;
+  bool accepts(String organizationId, String? userId, int token) =>
+      token > 0 &&
+      matchesSession(organizationId, userId) &&
+      token == _revision;
 
   /// Invalidate a pending scan when the view is disposed or manually reset.
   void invalidate() => _revision++;
