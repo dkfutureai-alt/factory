@@ -14,13 +14,14 @@ This phase guards presentation and async bootstrap at the **authenticated user**
 4. The active bootstrap revalidates Auth after the Future resolves and before constructing a home screen, and can rebind safely if changed without being disposed.
 5. The loaded home is keyed to the bootstrap Future, so refreshing membership data **remounts and clears cached module widget State** and reattaches the push handler with the current bootstrapped organization.
 6. On `AppLifecycleState.resumed`, the app reloads server-verified organization/factory membership, module visibility and current role; pending older Futures are not used to render the new screen.
-7. The older `main_phase11.dart` alternate Auth gate also keys its bootstrap by user ID for consistency.
+7. The active Auth gate also observes account transitions and pops all pushed module routes / dialogs back to the root after logout or a switch to another authenticated user. A same-user token refresh does not dismiss an active workflow.
+8. The older `main_phase11.dart` alternate Auth gate also keys its bootstrap by user ID for consistency.
 
 ## Test evidence and limitations
 
 `apps/mobile/test/mobile_session_identity_test.dart` covers signed-out, changed, same user and blank identity conditions; run Flutter Application Quality and Mobile Release Quality against the exact PR head. Also run the pre-existing workspace guard and Inventory scan epoch regressions; all modules must continue to reject ambiguous multi-organization accounts.
 
-**Not yet complete:** The application does not offer multi-organization selection (#45/#47). Every mobile module does not yet accept an explicit selected factory and scoped RPC parameters. Auth-session changes **during an already-pushed secondary Navigator route** still require a dedicated route-stack reset and real device acceptance; this patch is focused on safe bootstrap/root-module state. Existing RLS is the final server-side denial for unauthorized work. A revoked membership can remain visible until app resume or rebootstrap, but it must no longer authorize server-side access.
+**Not yet complete:** The application does not offer multi-organization selection (#45/#47). Every mobile module does not yet accept an explicit selected factory and scoped RPC parameters. The active root Navigator is reset when the signed-in user changes, but dismissal timing and nested routes still require physical Android/iOS acceptance; this is not a substitute for RLS or explicit module/RPC scoping. Existing RLS is the final server-side denial for unauthorized work. A revoked membership can remain visible until app resume or rebootstrap, but it must no longer authorize server-side access.
 
 Physical Android/iOS acceptance must exercise: sign in A → scan/load warehouse → sign out → sign in B (different and same org), sign-in change mid-network request, different factory role, revocation while suspended, failed refresh, offline/resume, notifications and app navigation. Observe that **no A data remains in B home UI** or any cached QR result, and all B reads/writes obey B's RLS.
 
