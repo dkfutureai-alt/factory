@@ -24,6 +24,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Refuse accidental tracked production backup exports
+        run: python3 scripts/check_no_private_backups.py
       - uses: actions/setup-go@v6
         with:
           go-version: '1.25'
