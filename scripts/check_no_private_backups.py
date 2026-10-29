@@ -31,7 +31,9 @@ def is_private_export(path: str) -> bool:
     """Classify likely private snapshots; do not block ordinary migrations."""
     if not isinstance(path, str) or not path or "\x00" in path:
         return True
-    posix = path.replace("\\", "/").lstrip("./")
+    posix = path.replace("\\", "/")
+    if posix.startswith("/"):
+        return True
     components = PurePosixPath(posix).parts
     if not components or ".." in components:
         return True
