@@ -125,3 +125,7 @@ For a "continue until complete" request:
 7. Never leak secrets or claim to execute background work just because a scheduled GitHub workflow exists.
 
 This file is maintained for future coding agents and is **not** a replacement for source code, tests, live GitHub or live Supabase evidence.
+
+## Specialist AI team handoff (2026-10-29 documentation extension)
+
+The canonical constraints above remain in force. For new sessions, use [status.md](status.md) for evidence-only progress and [docs/PROJECT_HANDBOOK.md](docs/PROJECT_HANDBOOK.md) for reading order and team responsibilities. Read [developer.md](developer.md), [tester.md](tester.md), [ui-ux.md](ui-ux.md), [motion.md](motion.md), [docs/QA_MATRIX.md](docs/QA_MATRIX.md) and [docs/QUALITY_GATES.md](docs/QUALITY_GATES.md) for the current cross-session engineering and product-quality contract. Document every handoff with [docs/HANDOFF_TEMPLATE.md](docs/HANDOFF_TEMPLATE.md). This appended guidance **does not claim production deployment, physical QA or customer acceptance**.
