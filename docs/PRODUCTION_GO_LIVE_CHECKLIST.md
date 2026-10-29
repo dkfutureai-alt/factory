@@ -16,7 +16,9 @@
 
 - [ ] Configure Auth Site URL, allowlisted invitation redirects, and a functional custom SMTP provider.
 - [ ] Create a dedicated least-privilege production smoke identity and set `FACTORYOS_SMOKE_EMAIL` and `FACTORYOS_SMOKE_PASSWORD` secrets.
-- [ ] Confirm database backup/PITR capabilities for the chosen plan, record a recovery owner and trial a restore in a nonproduction environment where supported.
+- [ ] Confirm the current Supabase plan: the verified FactoryOS organization is on **Free**, without included managed daily database backups or PITR. Document a secure encrypted offsite backup strategy, owner, frequency, RPO, RTO and retention policy; require an authorized separate project only for the restore test (never use Salon/Janseva). See `docs/PHASE_30_FREE_PLAN_BACKUP_RECOVERY.md`.
+- [ ] **Witness and document a successful isolated restoration** of FactoryOS SQL roles/schema/data **plus separately protected Auth identity and actual Storage object recovery**, including migration history, secrets reconfiguration, tenant RLS, private file checksums and core operational reconciliation. If any portion remains untested, recovery remains BLOCKED and real customer go-live must not proceed.
+- [ ] Verify CI rejects accidentally tracked database export filenames via `scripts/check_no_private_backups.py`; never mistake this source guard for encrypted offsite backup proof.
 - [ ] Verify the final PR's Flutter, Mobile Release, Supabase Foundation and Release Workflow Lint checks are green.
 - [ ] On the exact current green `main` SHA, manually run the protected read-only **Supabase Production Plan** (`confirm=PLAN`, exact typed FactoryOS ref), review the migration history and pending dry-run output, and record its successful run ID. Obtain owner approval. A successful workflow with a skipped planning job is not accepted.
 - [ ] Within 24 hours on the same SHA, manually run **Supabase Production Release** with `confirm=DEPLOY`, the typed FactoryOS project ref and `approved_plan_run_id`. The release checks **both** exact-head Supabase Foundation CI and the real successful planning job via GitHub API before remote SQL writes; otherwise it blocks.
