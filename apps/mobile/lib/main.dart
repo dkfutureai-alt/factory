@@ -11,6 +11,7 @@ import 'fleet_driver.dart';
 import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
 import 'maintenance_technician.dart';
+import 'mobile_session_identity.dart';
 import 'main_phase11.dart' as phase11;
 import 'notification_inbox.dart';
 import 'production_execution.dart';
@@ -63,33 +64,66 @@ class _MobileAuthGatePhase12 extends StatelessWidget {
         final session = snapshot.data?.session;
         return session == null
             ? const phase11.SignInPage()
-            : _MobileBootstrapPhase12(user: session.user);
+            : _MobileBootstrapPhase12(
+                key: ValueKey(session.user.id),
+                user: session.user,
+              );
       },
     );
   }
 }
 
 class _MobileBootstrapPhase12 extends StatefulWidget {
-  const _MobileBootstrapPhase12({required this.user});
+  const _MobileBootstrapPhase12({required this.user, super.key});
   final User user;
 
   @override
   State<_MobileBootstrapPhase12> createState() => _MobileBootstrapPhase12State();
 }
 
-class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12> {
+class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12>
+    with WidgetsBindingObserver {
   late Future<phase11.MobileBootstrapData> future;
+  late MobileSessionIdentity _identity;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _identity = MobileSessionIdentity(widget.user.id);
     future = _load();
   }
 
+  @override
+  void didUpdateWidget(covariant _MobileBootstrapPhase12 oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.user.id != widget.user.id) {
+      _identity = MobileSessionIdentity(widget.user.id);
+      reload();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // A factory assignment or role may have been revoked while suspended.
+      // Rebuild every module from current server-authorized memberships.
+      reload();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   Future<phase11.MobileBootstrapData> _load() async {
-    final result = await phase11.MobileRepository(
-      Supabase.instance.client,
-    ).bootstrap(widget.user);
+    final identity = MobileSessionIdentity(widget.user.id);
+    final client = Supabase.instance.client;
+    identity.requireCurrent(client.auth.currentUser?.id);
+    final result = await phase11.MobileRepository(client).bootstrap(widget.user);
+    identity.requireCurrent(client.auth.currentUser?.id);
     final workspace = result.workspace;
     if (workspace == null) return result;
     final modules = workspace.modules
@@ -100,6 +134,7 @@ class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12> {
           ),
         )
         .toList();
+    identity.requireCurrent(client.auth.currentUser?.id);
     return phase11.MobileBootstrapData(
       workspace: phase11.MobileData(
         organizationId: workspace.organizationId,
@@ -118,6 +153,11 @@ class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12> {
       FutureBuilder<phase11.MobileBootstrapData>(
         future: future,
         builder: (context, snapshot) {
+          if (!_identity.matches(Supabase.instance.client.auth.currentUser?.id)) {
+            return const Scaffold(
+              body: Center(child: Text('Account changed. Reload your session.')),
+            );
+          }
           if (snapshot.connectionState != ConnectionState.done) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
@@ -137,7 +177,10 @@ class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12> {
             );
           }
           if (data.workspace != null) {
-            return _MobileHomePhase12(data: data.workspace!);
+            return _MobileHomePhase12(
+              key: ObjectKey(future),
+              data: data.workspace!,
+            );
           }
           return _MessagePagePhase16(
             message: data.message ?? 'Access unavailable.',
@@ -148,7 +191,7 @@ class _MobileBootstrapPhase12State extends State<_MobileBootstrapPhase12> {
 }
 
 class _MobileHomePhase12 extends StatefulWidget {
-  const _MobileHomePhase12({required this.data});
+  const _MobileHomePhase12({required this.data, super.key});
   final phase11.MobileData data;
 
   @override
