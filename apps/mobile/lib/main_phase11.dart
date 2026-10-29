@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'workspace_guard.dart';
+import 'mobile_session_identity.dart';
 
 import 'commercial_operations.dart';
 import 'delivery_driver.dart';
@@ -89,7 +90,10 @@ class MobileAuthGate extends StatelessWidget {
         final session = snapshot.data?.session;
         return session == null
             ? const SignInPage()
-            : MobileBootstrap(user: session.user);
+            : MobileBootstrap(
+                key: ValueKey(session.user.id),
+                user: session.user,
+              );
       },
     );
   }
@@ -210,15 +214,21 @@ class MobileRepository {
   final SupabaseClient client;
 
   Future<MobileBootstrapData> bootstrap(User user) async {
+    final identity = MobileSessionIdentity(user.id);
+    void requireSignedInUser() =>
+        identity.requireCurrent(client.auth.currentUser?.id);
+    requireSignedInUser();
     final memberships = await client
         .from('organization_members')
         .select('organization_id,role,organizations(name)')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .limit(2);
+    requireSignedInUser();
 
     if (memberships.isEmpty) {
       final pending = await client.rpc('pending_invitation_for_current_user');
+      requireSignedInUser();
       final rows = pending as List<dynamic>;
       if (rows.isNotEmpty) {
         return MobileBootstrapData(
@@ -243,11 +253,13 @@ class MobileRepository {
         .eq('organization_id', organizationId)
         .eq('is_active', true)
         .order('name');
+    requireSignedInUser();
     final moduleRows = await client
         .from('organization_modules')
         .select('app_modules(key,name,sort_order)')
         .eq('organization_id', organizationId)
         .eq('is_enabled', true);
+    requireSignedInUser();
     final modules =
         moduleRows
             .map((row) => Map<String, dynamic>.from(row['app_modules'] as Map))
