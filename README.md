@@ -1,5 +1,10 @@
 # FactoryOS
 
+> **Agent/developer handoff:** start with [agent.md](agent.md); coding agents may use
+> [AGENTS.md](AGENTS.md). This records architecture, code/test paths, last
+> *verified* release status, outstanding real-customer work and safeguards.
+> Before handling real data, see [the Free-plan backup and restore runbook](docs/PHASE_30_FREE_PLAN_BACKUP_RECOVERY.md).
+
 FactoryOS is a multi-tenant, modular, white-label factory operations and management platform for real factory clients.
 
 ## Product Goal
