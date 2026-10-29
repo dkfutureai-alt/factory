@@ -9,7 +9,7 @@
 - The intended dedicated production Supabase project is **`zevrmvhnibztbxizswgu`** (`factoryos-production`, Mumbai / `ap-south-1`); base URL **`https://zevrmvhnibztbxizswgu.supabase.co`**. This identifier is a **destination allowlist**, never an authorization token.
 - Do **not** commit secrets, service-role keys, production DB passwords, Firebase private keys, phone numbers, real customer identities, or test-account credentials. Never print raw Auth/FCM payloads into CI logs or issue comments.
 - No live database migration, destructive SQL, production seed, customer invitation, FCM dispatch, device enrollment, Play/App Store upload or production publish without its **separately protected owner-reviewed release workflow** and prerequisite evidence. Do not bypass GitHub environment approvals.
-- Never use `supabase db reset` against any linked production project; never apply the already committed `0001`–`0051` migration series using an ad hoc MCP migration call that would create incompatible history.
+- Never use `supabase db reset` against any linked production project; never apply the already committed `0001`–`0052` migration series using an ad hoc MCP migration call that would create incompatible history.
 - **Green source CI != live deployment != a real customer workflow passed.** Only mark a milestone accepted when supported by exact-SHA CI **and** deployment/environment evidence and actual tests for that milestone.
 - An empty Supabase advisor result on an empty project proves **nothing** about future RLS, security, or performance.
 
@@ -23,7 +23,7 @@ Important invariants:
 
 1. **Multi-tenancy:** every organization/factory read and write must have server-enforced membership, role and factory scope via PostgreSQL RLS and explicitly authorized RPCs. Never accept user-editable metadata as authorization.
 2. **Inventory:** stock, gas receipt/consumption, quality hold/release, picking/dispatch, returns and maintenance spares must remain ledger-backed and must not fabricate quantity. Transactional multi-step operations must be atomic.
-3. **Gas containers:** `0047` provides serial/QR identity and inspection lifecycle; `0048` attaches serialized scan evidence to actual Inventory transaction records; `0049` reports coverage gaps. **This is not complete mandatory serialized physical custody**. Serial-to-ledger counts, safety inspection, custody chain and actual scans still require acceptance testing/possible further enforcement.
+3. **Gas containers:** `0047` provides serial/QR identity and inspection lifecycle; `0048` attaches serialized scan evidence to actual Inventory transaction records; `0049` reports coverage gaps; `0050` guards serialized customer issues; `0052` rejects privileged link claims that disagree with the original Inventory type, item, location or whole-unit count. **This is not complete mandatory serialized physical custody**. Serial-to-ledger counts, safety inspection, custody chain and actual scans still require acceptance testing/possible further enforcement.
 4. **Returnables:** record vehicle/customer empty-cylinder pickup separately from actual warehouse receipt; inspected good/receiving must remain separate from damaged/quarantine. No phantom restocking.
 5. **Mobile multi-org and auth lifecycle:** mobile still **fails closed** if a user has multiple active organization memberships (`apps/mobile/lib/workspace_guard.dart`); do not expose a selector until **every mobile repository and privileged RPC** is properly scoped and cross-tenant tested. On a shared handset, bind bootstrap results to the exact Auth user, reset pushed routes when the account changes, re-fetch workspace permissions on resume, and discard stale asynchronous results. See `docs/PHASE_30_MOBILE_AUTH_WORKSPACE_LIFECYCLE.md` and issues **#45, #47**.
 6. **Notifications:** FCM push route data requires the notification's authoritative organization and recipient IDs, checked against the live signed-in mobile workspace. Scheduled dispatch accounting must differentiate provider-accepted, skipped, failed and absent configuration. **Provider acceptance is not evidence of handset delivery**.
@@ -36,7 +36,7 @@ Important invariants:
 | `apps/admin_web/` | Flutter admin portal, workflows and super/organization administration |
 | `apps/mobile/` | Flutter employee/driver/technician app, QR scanner, mobile workflows, notifications |
 | `packages/factoryos_core/` | Shared design system, roles, module and workspace access rules |
-| `supabase/migrations/` | Ordered SQL migrations `0001`–`0051` on the last checked commit |
+| `supabase/migrations/` | Ordered SQL migrations `0001`–`0052` on the last checked commit |
 | `supabase/functions/invite-user/` | Invitation Edge Function (Auth, redirect validation) |
 | `supabase/functions/send-notifications/` | Tenant-recipient-scoped FCM HTTP v1 worker and delivery accounting |
 | `supabase/tests/` | SQL integration checks and actual local Auth/JWT/RLS end-to-end shell flows |
@@ -53,7 +53,7 @@ As checked **2026-10-29**:
 - `main` was `8a0ed21f4a657bd7ad5bcb5970fb77c210c99e70`, containing the scheduled FCM provider-failure/lease-accounting repair (PR #59). At that SHA **Supabase Foundation Checks, Release Workflow Lint and FactoryOS Release Candidate** succeeded.
 - The standalone `factoryos-production` project was `ACTIVE_HEALTHY`, but **0 applied migrations and 0 `public` application tables**. No live production FactoryOS schema, functional Admin/mobile deployment or real pilot acceptance had been verified.
 - The linked Windows development machine was **offline**; do not claim on-device/local desktop QA from cloud CI.
-- Existing source-controlled `0001`–`0051` migrations are tested against isolated local Supabase in CI. They have **not** been applied to live FactoryOS production.
+- Existing source-controlled `0001`–`0052` migrations are tested against isolated local Supabase in CI. They have **not** been applied to live FactoryOS production.
 - The original implementation and more recent release/security improvements coexist. Re-verify exact results and production environment state; a later agent might have advanced the project.
 
 This section is a *dated snapshot*: correct it when verified facts change. Never silently mark the project "FINAL READY".
@@ -66,6 +66,7 @@ This section is a *dated snapshot*: correct it when verified facts change. Never
 - **#45 / #47 — multi-org mobile:** explicit selected-tenant/factory state, all repository/RPC scopes, authentication/session/revocation, cache/scan race isolation, FCM routes and regression E2E. Until ready, **single-active-membership-only**.
 - The protected **real customer pilot acceptance** workflow checks two consenting organizations with valid feedback/evidence across 14 scenarios; **its existence is not proof a live pilot took place**. See `docs/PHASE_29_REAL_CUSTOMER_PILOT_ACCEPTANCE.md`.
   - **Phase 32 chronology hardening:** migration `0051_pilot_feedback_server_timestamp.sql` forces database-owned `pilot_feedback.created_at`, so submitted backdated/future-dated results cannot falsify the 14-day acceptance recency window. See `docs/PHASE_32_PILOT_FEEDBACK_TIMESTAMP.md`. Reports remain self-reported; physical verification is still required.
+  - **Phase 33 serial evidence provenance:** migration `0052_gas_serial_link_source_integrity.sql` ensures *all* new serial links, including privileged service inserts, must match the authoritative Inventory transaction's tenant, factory, item, movement type, locations and whole-unit capacity. This closes a forged `transfer` label bypass of the Phase 31 customer-issue attestation readiness guard. See `docs/PHASE_33_GAS_SERIAL_SOURCE_INTEGRITY.md`. Physical scan/POD/stock-write enforcement remains unfinished.
 - Some original feature issues are already closed or superseded. Always review actual open issues, PRs, recent commits and fresh CI before choosing the next change.
 
 ## 6. Source development and verification
