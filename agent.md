@@ -125,3 +125,15 @@ For a "continue until complete" request:
 7. Never leak secrets or claim to execute background work just because a scheduled GitHub workflow exists.
 
 This file is maintained for future coding agents and is **not** a replacement for source code, tests, live GitHub or live Supabase evidence.
+
+## 9. Durable specialist team and cross-session documentation (added 2026-10-29)
+
+Start from [docs/INDEX.md](docs/INDEX.md), which links all specialized playbooks; its contents supplement the non-negotiable controls in this file. [status.md](status.md) is the updateable evidence register and **must not** silently reinterpret source-implemented phases as production or customer acceptance. Root fast-access role cards: [developer.md](developer.md), [tester.md](tester.md), [ui-ux.md](ui-ux.md), [motion.md](motion.md).
+
+- **AI resume:** [docs/AI_HANDOFF.md](docs/AI_HANDOFF.md) and [docs/STATUS_PROTOCOL.md](docs/STATUS_PROTOCOL.md) define exact-SHA reinspection, evidence tiers, tests and precise future handoff.
+- **Software:** [docs/ENGINEERING_STANDARDS.md](docs/ENGINEERING_STANDARDS.md) and [docs/WORKFLOWS_AND_ROLES.md](docs/WORKFLOWS_AND_ROLES.md) define code review, authorization, idempotency, ledger integrity and end-to-end business scenarios.
+- **QA and pilot:** [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md) and [docs/UAT_PILOT.md](docs/UAT_PILOT.md) require isolated tests first, then physically verified and consenting pilot acceptance; they are not actual test results.
+- **Design:** [docs/UI_UX_PLAYBOOK.md](docs/UI_UX_PLAYBOOK.md), [docs/MOTION_SYSTEM.md](docs/MOTION_SYSTEM.md) and [docs/ACCESSIBILITY_LOCALIZATION.md](docs/ACCESSIBILITY_LOCALIZATION.md) document international-grade screen states, responsive layouts, localization, accessibility and deliberate motion.
+- **Operations:** [docs/DECISION_LOG.md](docs/DECISION_LOG.md) and [docs/INCIDENT_RUNBOOK.md](docs/INCIDENT_RUNBOOK.md) provide the ADR and incident/recovery protocol.
+
+**Important chronology:** The 2026-10-29 session that introduced these documents observed `main` at `d1f1c64fbd59b179dd3ddae2ed1f01313a5b8b52`, newer than the dated `8a0ed21` snapshot above. It did **not** independently verify named CI on that SHA or re-read live Supabase project state. Re-check before stating production/test status. These documentation additions introduce no business behavior or remote deployment.

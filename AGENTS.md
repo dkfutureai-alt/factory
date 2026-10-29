@@ -12,3 +12,16 @@ Core requirements:
 - On completion, update the relevant open issue and this context if verified status materially changed. **Issue #12 stays open** until the approved live deployment, real-device QA and consenting customer pilot acceptance actually pass.
 
 For deeper domain, verification and deployment detail, **[continue in agent.md](agent.md)**.
+
+## Cross-agent team documentation (read by task)
+
+- [status.md](status.md) — truthful evidence-gated progress tracker and next blockers.
+- [docs/INDEX.md](docs/INDEX.md) — directory of all FactoryOS playbooks.
+- [docs/AI_HANDOFF.md](docs/AI_HANDOFF.md) — cold-start, safe continuation and handoff protocol for future AI sessions.
+- [developer.md](developer.md) / [docs/ENGINEERING_STANDARDS.md](docs/ENGINEERING_STANDARDS.md) — senior engineering implementation/review contract.
+- [tester.md](tester.md) / [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md) — QA, security and E2E verification contract.
+- [ui-ux.md](ui-ux.md) / [docs/UI_UX_PLAYBOOK.md](docs/UI_UX_PLAYBOOK.md) — international-quality UX/UI and role-specific screens.
+- [motion.md](motion.md) / [docs/MOTION_SYSTEM.md](docs/MOTION_SYSTEM.md) — restrained accessible animation and reduced-motion acceptance.
+- [docs/ACCESSIBILITY_LOCALIZATION.md](docs/ACCESSIBILITY_LOCALIZATION.md), [docs/UAT_PILOT.md](docs/UAT_PILOT.md), [docs/INCIDENT_RUNBOOK.md](docs/INCIDENT_RUNBOOK.md) — wider quality and operations.
+
+**Agent rule:** Choose the relevant specialist charter, implement and verify real source changes, and update `status.md` with exact-SHA evidence. Markdown alone is not a feature implementation, QA pass or launch approval.
