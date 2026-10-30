@@ -110,21 +110,21 @@ class _MobileReleaseGateState extends State<MobileReleaseGate>
     if (installed == null) throw const FormatException('Invalid app version.');
     final platform =
         defaultTargetPlatform == TargetPlatform.android ? 'android' : 'ios';
-    final data = await Supabase.instance.client
-        .from('mobile_release_policies')
-        .select(
-          'minimum_version,latest_version,download_url,release_notes,'
-          'maintenance_mode,enabled',
+    final response = await Supabase.instance.client
+        .rpc(
+          'get_mobile_release_policy',
+          params: {
+            'p_application_id': package.packageName,
+            'p_platform': platform,
+          },
         )
-        .eq('application_id', package.packageName)
-        .eq('platform', platform)
-        .eq('enabled', true)
-        .maybeSingle()
         .timeout(const Duration(seconds: 8));
-    if (data == null) {
+    if (response == null) {
       return const MobileReleaseState(action: FactoryReleaseAction.current);
     }
-    final policy = FactoryReleasePolicy.fromMap(data);
+    final policy = FactoryReleasePolicy.fromMap(
+      Map<String, dynamic>.from(response as Map),
+    );
     return MobileReleaseState(
       action: policy.evaluate(installed),
       downloadUrl: policy.downloadUrl,
