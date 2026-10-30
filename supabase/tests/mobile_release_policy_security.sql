@@ -2,8 +2,12 @@
 begin;
 do $$
 begin
-  if not has_table_privilege('anon', 'public.mobile_release_policies', 'SELECT') then
-    raise exception 'Anonymous update policy read grant missing';
+  if has_table_privilege('anon', 'public.mobile_release_policies', 'SELECT') then
+    raise exception 'Anonymous direct table read must remain denied';
+  end if;
+  if not has_function_privilege(
+      'anon', 'public.get_mobile_release_policy(text,text)', 'EXECUTE') then
+    raise exception 'Public pre-login release RPC missing';
   end if;
   if has_table_privilege('anon', 'public.mobile_release_policies', 'INSERT') or
      has_table_privilege('anon', 'public.mobile_release_policies', 'UPDATE') or
