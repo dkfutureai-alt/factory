@@ -623,7 +623,7 @@ class _HomeTabPhase12 extends StatelessWidget {
                 ),
               );
             },
-          ),
+          );
             },
           ),
           if (data.modules.isEmpty)
