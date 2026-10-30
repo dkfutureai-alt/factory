@@ -20,10 +20,15 @@ PRIVATE_EXPORT_NAMES = frozenset({
     "roles.sql", "schema.sql", "data.sql", "history_schema.sql",
     "history_data.sql", "auth.sql", "storage.sql", "backup.sql",
     "database.sql", "production.sql", "production-db.sql",
+    "pg_dump.sql", "pg_dumpall.sql", "supabase-backup.sql",
 })
 PRIVATE_SUFFIXES = (
     ".dump", ".backup", ".pgdump", ".sql.gz", ".sql.zst", ".sql.age",
-    ".sql.gpg", ".tar.gpg", ".tar.age", ".db.gz", ".db.age",
+    ".sql.gpg", ".sql.xz", ".sql.bz2", ".sql.zip", ".sql.enc",
+    ".dump.gz", ".dump.zst", ".dump.age", ".dump.gpg",
+    ".backup.gz", ".backup.zst", ".backup.age", ".backup.gpg",
+    ".pgdump.gz", ".pgdump.zst", ".pgdump.xz",
+    ".tar.gpg", ".tar.age", ".db.gz", ".db.age",
 )
 
 
@@ -67,7 +72,7 @@ def main() -> int:
         # Filenames only; never read or print private contents.
         print("BLOCKED: potential private database export tracked in Git:", file=sys.stderr)
         for name in found:
-            print(f"  {name}", file=sys.stderr)
+            print(f"  {name!r}", file=sys.stderr)
         return 2
     print("PASS: no tracked filenames matching known private backup patterns.")
     return 0
