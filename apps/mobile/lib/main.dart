@@ -42,6 +42,8 @@ class _FactoryMobilePhase12 extends StatelessWidget {
         title: 'FactoryOS',
         debugShowCheckedModeBanner: false,
         theme: FactoryTheme.light(),
+        darkTheme: FactoryTheme.dark(),
+        themeMode: ThemeMode.system,
         home: config.isConfigured
             ? const _MobileAuthGatePhase12()
             : const phase11.ConfigPage(),
@@ -563,13 +565,21 @@ class _HomeTabPhase12 extends StatelessWidget {
                 ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: FactorySpacing.md),
-          GridView.builder(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = FactoryLayout.metricColumns(
+                context,
+                constraints.maxWidth,
+              );
+              final largeText =
+                  MediaQuery.textScalerOf(context).scale(1) >= 1.5;
+              return GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: data.modules.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.35,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisExtent: largeText ? 172 : (columns == 1 ? 112 : 144),
               crossAxisSpacing: FactorySpacing.sm,
               mainAxisSpacing: FactorySpacing.sm,
             ),
@@ -599,7 +609,7 @@ class _HomeTabPhase12 extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(icon, color: FactoryColors.blue),
+                        Icon(icon, color: Theme.of(context).colorScheme.primary),
                         const SizedBox(height: FactorySpacing.sm),
                         Text(
                           module.name,
@@ -612,6 +622,8 @@ class _HomeTabPhase12 extends StatelessWidget {
                   ),
                 ),
               );
+            },
+          ),
             },
           ),
           if (data.modules.isEmpty)
