@@ -63,7 +63,7 @@ class PrivateBackupGuardTests(unittest.TestCase):
         self.assertIn("could not safely inspect", errors.getvalue())
 
     def test_log_escapes_untrusted_filename_newlines(self):
-        fake = SimpleNamespace(stdout=b"exports/backup.sql.xz\nPASS: fake check\n\x00")
+        fake = SimpleNamespace(stdout=b"exports/backup\nPASS: fake check\n.sql.xz\x00")
         with patch("check_no_private_backups.subprocess.run", return_value=fake):
             with redirect_stderr(io.StringIO()) as errors:
                 self.assertEqual(main(), 2)
