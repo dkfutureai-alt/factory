@@ -21,6 +21,11 @@ create table public.mobile_release_policies (
   primary key (application_id, platform)
 );
 
+-- Keep the audit actor FK efficiently indexable (structural integrity gate).
+create index mobile_release_updated_by_idx
+on public.mobile_release_policies(updated_by)
+where updated_by is not null;
+
 alter table public.mobile_release_policies enable row level security;
 
 -- Disabled / draft policies cannot be queried by anonymous users.
