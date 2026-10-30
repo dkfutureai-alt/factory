@@ -27,9 +27,10 @@ on public.mobile_release_policies(updated_by);
 
 alter table public.mobile_release_policies enable row level security;
 
--- Disabled / draft policies cannot be queried by anonymous users.
-create policy mobile_release_public_read on public.mobile_release_policies
-for select to anon, authenticated using (enabled);
+-- Published rows are readable by authenticated clients. Anonymous clients
+-- use the least-privilege SECURITY DEFINER RPC below, not direct table access.
+create policy mobile_release_authenticated_read on public.mobile_release_policies
+for select to authenticated using (enabled);
 
 -- Only an actual active platform owner can see draft versions or mutate policy.
 -- Organization administrators cannot modify another client's version policy.
@@ -47,11 +48,44 @@ with check (public.is_platform_owner());
 create policy mobile_release_owner_delete on public.mobile_release_policies
 for delete to authenticated using (public.is_platform_owner());
 
--- Exact grants are needed on newer Supabase projects; do not grant DML to anon.
+-- No anonymous table privileges. This preserves the foundational security
+-- invariant that all FactoryOS public tables are inaccessible to anon.
 revoke all on public.mobile_release_policies from public, anon, authenticated;
-grant select on public.mobile_release_policies to anon;
 grant select, insert, update, delete on public.mobile_release_policies to authenticated;
 grant select, insert, update, delete on public.mobile_release_policies to service_role;
+
+-- The ONLY pre-login data exposed is this published application release DTO.
+-- This function cannot return drafts, staff, tenant IDs, credentials, audit
+-- columns or arbitrary rows. The indexed package ID/platform pair is mandatory.
+create function public.get_mobile_release_policy(
+  p_application_id text,
+  p_platform text
+)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $
+  select jsonb_build_object(
+    'minimum_version', rp.minimum_version,
+    'latest_version', rp.latest_version,
+    'download_url', rp.download_url,
+    'release_notes', rp.release_notes,
+    'maintenance_mode', rp.maintenance_mode,
+    'enabled', rp.enabled
+  )
+  from public.mobile_release_policies rp
+  where rp.enabled
+    and rp.application_id = p_application_id
+    and rp.platform = p_platform
+    and length(p_application_id) <= 200
+  limit 1;
+$;
+revoke all on function public.get_mobile_release_policy(text, text)
+  from public, anon, authenticated;
+grant execute on function public.get_mobile_release_policy(text, text)
+  to anon, authenticated;
 
 -- Platform-owner-only edits are automatically stamped with server Auth identity.
 create function public.mobile_release_stamp_update()
