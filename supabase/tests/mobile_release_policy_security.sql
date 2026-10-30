@@ -36,7 +36,7 @@ values
 
 set local role anon;
 
-do $
+do $verify$
 declare
   published jsonb;
 begin
@@ -52,7 +52,7 @@ begin
     raise exception 'Cross-platform policy was exposed';
   end if;
 end;
-$;
+$verify$;
 
 reset role;
 rollback;
