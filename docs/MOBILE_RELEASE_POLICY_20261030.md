@@ -15,9 +15,9 @@ Status: **CODED**, exact-head CI/STAGING/DEVICE/PRODUCTION verification to be re
 
 ## Server authorization
 
-- Table has RLS enabled; published rows are visible to `anon`/`authenticated`, and unpublished rows only to active platform owners.
+- Table has RLS enabled; **anonymous users have zero direct table privileges**. The narrow `public.get_mobile_release_policy(application_id, platform)` SECURITY DEFINER RPC returns published release fields only. Authenticated clients can read published rows; active platform owners can additionally read drafts.
 - Only active `platform_owner` may create/update/delete policies. Anonymous users cannot write; authenticated non-platform owners also fail RLS.
-- Source tests check grants/RLS presence at local reset; **JWT actor-level negative tests** remain required for security approval.
+- Source tests check grants/RLS plus anon RPC published/draft/platform behavior at local reset; **JWT actor-level negative tests** remain required for security approval.
 - This is package-level release metadata, not per-factory authorization. Package IDs must be unique per client, managed by a future approved white-label build registry. No tenant/customer data should ever appear in public policy rows.
 - Backend must validate release policy data independently; direct API access and concurrency must be exercised in isolated staging. No production migration applied.
 
@@ -25,7 +25,7 @@ Status: **CODED**, exact-head CI/STAGING/DEVICE/PRODUCTION verification to be re
 
 - `packages/factoryos_core/test/app_release_policy_test.dart`: numeric semver order, forced/optional/maintenance/current, malformed policy/URL.
 - `apps/mobile/test/mobile_release_gate_test.dart`: block forced/maintenance, optional defer, explicit network error and deliberate HTTPS link open.
-- `supabase/tests/mobile_release_policy_security.sql`: table grants and RLS policy presence (not proof of live actor isolation).
+- `supabase/tests/mobile_release_policy_security.sql`: zero anonymous table grants, published-only scoped RPC, RLS policy presence (not proof of live actor isolation).
 
 Required source CI:
 `Flutter Application Quality`, `Mobile Release Quality`, `Supabase Foundation Checks`, `Release Workflow Lint` on the **exact PR head**, plus reviewed staging Auth/RLS.
