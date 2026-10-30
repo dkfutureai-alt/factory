@@ -23,8 +23,7 @@ create table public.mobile_release_policies (
 
 -- Keep the audit actor FK efficiently indexable (structural integrity gate).
 create index mobile_release_updated_by_idx
-on public.mobile_release_policies(updated_by)
-where updated_by is not null;
+on public.mobile_release_policies(updated_by);
 
 alter table public.mobile_release_policies enable row level security;
 
