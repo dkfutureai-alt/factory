@@ -575,33 +575,11 @@ class _KpiCard extends StatelessWidget {
   final _Kpi data;
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(FactorySpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(child: Icon(data.icon)),
-              const SizedBox(height: FactorySpacing.md),
-              Text(data.label),
-              const SizedBox(height: FactorySpacing.xs),
-              Text(
-                data.value,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: FactorySpacing.xs),
-              Text(
-                data.note,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
+  Widget build(BuildContext context) => FactoryMetricCard(
+        icon: data.icon,
+        label: data.label,
+        value: data.value,
+        detail: data.note,
       );
 }
 
@@ -1034,20 +1012,10 @@ class _ReportError extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(FactorySpacing.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48),
-              const SizedBox(height: FactorySpacing.md),
-              Text(message, textAlign: TextAlign.center),
-              const SizedBox(height: FactorySpacing.md),
-              FilledButton(onPressed: onRetry, child: const Text('Retry')),
-            ],
-          ),
-        ),
+  Widget build(BuildContext context) => FactoryStatePanel(
+        state: FactoryViewState.error,
+        message: message,
+        onRetry: onRetry,
       );
 }
 
