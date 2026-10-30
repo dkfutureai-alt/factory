@@ -66,7 +66,7 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $release$
   select jsonb_build_object(
     'minimum_version', rp.minimum_version,
     'latest_version', rp.latest_version,
@@ -81,7 +81,7 @@ as $
     and rp.platform = p_platform
     and length(p_application_id) <= 200
   limit 1;
-$;
+$release$;
 revoke all on function public.get_mobile_release_policy(text, text)
   from public, anon, authenticated;
 grant execute on function public.get_mobile_release_policy(text, text)
