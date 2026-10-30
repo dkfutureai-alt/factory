@@ -36,7 +36,7 @@ Important invariants:
 | `apps/admin_web/` | Flutter admin portal, workflows and super/organization administration |
 | `apps/mobile/` | Flutter employee/driver/technician app, QR scanner, mobile workflows, notifications |
 | `packages/factoryos_core/` | Shared design system, roles, module and workspace access rules |
-| `supabase/migrations/` | Ordered SQL migrations `0001`–`0052` on the last checked commit |
+| `supabase/migrations/` | Ordered SQL migrations `0001`–`0053` on the last checked commit |
 | `supabase/functions/invite-user/` | Invitation Edge Function (Auth, redirect validation) |
 | `supabase/functions/send-notifications/` | Tenant-recipient-scoped FCM HTTP v1 worker and delivery accounting |
 | `supabase/tests/` | SQL integration checks and actual local Auth/JWT/RLS end-to-end shell flows |
