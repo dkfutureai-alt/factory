@@ -27,4 +27,32 @@ begin
   end if;
 end;
 $$;
+-- Verify the actual public RPC with fictional packages and no tenant data.
+insert into public.mobile_release_policies
+  (application_id, platform, minimum_version, latest_version, download_url, enabled)
+values
+  ('com.example.factorydemo', 'android', '1.0.0', '2.0.0', 'https://example.org/factory', true),
+  ('com.example.factorydraft', 'android', '1.0.0', '2.0.0', 'https://example.org/factory', false);
+
+set local role anon;
+
+do $
+declare
+  published jsonb;
+begin
+  published := public.get_mobile_release_policy('com.example.factorydemo', 'android');
+  if published is null or published->>'minimum_version' <> '1.0.0'
+     or published ? 'updated_by' or published ? 'application_id' then
+    raise exception 'Public DTO leaked fields or lost published policy';
+  end if;
+  if public.get_mobile_release_policy('com.example.factorydraft', 'android') is not null then
+    raise exception 'Draft release policy was exposed';
+  end if;
+  if public.get_mobile_release_policy('com.example.factorydemo', 'ios') is not null then
+    raise exception 'Cross-platform policy was exposed';
+  end if;
+end;
+$;
+
+reset role;
 rollback;
