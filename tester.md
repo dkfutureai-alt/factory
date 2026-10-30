@@ -40,3 +40,7 @@ Use the actual scripts/jobs under `.github/workflows/` and `supabase/tests/`; do
 ## Exit criteria
 
 No unreviewed critical/high defects, no cross-tenant leak, no unbalanced ledger scenario, no fake data in release UI. Acceptance depends on **recorded** automated tests + manual workflow proof + device evidence where relevant. See [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md) for detailed matrix and severity SLA.
+
+## 2026-10-30 premium UI regression focus (not yet executed)
+
+New tests: packages/factoryos_core/test/premium_ui_test.dart. Review Admin module menus for scroll/reachability and selection on 320/390/900/1280dp, text scaling >=200%, keyboard/focus, drawer back and auth sign-out. Review Mobile report KPIs with large/long quantities and empty/failed reporting API, and verify reduced-motion behavior, colors and semantics under light/dark modes. Check real roles, including Super Admin, factory admin, supervisor, warehouse, driver. These are **pending QA**, not observed passes. No stock write is safe to retry without authoritative transaction reconciliation.

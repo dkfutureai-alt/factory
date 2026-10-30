@@ -137,3 +137,7 @@ Start from [docs/INDEX.md](docs/INDEX.md), which links all specialized playbooks
 - **Operations:** [docs/DECISION_LOG.md](docs/DECISION_LOG.md) and [docs/INCIDENT_RUNBOOK.md](docs/INCIDENT_RUNBOOK.md) provide the ADR and incident/recovery protocol.
 
 **Important chronology:** The 2026-10-29 session that introduced these documents observed `main` at `d1f1c64fbd59b179dd3ddae2ed1f01313a5b8b52`, newer than the dated `8a0ed21` snapshot above. It did **not** independently verify named CI on that SHA or re-read live Supabase project state. Re-check before stating production/test status. These documentation additions introduce no business behavior or remote deployment.
+
+## 2026-10-30 scoped premium Flutter UI continuation
+
+The review branch feat/factoryos-premium-ux-foundation-20261030 is based on the open documentation PR #70 branch, not production main. It adds shared theme/accessibility/operational widgets, Admin scrolling module navigation, and responsive Mobile modules and KPI cards. See docs/UI_PREMIUM_IMPLEMENTATION_20261030.md and status.md. No dynamic Super Admin tenant branding API, full A-Z visual sign-off, device QA or production approval is claimed. Before integrating, inspect the exact PR-head Flutter tests/analyze/web build and review how PR #70 is merged, then run real device/screen/role audits. Continue one module at a time; honor all existing inventory, serialized-cylinder, multi-org and production gates.

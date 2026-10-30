@@ -37,6 +37,8 @@ class _FactoryAdminPhase12 extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'FactoryOS Admin',
         theme: FactoryTheme.light(),
+        darkTheme: FactoryTheme.dark(),
+        themeMode: ThemeMode.system,
         home: config.isConfigured ? const _AuthGatePhase12() : const phase11.ConfigPage(),
       );
 }
@@ -128,6 +130,7 @@ class _AdminShellPhase12 extends StatefulWidget {
 
 class _AdminShellPhase12State extends State<_AdminShellPhase12> {
   int index = 0;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -329,9 +332,24 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
     if (index >= tabs.length) index = 0;
     final compact = MediaQuery.sizeOf(context).width < 900;
     if (compact) {
+      // NavigationBar is for a few high-frequency destinations, not 15+
+      // enterprise modules. All other authorized modules stay in the drawer.
+      final quickTabs = <int>[0];
+      for (final label in const ['Inventory', 'Dispatch']) {
+        final tabIndex = tabs.indexWhere((tab) => tab.label == label);
+        if (tabIndex >= 0 && !quickTabs.contains(tabIndex)) {
+          quickTabs.add(tabIndex);
+        }
+      }
+      final quickSelected = quickTabs.indexOf(index);
       return Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
-          title: Text(w.org['name'] as String),
+          title: Text(
+            w.org['name'] as String,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           actions: [
             IconButton(
               tooltip: 'Sign out',
@@ -340,53 +358,63 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
             ),
           ],
         ),
+        drawer: Drawer(
+          child: SafeArea(
+            child: _AdminModuleMenu(
+              organizationName: w.org['name'] as String,
+              tabs: tabs,
+              selectedIndex: index,
+              onSelected: (value) {
+                Navigator.of(context).pop();
+                setState(() => index = value);
+              },
+            ),
+          ),
+        ),
         body: tabs[index].page,
         bottomNavigationBar: NavigationBar(
-          selectedIndex: index,
-          onDestinationSelected: (value) => setState(() => index = value),
-          destinations: tabs
-              .map(
-                (tab) => NavigationDestination(
-                  icon: Icon(tab.icon),
-                  label: tab.label,
-                ),
-              )
-              .toList(),
+          selectedIndex:
+              quickSelected < 0 ? quickTabs.length : quickSelected,
+          onDestinationSelected: (value) {
+            if (value == quickTabs.length) {
+              _scaffoldKey.currentState?.openDrawer();
+            } else {
+              setState(() => index = quickTabs[value]);
+            }
+          },
+          destinations: [
+            for (final tabIndex in quickTabs)
+              NavigationDestination(
+                icon: Icon(tabs[tabIndex].icon),
+                label: tabs[tabIndex].label,
+              ),
+            const NavigationDestination(
+              icon: Icon(Icons.menu_rounded),
+              label: 'All modules',
+            ),
+          ],
         ),
       );
     }
 
+    // Scrolling sidebar is essential when many factory modules are enabled.
     return Scaffold(
-      body: Row(
-        children: [
-          NavigationRail(
-            extended: MediaQuery.sizeOf(context).width > 1160,
-            selectedIndex: index,
-            onDestinationSelected: (value) => setState(() => index = value),
-            leading: const Padding(
-              padding: EdgeInsets.all(FactorySpacing.lg),
-              child: Text(
-                'FactoryOS',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+      body: SafeArea(
+        child: Row(
+          children: [
+            SizedBox(
+              width: 260,
+              child: _AdminModuleMenu(
+                organizationName: w.org['name'] as String,
+                tabs: tabs,
+                selectedIndex: index,
+                onSelected: (value) => setState(() => index = value),
               ),
             ),
-            destinations: tabs
-                .map(
-                  (tab) => NavigationRailDestination(
-                    icon: Icon(tab.icon),
-                    label: Text(tab.label),
-                  ),
-                )
-                .toList(),
-          ),
-          const VerticalDivider(width: 1),
-          Expanded(child: tabs[index].page),
-          IconButton(
-            tooltip: 'Sign out',
-            onPressed: () => Supabase.instance.client.auth.signOut(),
-            icon: const Icon(Icons.logout),
-          ),
-        ],
+            const VerticalDivider(width: 1),
+            Expanded(child: tabs[index].page),
+          ],
+        ),
       ),
     );
   }
@@ -397,6 +425,63 @@ class _Phase12Tab {
   final String label;
   final IconData icon;
   final Widget page;
+}
+
+class _AdminModuleMenu extends StatelessWidget {
+  const _AdminModuleMenu({
+    required this.organizationName,
+    required this.tabs,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final String organizationName;
+  final List<_Phase12Tab> tabs;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) => ListView(
+        padding: const EdgeInsets.symmetric(vertical: FactorySpacing.sm),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(FactorySpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'FactoryOS',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: FactorySpacing.xs),
+                Text(
+                  organizationName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          for (var i = 0; i < tabs.length; i++)
+            ListTile(
+              leading: Icon(tabs[i].icon),
+              title: Text(tabs[i].label),
+              selected: i == selectedIndex,
+              minTileHeight: 48,
+              onTap: () => onSelected(i),
+            ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Sign out'),
+            onTap: () => Supabase.instance.client.auth.signOut(),
+          ),
+        ],
+      );
 }
 
 class _MessagePage extends StatelessWidget {

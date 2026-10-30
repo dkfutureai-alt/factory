@@ -42,6 +42,8 @@ class _FactoryMobilePhase12 extends StatelessWidget {
         title: 'FactoryOS',
         debugShowCheckedModeBanner: false,
         theme: FactoryTheme.light(),
+        darkTheme: FactoryTheme.dark(),
+        themeMode: ThemeMode.system,
         home: config.isConfigured
             ? const _MobileAuthGatePhase12()
             : const phase11.ConfigPage(),
@@ -563,54 +565,64 @@ class _HomeTabPhase12 extends StatelessWidget {
                 ?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: FactorySpacing.md),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: data.modules.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.35,
-              crossAxisSpacing: FactorySpacing.sm,
-              mainAxisSpacing: FactorySpacing.sm,
-            ),
-            itemBuilder: (context, moduleIndex) {
-              final module = data.modules[moduleIndex];
-              final icon = switch (module.key) {
-                'hr' => Icons.groups_2_outlined,
-                'inventory' => Icons.inventory_2_outlined,
-                'production' => Icons.precision_manufacturing_outlined,
-                'quality' => Icons.verified_user_outlined,
-                'warehouse' => Icons.warehouse_outlined,
-                'vehicles' => Icons.local_shipping_outlined,
-                'delivery' => Icons.route_outlined,
-                'maintenance' => Icons.build_circle_outlined,
-                'reports' => Icons.bar_chart_outlined,
-                'notifications' => Icons.notifications_active_outlined,
-                'dashboard' => Icons.dashboard_outlined,
-                _ => Icons.widgets_outlined,
-              };
-              return Card(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(FactoryRadius.lg),
-                  onTap: () => openModule(context, module),
-                  child: Padding(
-                    padding: const EdgeInsets.all(FactorySpacing.md),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(icon, color: FactoryColors.blue),
-                        const SizedBox(height: FactorySpacing.sm),
-                        Text(
-                          module.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                    ),
-                  ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = FactoryLayout.metricColumns(
+                context,
+                constraints.maxWidth,
+              );
+              final largeText =
+                  MediaQuery.textScalerOf(context).scale(1) >= 1.5;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: data.modules.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  mainAxisExtent: largeText ? 172 : (columns == 1 ? 112 : 144),
+                  crossAxisSpacing: FactorySpacing.sm,
+                  mainAxisSpacing: FactorySpacing.sm,
                 ),
+                itemBuilder: (context, moduleIndex) {
+                  final module = data.modules[moduleIndex];
+                  final icon = switch (module.key) {
+                    'hr' => Icons.groups_2_outlined,
+                    'inventory' => Icons.inventory_2_outlined,
+                    'production' => Icons.precision_manufacturing_outlined,
+                    'quality' => Icons.verified_user_outlined,
+                    'warehouse' => Icons.warehouse_outlined,
+                    'vehicles' => Icons.local_shipping_outlined,
+                    'delivery' => Icons.route_outlined,
+                    'maintenance' => Icons.build_circle_outlined,
+                    'reports' => Icons.bar_chart_outlined,
+                    'notifications' => Icons.notifications_active_outlined,
+                    'dashboard' => Icons.dashboard_outlined,
+                    _ => Icons.widgets_outlined,
+                  };
+                  return Card(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(FactoryRadius.lg),
+                      onTap: () => openModule(context, module),
+                      child: Padding(
+                        padding: const EdgeInsets.all(FactorySpacing.md),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(icon, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(height: FactorySpacing.sm),
+                            Text(
+                              module.name,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),

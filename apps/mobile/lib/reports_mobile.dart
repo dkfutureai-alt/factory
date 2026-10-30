@@ -350,53 +350,55 @@ class _MobileReportSnapshot {
 
 class _KpiRows extends StatelessWidget {
   const _KpiRows({required this.data, required this.currencyCode});
+
   final Map<String, dynamic> data;
   final String currencyCode;
 
   @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _KpiCard(
-                  icon: Icons.trending_up,
-                  label: 'Sales billed',
-                  value: _money(data['sales_billed'], currencyCode),
-                ),
-              ),
-              const SizedBox(width: FactorySpacing.sm),
-              Expanded(
-                child: _KpiCard(
-                  icon: Icons.inventory_2_outlined,
-                  label: 'Inventory',
-                  value: _number(data['inventory_quantity']),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: FactorySpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: _KpiCard(
-                  icon: Icons.precision_manufacturing_outlined,
-                  label: 'Output',
-                  value: _number(data['production_output']),
-                ),
-              ),
-              const SizedBox(width: FactorySpacing.sm),
-              Expanded(
-                child: _KpiCard(
-                  icon: Icons.warning_amber_rounded,
-                  label: 'Low stock',
-                  value: '${data['low_stock_items'] ?? 0}',
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
+  Widget build(BuildContext context) {
+    final cards = <Widget>[
+      _KpiCard(
+        icon: Icons.trending_up,
+        label: 'Sales billed',
+        value: _money(data['sales_billed'], currencyCode),
+      ),
+      _KpiCard(
+        icon: Icons.inventory_2_outlined,
+        label: 'Inventory',
+        value: _number(data['inventory_quantity']),
+      ),
+      _KpiCard(
+        icon: Icons.precision_manufacturing_outlined,
+        label: 'Output',
+        value: _number(data['production_output']),
+      ),
+      _KpiCard(
+        icon: Icons.warning_amber_rounded,
+        label: 'Low stock',
+        value: '${data['low_stock_items'] ?? 0}',
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = FactoryLayout.metricColumns(
+          context,
+          constraints.maxWidth,
+        );
+        final cardWidth =
+            (constraints.maxWidth - (columns - 1) * FactorySpacing.sm) /
+                columns;
+        return Wrap(
+          spacing: FactorySpacing.sm,
+          runSpacing: FactorySpacing.sm,
+          children: [
+            for (final card in cards)
+              SizedBox(width: cardWidth, child: card),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _KpiCard extends StatelessWidget {
@@ -405,32 +407,16 @@ class _KpiCard extends StatelessWidget {
     required this.label,
     required this.value,
   });
+
   final IconData icon;
   final String label;
   final String value;
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(FactorySpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: FactoryColors.blue),
-              const SizedBox(height: FactorySpacing.sm),
-              Text(label),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w900),
-              ),
-            ],
-          ),
-        ),
+  Widget build(BuildContext context) => FactoryMetricCard(
+        icon: icon,
+        label: label,
+        value: value,
       );
 }
 

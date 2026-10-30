@@ -76,3 +76,10 @@ Approvals needed:
 ```
 
 **Document maintenance:** update status whenever a scoped task is finished or a dependency changes; reconcile against [docs/PRODUCTION_GO_LIVE_CHECKLIST.md](docs/PRODUCTION_GO_LIVE_CHECKLIST.md). Never invent evidence or close an issue based solely on documentation.
+
+## 2026-10-30 — Premium UI foundation branch (not merged)
+
+- Branch: feat/factoryos-premium-ux-foundation-20261030, based on PR #70 documentation branch. Source changes include shared light/dark Material 3 theme, responsive tokens, optional visual palette, reusable KPI/status/state widgets, Admin Web scrolling module menu, Mobile responsive module cards and shared reporting KPIs.
+- Regression widget tests added at packages/factoryos_core/test/premium_ui_test.dart. **Added is not passed**: exact-head Flutter CI, formatter, real devices and production flows must be checked after PR creation.
+- No backend, RLS, ledger, security or migration change and no production deployment. Dynamic tenant branding from Super Admin and complete A-Z screen adoption remain **PLANNED**.
+- Detailed source/QA matrix: docs/UI_PREMIUM_IMPLEMENTATION_20261030.md. Keep NOT PRODUCTION READY until existing owner-approved release and customer pilot gates pass.
