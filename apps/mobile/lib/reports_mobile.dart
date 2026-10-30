@@ -405,32 +405,16 @@ class _KpiCard extends StatelessWidget {
     required this.label,
     required this.value,
   });
+
   final IconData icon;
   final String label;
   final String value;
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(FactorySpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: FactoryColors.blue),
-              const SizedBox(height: FactorySpacing.sm),
-              Text(label),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w900),
-              ),
-            ],
-          ),
-        ),
+  Widget build(BuildContext context) => FactoryMetricCard(
+        icon: icon,
+        label: label,
+        value: value,
       );
 }
 
