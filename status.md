@@ -83,3 +83,10 @@ Approvals needed:
 - Regression widget tests added at packages/factoryos_core/test/premium_ui_test.dart. **Added is not passed**: exact-head Flutter CI, formatter, real devices and production flows must be checked after PR creation.
 - No backend, RLS, ledger, security or migration change and no production deployment. Dynamic tenant branding from Super Admin and complete A-Z screen adoption remain **PLANNED**.
 - Detailed source/QA matrix: docs/UI_PREMIUM_IMPLEMENTATION_20261030.md. Keep NOT PRODUCTION READY until existing owner-approved release and customer pilot gates pass.
+
+## 2026-10-30 — Mobile app version policy development (stacked review)
+
+- Branch: `feat/factoryos-mobile-release-policy-20261030` based on UI PR #74, not merged. CODED: shared numeric version evaluator, draft SQL 0053 for platform-owner-managed public release metadata, Super Admin version console, installed-package Android/iOS startup check, mandatory/optional/maintenance/error screens, and automated tests.
+- **NOT APPLIED:** SQL 0053 requires independent FactoryOS security and production release review. Existing deployed backend might not have the table and will show a visible retry/continue state.
+- Exact-head CI/test results, native builds, identity/RLS actor tests, and device updates must be collected before CI_VERIFIED or DEVICE_VERIFIED. No signing, customer data, deployments, or live schema changes.
+- See `docs/MOBILE_RELEASE_POLICY_20261030.md`. White-label build system, ads, tenant-wide dynamic branding and safe offline transactional queue remain BLOCKED/PLANNED.
