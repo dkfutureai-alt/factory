@@ -76,11 +76,22 @@ class _MobileReleaseGateState extends State<MobileReleaseGate>
     try {
       next = await (widget.checkPolicy ?? _loadPolicy)();
     } catch (_) {
-      // A network failure is not the same as "no release policy".
-      next = const MobileReleaseState(
-        action: FactoryReleaseAction.current,
-        checkFailed: true,
-      );
+      // A failed refresh must never downgrade a previously verified
+      // force-update/maintenance block into the user-bypassable offline state.
+      // This is session-only: a cold offline start still has no trusted policy.
+      final previous = _state;
+      if (previous != null &&
+          !previous.checkFailed &&
+          (previous.action == FactoryReleaseAction.forceUpdate ||
+              previous.action == FactoryReleaseAction.maintenance)) {
+        next = previous;
+      } else {
+        // A network failure is not the same as "no release policy".
+        next = const MobileReleaseState(
+          action: FactoryReleaseAction.current,
+          checkFailed: true,
+        );
+      }
     }
     if (!mounted || epoch != _epoch) return;
     setState(() {
