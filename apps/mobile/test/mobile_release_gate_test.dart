@@ -98,4 +98,43 @@ void main() {
     expect(opened, url);
     expect(find.text('Factory data'), findsNothing);
   });
+
+  for (final blockedAction in [
+    FactoryReleaseAction.forceUpdate,
+    FactoryReleaseAction.maintenance,
+  ]) {
+    testWidgets('failed refresh cannot bypass previously verified $blockedAction', (
+      tester,
+    ) async {
+      var checks = 0;
+      await tester.pumpWidget(MaterialApp(
+        home: MobileReleaseGate(
+          checkPolicy: () async {
+            checks++;
+            if (checks == 1) {
+              return MobileReleaseState(action: blockedAction);
+            }
+            throw StateError('connection lost during policy refresh');
+          },
+          child: const Text('Protected inventory workspace'),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Protected inventory workspace'), findsNothing);
+
+      await tester.tap(find.text('Check again'));
+      await tester.pumpAndSettle();
+
+      expect(checks, 2);
+      expect(find.text('Protected inventory workspace'), findsNothing);
+      expect(find.text('Continue for now'), findsNothing);
+      expect(find.text('Update check unavailable'), findsNothing);
+      expect(
+        find.text(blockedAction == FactoryReleaseAction.forceUpdate
+            ? 'Update required'
+            : 'Scheduled maintenance'),
+        findsOneWidget,
+      );
+    });
+  }
 }
