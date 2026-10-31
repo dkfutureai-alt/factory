@@ -9,6 +9,7 @@ import 'hr_management.dart';
 import 'inventory_management.dart';
 import 'gas_container_registry.dart';
 import 'maintenance_management.dart';
+import 'mobile_release_management.dart';
 import 'main_phase11.dart' as phase11;
 import 'notification_center.dart';
 import 'pilot_testing.dart';
@@ -316,6 +317,12 @@ class _AdminShellPhase12State extends State<_AdminShellPhase12> {
             actorRole: w.role,
             factories: w.factories,
           ),
+        ),
+      if (w.role == AppRole.platformOwner)
+        _Phase12Tab(
+          'App Updates',
+          Icons.system_update_alt,
+          const MobileReleaseManagementPage(),
         ),
       _Phase12Tab(
         'Modules',

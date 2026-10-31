@@ -12,6 +12,7 @@ import 'hr_self_service.dart';
 import 'inventory_scanner.dart';
 import 'maintenance_technician.dart';
 import 'mobile_session_identity.dart';
+import 'mobile_release_gate.dart';
 import 'main_phase11.dart' as phase11;
 import 'notification_inbox.dart';
 import 'production_execution.dart';
@@ -45,7 +46,7 @@ class _FactoryMobilePhase12 extends StatelessWidget {
         darkTheme: FactoryTheme.dark(),
         themeMode: ThemeMode.system,
         home: config.isConfigured
-            ? const _MobileAuthGatePhase12()
+            ? const MobileReleaseGate(child: _MobileAuthGatePhase12())
             : const phase11.ConfigPage(),
       );
 }

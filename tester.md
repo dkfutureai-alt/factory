@@ -44,3 +44,7 @@ No unreviewed critical/high defects, no cross-tenant leak, no unbalanced ledger 
 ## 2026-10-30 premium UI regression focus (not yet executed)
 
 New tests: packages/factoryos_core/test/premium_ui_test.dart. Review Admin module menus for scroll/reachability and selection on 320/390/900/1280dp, text scaling >=200%, keyboard/focus, drawer back and auth sign-out. Review Mobile report KPIs with large/long quantities and empty/failed reporting API, and verify reduced-motion behavior, colors and semantics under light/dark modes. Check real roles, including Super Admin, factory admin, supervisor, warehouse, driver. These are **pending QA**, not observed passes. No stock write is safe to retry without authoritative transaction reconciliation.
+
+## 2026-10-30 — App update QA scope
+
+New automated tests are under `packages/factoryos_core/test/app_release_policy_test.dart`, `apps/mobile/test/mobile_release_gate_test.dart`, and `supabase/tests/mobile_release_policy_security.sql`. Do not claim passes without exact commit CI. Security review must confirm anon cannot mutate draft/published policies, tenant admin cannot edit policy, and platform owner can update an enabled policy via real JWT. Exercise version comparisons with native iOS/Android build numbers, no-policy behavior, DNS outage, server 404/migration absent, forced update link failure, maintenance, OS background-resume, and a 2-factory shared device. On-device checks and signed update distribution remain NOT TESTED.
