@@ -10,7 +10,7 @@ Status: **CODED**, exact-head CI/STAGING/DEVICE/PRODUCTION verification to be re
 - Pre-login Mobile: `apps/mobile/lib/mobile_release_gate.dart` queries a package/platform-scoped **public non-secret** policy. Semantic versions are compared numerically by `factoryos_core`.
 - A published policy has min/latest version, HTTPS update URL, release notes, maintenance mode, and enabled. Default is **no active policy**. No stock writes or authentication bypasses are added.
 - Optional updates may be deferred during that app session. Forced updates and maintenance prevent the normal workspace from mounting when **a valid policy is received**. The user opens a web/store link explicitly; no silent APK installation.
-- On network or policy-read failure, the app displays an **unverified policy** page with Retry and explicit Continue for now. This is a **fail-open availability choice** for existing industrial operations, NOT an enforcement guarantee. Evaluate signed cached policy or mandatory connectivity requirements before a regulated rollout.
+- On network or policy-read failure **without a previously verified blocking policy in the current app session**, the app displays an **unverified policy** page with Retry and explicit Continue for now. If a force-update or maintenance policy was already verified in this session, a failed refresh **preserves the block** rather than allowing an offline bypass. A **cold offline start still fails open after explicit user choice**; this is NOT guaranteed enforcement. Evaluate signed cached policy, server-side minimum-version enforcement, or mandatory connectivity before a regulated rollout.
 - A resumed app rechecks policy, but its workspace is not unmounted just for a pending network refresh.
 
 ## Server authorization
