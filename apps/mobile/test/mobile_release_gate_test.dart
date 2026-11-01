@@ -62,21 +62,56 @@ void main() {
     expect(find.text('Continue for now'), findsNothing);
   });
 
-  testWidgets('connection error is visibly different from no policy', (
+  testWidgets('cold offline startup and retry cannot bypass release policy', (
     tester,
   ) async {
+    var checks = 0;
     await tester.pumpWidget(MaterialApp(
       home: MobileReleaseGate(
-        checkPolicy: () async => throw StateError('network offline'),
+        checkPolicy: () async {
+          checks++;
+          throw StateError('network offline');
+        },
         child: const Text('Employee attendance'),
       ),
     ));
     await tester.pumpAndSettle();
     expect(find.text('Update check unavailable'), findsOneWidget);
     expect(find.text('Employee attendance'), findsNothing);
-    await tester.tap(find.text('Continue for now'));
+    expect(find.text('Continue for now'), findsNothing);
+    await tester.tap(find.text('Check again'));
     await tester.pumpAndSettle();
-    expect(find.text('Employee attendance'), findsOneWidget);
+    expect(checks, 2);
+    expect(find.text('Update check unavailable'), findsOneWidget);
+    expect(find.text('Employee attendance'), findsNothing);
+  });
+
+  testWidgets('failed refresh after a valid policy blocks workspace', (
+    tester,
+  ) async {
+    var checks = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: MobileReleaseGate(
+        checkPolicy: () async {
+          checks++;
+          if (checks == 1) {
+            return const MobileReleaseState(action: FactoryReleaseAction.optionalUpdate);
+          }
+          throw StateError('network offline');
+        },
+        child: const Text('Protected factory workspace'),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Not now'));
+    await tester.pumpAndSettle();
+    expect(find.text('Protected factory workspace'), findsOneWidget);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(checks, 2);
+    expect(find.text('Update check unavailable'), findsOneWidget);
+    expect(find.text('Protected factory workspace'), findsNothing);
+    expect(find.text('Continue for now'), findsNothing);
   });
 
   testWidgets('trusted update URL is launched explicitly', (tester) async {
