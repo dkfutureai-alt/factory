@@ -10,7 +10,7 @@ Status: **CODED**, exact-head CI/STAGING/DEVICE/PRODUCTION verification to be re
 - Pre-login Mobile: `apps/mobile/lib/mobile_release_gate.dart` queries a package/platform-scoped **public non-secret** policy. Semantic versions are compared numerically by `factoryos_core`.
 - A published policy has min/latest version, HTTPS update URL, release notes, maintenance mode, and enabled. Default is **no active policy**. No stock writes or authentication bypasses are added.
 - Optional updates may be deferred during that app session. Forced updates and maintenance prevent the normal workspace from mounting when **a valid policy is received**. The user opens a web/store link explicitly; no silent APK installation.
-- On network or policy-read failure **without a previously verified blocking policy in the current app session**, the app displays an **unverified policy** page with Retry and explicit Continue for now. If a force-update or maintenance policy was already verified in this session, a failed refresh **preserves the block** rather than allowing an offline bypass. A **cold offline start still fails open after explicit user choice**; this is NOT guaranteed enforcement. Evaluate signed cached policy, server-side minimum-version enforcement, or mandatory connectivity before a regulated rollout.
+- On network or policy-read failure, the app **fails closed**: it shows an unverified-policy screen with Retry and does not mount factory workspaces, including on cold offline startup. If a force-update or maintenance policy was already verified in this session, a failed refresh **preserves that block**. This prioritizes release safety over offline availability: workers cannot open the app while the policy endpoint is unreachable. For regulated offline use, design and independently review a signed, time-bounded cached policy and server-side minimum-version enforcement before enabling any exception.
 - A resumed app rechecks policy, but its workspace is not unmounted just for a pending network refresh.
 
 ## Server authorization
@@ -24,7 +24,7 @@ Status: **CODED**, exact-head CI/STAGING/DEVICE/PRODUCTION verification to be re
 ## Automated checks
 
 - `packages/factoryos_core/test/app_release_policy_test.dart`: numeric semver order, forced/optional/maintenance/current, malformed policy/URL.
-- `apps/mobile/test/mobile_release_gate_test.dart`: block forced/maintenance, optional defer, explicit network error and deliberate HTTPS link open.
+- `apps/mobile/test/mobile_release_gate_test.dart`: block forced/maintenance, optional defer, cold-offline and failed-refresh fail-closed behavior, and deliberate HTTPS link open.
 - `supabase/tests/mobile_release_policy_security.sql`: zero anonymous table grants, published-only scoped RPC, RLS policy presence (not proof of live actor isolation).
 
 Required source CI:
