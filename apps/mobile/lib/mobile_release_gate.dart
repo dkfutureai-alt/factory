@@ -44,7 +44,6 @@ class _MobileReleaseGateState extends State<MobileReleaseGate>
   MobileReleaseState? _state;
   bool _checking = true;
   bool _optionalDismissed = false;
-  bool _allowUnavailable = false;
   int _epoch = 0;
 
   @override
@@ -77,8 +76,8 @@ class _MobileReleaseGateState extends State<MobileReleaseGate>
       next = await (widget.checkPolicy ?? _loadPolicy)();
     } catch (_) {
       // A failed refresh must never downgrade a previously verified
-      // force-update/maintenance block into the user-bypassable offline state.
-      // This is session-only: a cold offline start still has no trusted policy.
+      // force-update/maintenance block. A cold offline start also stays
+      // locked until a release policy can be verified.
       final previous = _state;
       if (previous != null &&
           !previous.checkFailed &&
@@ -87,6 +86,7 @@ class _MobileReleaseGateState extends State<MobileReleaseGate>
         next = previous;
       } else {
         // A network failure is not the same as "no release policy".
+        // Without a verified policy, do not mount factory workspaces.
         next = const MobileReleaseState(
           action: FactoryReleaseAction.current,
           checkFailed: true,
@@ -100,9 +100,7 @@ class _MobileReleaseGateState extends State<MobileReleaseGate>
       if (next.action == FactoryReleaseAction.forceUpdate ||
           next.action == FactoryReleaseAction.maintenance) {
         _optionalDismissed = false;
-        _allowUnavailable = false;
       }
-      if (!next.checkFailed) _allowUnavailable = false;
     });
   }
 
@@ -177,15 +175,12 @@ class _MobileReleaseGateState extends State<MobileReleaseGate>
     // Existing forms and role-gated workspaces remain mounted while a refresh
     // is in flight; the new policy is applied as soon as it arrives.
     if (result.checkFailed) {
-      if (_allowUnavailable) return widget.child;
       return _screen(
         icon: Icons.wifi_off_outlined,
         title: 'Update check unavailable',
         detail: 'We could not verify the latest app requirements. '
-            'Retry when connected. Continuing may use an outdated version.',
+            'Connect to the internet and retry before accessing factory operations.',
         retry: true,
-        secondaryLabel: 'Continue for now',
-        onSecondary: () => setState(() => _allowUnavailable = true),
       );
     }
     switch (result.action) {
