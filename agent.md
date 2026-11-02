@@ -36,7 +36,7 @@ Important invariants:
 | `apps/admin_web/` | Flutter admin portal, workflows and super/organization administration |
 | `apps/mobile/` | Flutter employee/driver/technician app, QR scanner, mobile workflows, notifications |
 | `packages/factoryos_core/` | Shared design system, roles, module and workspace access rules |
-| `supabase/migrations/` | Ordered SQL migrations `0001`–`0052` on the last checked commit |
+| `supabase/migrations/` | Ordered SQL migrations `0001`–`0053` on the last checked commit |
 | `supabase/functions/invite-user/` | Invitation Edge Function (Auth, redirect validation) |
 | `supabase/functions/send-notifications/` | Tenant-recipient-scoped FCM HTTP v1 worker and delivery accounting |
 | `supabase/tests/` | SQL integration checks and actual local Auth/JWT/RLS end-to-end shell flows |
@@ -141,3 +141,7 @@ Start from [docs/INDEX.md](docs/INDEX.md), which links all specialized playbooks
 ## 2026-10-30 scoped premium Flutter UI continuation
 
 The review branch feat/factoryos-premium-ux-foundation-20261030 is based on the open documentation PR #70 branch, not production main. It adds shared theme/accessibility/operational widgets, Admin scrolling module navigation, and responsive Mobile modules and KPI cards. See docs/UI_PREMIUM_IMPLEMENTATION_20261030.md and status.md. No dynamic Super Admin tenant branding API, full A-Z visual sign-off, device QA or production approval is claimed. Before integrating, inspect the exact PR-head Flutter tests/analyze/web build and review how PR #70 is merged, then run real device/screen/role audits. Continue one module at a time; honor all existing inventory, serialized-cylinder, multi-org and production gates.
+
+## 2026-10-30 — Mobile version-management follow-on (stacked PR)
+
+New feature branch `feat/factoryos-mobile-release-policy-20261030` builds on premium UI PR #74. Proposed `0053_mobile_release_policies.sql` and `docs/MOBILE_RELEASE_POLICY_20261030.md` describe the platform-owner release policy contract and Mobile pre-login gate. Keep this migration un-applied pending owner-controlled review; neither release signing nor tenant-specific app builds are implemented. Recheck exact-head CI, RLS actor tests and real-device behavior. Policy errors show a clearly marked 'Continue for now' fallback, so offline update enforcement is not guaranteed. Never use a policy row as authorization to execute cylinder or stock transactions.
