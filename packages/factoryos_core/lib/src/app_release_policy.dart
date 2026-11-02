@@ -70,6 +70,12 @@ class FactoryReleasePolicy {
     final uri = urlValue == null || urlValue.isEmpty
         ? null
         : Uri.tryParse(urlValue);
+    // A malformed non-empty address must not silently become a missing link.
+    // In particular, a mandatory-update screen must not lose its only
+    // configured update destination because URI parsing failed.
+    if (urlValue != null && urlValue.isNotEmpty && uri == null) {
+      throw const FormatException('Invalid update address.');
+    }
     if (uri != null &&
         (uri.scheme != 'https' || uri.host.isEmpty || uri.userInfo.isNotEmpty)) {
       throw const FormatException('Update address must be HTTPS.');
