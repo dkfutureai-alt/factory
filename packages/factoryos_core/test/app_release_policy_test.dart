@@ -47,5 +47,19 @@ void main() {
       }),
       throwsFormatException,
     );
+    for (final malformedUrl in [
+      'https://[invalid-host]/file.apk',
+      'https://example.org:invalid/file.apk',
+    ]) {
+      expect(
+        () => FactoryReleasePolicy.fromMap({
+          'minimum_version': '1.0.0',
+          'latest_version': '2.0.0',
+          'download_url': malformedUrl,
+        }),
+        throwsFormatException,
+        reason: 'Malformed update URLs must not silently become null.',
+      );
+    }
   });
 }
